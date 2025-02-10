@@ -2,15 +2,55 @@ using UnityEngine;
 
 public class MouseManager : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+    GameObject catchedBlock;
+    private Plane dragPlane;
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        
+        HandleMouseInput();
+    }
+    void HandleMouseInput()
+    {
+        if(Input.GetMouseButtonDown(0))
+        {
+            TryCatchBlock();
+        }
+        else if (Input.GetMouseButton(0) && catchedBlock != null)
+        {
+            MoveCatchedBlock();
+        }
+        else if (Input.GetMouseButtonUp(0))
+        {
+            ReleaseBlock();
+        }
+    }
+    /*블록 잡기를 시도하는 함수*/
+    void TryCatchBlock()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
+            if (hit.collider.CompareTag("Block"))
+            {
+                catchedBlock = hit.collider.transform.parent.gameObject;
+            }
+            dragPlane = new Plane(Vector3.up, hit.point);
+        }
+    }
+    void MoveCatchedBlock()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (dragPlane.Raycast(ray, out float distance))
+        {
+            Vector3 targetPos = ray.GetPoint(distance);
+            catchedBlock.transform.position = targetPos;
+        }
+    }
+    void ReleaseBlock()
+    {
+        if (catchedBlock != null)
+        {
+            catchedBlock = null;
+        }
     }
 }
