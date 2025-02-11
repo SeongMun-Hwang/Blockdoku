@@ -50,7 +50,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mat_Red: {fileID: 2100000, guid: 78be7179d1927764c9b37d12de12f688, type: 2}
   mat_Green: {fileID: 2100000, guid: 6cc52bddfd9a444489e0548ebf5fc97a, type: 2}
-  mat_Blue: {fileID: 2100000, guid: 881d620bcf123fb4f92f51967feac49e, type: 2}
+  mat_Alpha: {fileID: 2100000, guid: 2d88a842372afd440b445b5db6755e75, type: 2}
 --- !u!1001 &2161032694533515439
 PrefabInstance:
   m_ObjectHideFlags: 0
