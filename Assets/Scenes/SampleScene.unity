@@ -4417,6 +4417,7 @@ MonoBehaviour:
     - {fileID: 1059299493}
     - {fileID: 483891203}
     - {fileID: 1058183710}
+  mouseManager: {fileID: 861520409}
 --- !u!1001 &1329942388
 PrefabInstance:
   m_ObjectHideFlags: 0

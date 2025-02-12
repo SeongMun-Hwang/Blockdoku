@@ -1,10 +1,11 @@
+using System;
 using UnityEngine;
 
 public class MouseManager : MonoBehaviour
 {
     GameObject catchedBlock;
     private Plane dragPlane;
-
+    public event Action onMouseReleased;
     private void Update()
     {
         HandleMouseInput();
@@ -63,5 +64,6 @@ public class MouseManager : MonoBehaviour
             catchedBlock.GetComponent<BlockMaterialControl>().isClicked = false;
             catchedBlock = null;
         }
+        onMouseReleased?.Invoke();
     }
 }
