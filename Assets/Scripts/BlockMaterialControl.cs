@@ -1,13 +1,19 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class BlockMaterialControl : MonoBehaviour
 {
     List<GameObject> cubes = new List<GameObject>(); // 모든 Cube 저장 리스트
+    HashSet<GameObject> previouslyHitCubes = new HashSet<GameObject>();
+
     [SerializeField] Material mat_Red;
     [SerializeField] Material mat_Green;
     [SerializeField] Material mat_Alpha;
-    HashSet<GameObject> previouslyHitCubes = new HashSet<GameObject>();
+
+    public HashSet<GameObject> hitCubes = new HashSet<GameObject>();
+    public bool isClicked = false;
+    public bool allHitCube;
     private void Start()
     {
         foreach (Transform child in transform)
@@ -17,12 +23,15 @@ public class BlockMaterialControl : MonoBehaviour
     }
     private void Update()
     {
-        ChangeCubeMaterialBelow();
+        if (isClicked)
+        {
+            ChangeCubeMaterialBelow();
+        }
     }
     void ChangeCubeMaterialBelow()
     {
-        bool allHitCube = true;
-        HashSet<GameObject> hitCubes = new HashSet<GameObject>(); // 레이를 맞은 Cube 저장 (중복 제거)
+        allHitCube = true;
+        hitCubes = new HashSet<GameObject>(); // 레이를 맞은 Cube 저장
 
         // 모든 큐브에 대해 레이 쏘기
         foreach (GameObject cube in cubes)
@@ -30,9 +39,8 @@ public class BlockMaterialControl : MonoBehaviour
             Ray ray = new Ray(cube.transform.position, Vector3.down); // 큐브에서 아래로 레이 쏘기
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
-                if (hit.collider.CompareTag("Cube"))
+                if (hit.collider.CompareTag("Cube") && !hit.collider.GetComponent<Cube>().isFilled)
                 {
-                    Debug.Log("Hit Cube: " + hit.collider.name);
                     hitCubes.Add(hit.collider.gameObject); // 레이를 맞은 큐브 추가
                 }
                 else
@@ -55,7 +63,7 @@ public class BlockMaterialControl : MonoBehaviour
         {
             ApplyMaterial(cube, newMaterial);
         }
-        foreach (GameObject cube in previouslyHitCubes)
+        foreach (GameObject cube in previouslyHitCubes.ToList())
         {
             if (!hitCubes.Contains(cube))
             {

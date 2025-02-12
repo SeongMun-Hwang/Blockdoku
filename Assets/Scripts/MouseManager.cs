@@ -33,6 +33,7 @@ public class MouseManager : MonoBehaviour
             if (hit.collider.CompareTag("Block"))
             {
                 catchedBlock = hit.collider.transform.parent.gameObject;
+                catchedBlock.GetComponent<BlockMaterialControl>().isClicked = true;
             }
             dragPlane = new Plane(Vector3.up, hit.point);
         }
@@ -50,6 +51,16 @@ public class MouseManager : MonoBehaviour
     {
         if (catchedBlock != null)
         {
+            BlockMaterialControl blockMaterialControl=catchedBlock.GetComponent<BlockMaterialControl>();
+            if (blockMaterialControl.allHitCube)
+            {
+                foreach(GameObject go in blockMaterialControl.hitCubes)
+                {
+                    go.GetComponent<Cube>().isFilled = true;
+                }
+                Destroy(catchedBlock);
+            }
+            catchedBlock.GetComponent<BlockMaterialControl>().isClicked = false;
             catchedBlock = null;
         }
     }
