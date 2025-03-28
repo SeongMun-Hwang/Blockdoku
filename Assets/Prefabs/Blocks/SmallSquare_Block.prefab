@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6063176164268946573}
   - component: {fileID: -7963529066381860764}
+  - component: {fileID: -1819719939869028152}
   m_Layer: 0
   m_Name: SmallSquare_Block
   m_TagString: Untagged
@@ -48,6 +49,21 @@ MonoBehaviour:
   mat_Red: {fileID: 2100000, guid: 78be7179d1927764c9b37d12de12f688, type: 2}
   mat_Green: {fileID: 2100000, guid: 6cc52bddfd9a444489e0548ebf5fc97a, type: 2}
   mat_Alpha: {fileID: 2100000, guid: 2d88a842372afd440b445b5db6755e75, type: 2}
+  isClicked: 0
+  allHitCube: 0
+--- !u!114 &-1819719939869028152
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7352398340630924297}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 827151898d7a90c468041f6e32c46892, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  blockSpawner: {fileID: 0}
 --- !u!1001 &6897388078186053683
 PrefabInstance:
   m_ObjectHideFlags: 0
