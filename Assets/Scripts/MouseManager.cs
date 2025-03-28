@@ -45,6 +45,7 @@ public class MouseManager : MonoBehaviour
         if (dragPlane.Raycast(ray, out float distance))
         {
             Vector3 targetPos = ray.GetPoint(distance);
+            targetPos.y=catchedBlock.transform.position.y;
             catchedBlock.transform.position = targetPos;
         }
     }
