@@ -12,7 +12,7 @@ public class MouseManager : MonoBehaviour
     }
     void HandleMouseInput()
     {
-        if(Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0))
         {
             TryCatchBlock();
         }
@@ -45,7 +45,7 @@ public class MouseManager : MonoBehaviour
         if (dragPlane.Raycast(ray, out float distance))
         {
             Vector3 targetPos = ray.GetPoint(distance);
-            targetPos.y=catchedBlock.transform.position.y;
+            targetPos.y = catchedBlock.transform.position.y;
             catchedBlock.transform.position = targetPos;
         }
     }
@@ -53,10 +53,10 @@ public class MouseManager : MonoBehaviour
     {
         if (catchedBlock != null)
         {
-            BlockMaterialControl blockMaterialControl=catchedBlock.GetComponent<BlockMaterialControl>();
+            BlockMaterialControl blockMaterialControl = catchedBlock.GetComponent<BlockMaterialControl>();
             if (blockMaterialControl.allHitCube)
             {
-                foreach(GameObject go in blockMaterialControl.hitCubes)
+                foreach (GameObject go in blockMaterialControl.hitCubes)
                 {
                     go.GetComponent<Cube>().isFilled = true;
                 }

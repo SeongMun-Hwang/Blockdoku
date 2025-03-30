@@ -110,4 +110,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mat_Alpha: {fileID: 2100000, guid: 2d88a842372afd440b445b5db6755e75, type: 2}
-  mat_Fill: {fileID: 2100000, guid: 881d620bcf123fb4f92f51967feac49e, type: 2}
+  mat_Fill: {fileID: 2100000, guid: 7beac13029ef5bb418c1bff10974a68d, type: 2}

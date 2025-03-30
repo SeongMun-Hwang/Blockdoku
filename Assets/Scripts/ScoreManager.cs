@@ -14,6 +14,7 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] MouseManager mouseManager;
 
     private int score = 0;
+    private int combo = 1;
     private void OnEnable()
     {
         mouseManager.onMouseReleased += CheckBoard;
@@ -98,13 +99,23 @@ public class ScoreManager : MonoBehaviour
         }
         if (erasableCube.Count > 0)
         {
-            score += erasableCube.Count;
+            if (combo > 1)
+            {
+                UICanvas.Instance.ShowCombo(combo + " Combo!");
+            }
+            score += erasableCube.Count * combo;
+            combo++;
+
             UICanvas.Instance.SetScore(score);
             // 지울 블록 비우기
             foreach (GameObject cube in erasableCube)
             {
                 cube.GetComponent<Cube>().isFilled = false;
             }
+        }
+        else
+        {
+            combo = 1;
         }
     }
 
