@@ -13,7 +13,7 @@ public class BlockSpawner : MonoBehaviour
     }
     private void SpawnBlocks()
     {
-        for(int i=0;i<spawnPos.Count;i++)
+        for (int i = 0; i < spawnPos.Count; i++)
         {
             GameObject go = Instantiate(blockPrefabs[Random.Range(0, blockPrefabs.Count)], spawnPos[i]);
             int randomRot = Random.Range(0, 4);

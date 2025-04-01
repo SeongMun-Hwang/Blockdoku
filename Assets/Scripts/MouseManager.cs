@@ -60,6 +60,7 @@ public class MouseManager : MonoBehaviour
                 {
                     go.GetComponent<Cube>().isFilled = true;
                 }
+                GameManager.Instance.blockSpawner.RemoveBlock(catchedBlock);
                 Destroy(catchedBlock);
             }
             catchedBlock.GetComponent<BlockMaterialControl>().isClicked = false;
