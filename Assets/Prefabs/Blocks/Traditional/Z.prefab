@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2711808999827821675}
   - component: {fileID: 3126079096084347086}
   m_Layer: 0
-  m_Name: ShortZ_Block
+  m_Name: Z
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -66,8 +66,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 827151898d7a90c468041f6e32c46892, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 3
-  height: 2
+  blockArray: {fileID: 11400000, guid: 80ab0d7a5114d7d45b5f499a9558d700, type: 2}
 --- !u!1001 &1431218442612566099
 PrefabInstance:
   m_ObjectHideFlags: 0

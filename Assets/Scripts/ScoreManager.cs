@@ -117,6 +117,18 @@ public class ScoreManager : MonoBehaviour
         {
             combo = 1;
         }
+        UpdateFilledBoard();
     }
-
+    public void UpdateFilledBoard()
+    {
+        bool[,] tempArray = new bool[9, 9];
+        for(int i = 0; i < 9; i++)
+        {
+            for( int j = 0; j < 9; j++)
+            {
+                tempArray[i, j] = grid[i].col[j].GetComponent<Cube>().isFilled;
+            }
+        }
+        GameManager.Instance.UpdateFilledCubeArray(tempArray);
+    }
 }

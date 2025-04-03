@@ -18,10 +18,7 @@ public class BlockSpawner : MonoBehaviour
             GameObject go = Instantiate(blockPrefabs[Random.Range(0, blockPrefabs.Count)], spawnPos[i]);
             int randomRot = Random.Range(0, 4);
             go.transform.rotation = Quaternion.Euler(0, randomRot * 90, 0);
-            if(randomRot % 2 == 1)
-            {
-                go.GetComponent<Block>().ReverseSize();
-            }
+
             spawnedBlocks.Add(go);
         }
     }
