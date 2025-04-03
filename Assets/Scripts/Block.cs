@@ -5,7 +5,7 @@ public class Block : MonoBehaviour
     [SerializeField] BlockArray blockArray;
     public int[,] shape;
 
-    private void Start()
+    private void OnEnable()
     {
         LoadShape();
     }
@@ -22,6 +22,23 @@ public class Block : MonoBehaviour
             {
                 shape[i, j] = (row[j] == '1') ? 1 : 0;
             }
+        }
+    }
+    public void RotateShape(int n)
+    {
+        for (int r = 0; r < n; r++)
+        {
+            int rows = shape.GetLength(0);
+            int cols = shape.GetLength(1);
+            int[,] rotated = new int[cols, rows];
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    rotated[j, rows - 1 - i] = shape[i, j];
+                }
+            }
+            shape = rotated;
         }
     }
 }
