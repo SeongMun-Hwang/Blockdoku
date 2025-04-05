@@ -131,4 +131,8 @@ public class ScoreManager : MonoBehaviour
         }
         GameManager.Instance.UpdateFilledCubeArray(tempArray);
     }
+    public int ReturnScore()
+    {
+        return score;
+    }
 }

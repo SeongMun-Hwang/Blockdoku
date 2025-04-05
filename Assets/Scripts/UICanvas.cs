@@ -1,11 +1,13 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class UICanvas : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI scoreTmp;
     [SerializeField] TextMeshProUGUI comboTmp;
+    [SerializeField] GameObject gameOverPanel;
     private static UICanvas instance;
     public static UICanvas Instance
     {
@@ -40,5 +42,17 @@ public class UICanvas : MonoBehaviour
             comboTmp.color = textColor;
             yield return null;
         }
+    }
+    public void ShowGameOverPanel()
+    {
+        gameOverPanel.SetActive(true);
+    }
+    public void RetryBtnOnclicked()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+    public void TitleBtnOnClicked()
+    {
+        Debug.Log("Back to Title");
     }
 }

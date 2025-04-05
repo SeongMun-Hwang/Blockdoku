@@ -50,7 +50,7 @@ public class GameManager : MonoBehaviour
         }
         if (!canPlace)
         {
-            Debug.Log("Game over");
+            UICanvas.Instance.ShowGameOverPanel();
         }
     }
     private bool CanPlaceBlock(int startX, int startY, int[,] shapeArray)
