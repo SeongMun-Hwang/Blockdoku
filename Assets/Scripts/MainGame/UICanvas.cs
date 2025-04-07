@@ -53,6 +53,6 @@ public class UICanvas : MonoBehaviour
     }
     public void TitleBtnOnClicked()
     {
-        Debug.Log("Back to Title");
+        SceneManager.LoadScene("Title");
     }
 }
