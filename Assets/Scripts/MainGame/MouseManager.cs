@@ -62,10 +62,10 @@ public class MouseManager : MonoBehaviour
                 }
                 GameManager.Instance.blockSpawner.RemoveBlock(catchedBlock);
                 Destroy(catchedBlock);
+                onMouseReleased?.Invoke();
             }
             catchedBlock.GetComponent<BlockMaterialControl>().isClicked = false;
             catchedBlock = null;
         }
-        onMouseReleased?.Invoke();
     }
 }
