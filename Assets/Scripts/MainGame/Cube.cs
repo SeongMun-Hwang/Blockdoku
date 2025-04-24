@@ -12,7 +12,7 @@ public class Cube : MonoBehaviour
         get { return _isFilled; }
         set
         {
-            if(_isFilled != value)
+            if (_isFilled != value)
             {
                 _isFilled = value;
                 onIsFilledChanged?.Invoke(_isFilled);
@@ -32,6 +32,17 @@ public class Cube : MonoBehaviour
 
     void ChangeMaterial(bool isFilled)
     {
-        GetComponent<Renderer>().material = isFilled?mat_Fill:mat_Alpha;
+        if (isFilled)
+        {
+            GetComponent<Renderer>().material = mat_Fill;
+        }
+        else
+        {
+            GetComponent<Animator>().SetTrigger("ChangeMaterial");
+        }
+    }
+    public void ChangeMaterialToAlpha()
+    {
+        GetComponent<Renderer>().material = mat_Alpha;
     }
 }
