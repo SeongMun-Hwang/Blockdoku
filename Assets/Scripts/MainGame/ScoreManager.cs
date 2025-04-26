@@ -14,7 +14,7 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] MouseManager mouseManager;
 
     private int score = 0;
-    private int combo = 1;
+    private int combo = 0;
     private void OnEnable()
     {
         mouseManager.onMouseReleased += CheckBoard;
@@ -45,6 +45,7 @@ public class ScoreManager : MonoBehaviour
             if (isRowFilled)
             {
                 erasableCube.UnionWith(tempCube);
+                combo++;
             }
         }
 
@@ -66,6 +67,7 @@ public class ScoreManager : MonoBehaviour
             if (isColFilled)
             {
                 erasableCube.UnionWith(tempCube);
+                combo++;
             }
         }
 
@@ -94,6 +96,7 @@ public class ScoreManager : MonoBehaviour
                 if (isBlockFilled)
                 {
                     erasableCube.UnionWith(tempCube);
+                    combo++;
                 }
             }
         }
@@ -104,7 +107,6 @@ public class ScoreManager : MonoBehaviour
                 UICanvas.Instance.ShowCombo(combo + " Combo!");
             }
             score += erasableCube.Count * combo;
-            combo++;
 
             UICanvas.Instance.SetScore(score);
             // 지울 블록 비우기
@@ -115,7 +117,7 @@ public class ScoreManager : MonoBehaviour
         }
         else
         {
-            combo = 1;
+            combo = 0;
         }
         UpdateFilledBoard();
     }
