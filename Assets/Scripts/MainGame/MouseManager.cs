@@ -4,6 +4,7 @@ using UnityEngine;
 public class MouseManager : MonoBehaviour
 {
     GameObject catchedBlock;
+    Vector3 prevPos;
     private Plane dragPlane;
     public event Action onMouseReleased;
     private void Update()
@@ -35,6 +36,7 @@ public class MouseManager : MonoBehaviour
             {
                 catchedBlock = hit.collider.transform.parent.gameObject;
                 catchedBlock.GetComponent<BlockMaterialControl>().isClicked = true;
+                prevPos = catchedBlock.transform.position;
             }
             dragPlane = new Plane(Vector3.up, hit.point);
         }
@@ -44,7 +46,7 @@ public class MouseManager : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (dragPlane.Raycast(ray, out float distance))
         {
-            Vector3 targetPos = ray.GetPoint(distance);
+            Vector3 targetPos = ray.GetPoint(distance) + new Vector3(0,0,2f);
             targetPos.y = catchedBlock.transform.position.y;
             catchedBlock.transform.position = targetPos;
         }
@@ -63,6 +65,10 @@ public class MouseManager : MonoBehaviour
                 GameManager.Instance.blockSpawner.RemoveBlock(catchedBlock);
                 Destroy(catchedBlock);
                 onMouseReleased?.Invoke();
+            }
+            else
+            {
+                catchedBlock.transform.position = prevPos;
             }
             catchedBlock.GetComponent<BlockMaterialControl>().isClicked = false;
             catchedBlock = null;
