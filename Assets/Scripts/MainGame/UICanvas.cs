@@ -46,6 +46,7 @@ public class UICanvas : MonoBehaviour
     public void ShowGameOverPanel()
     {
         gameOverPanel.SetActive(true);
+        GameManager.Instance.RemoveGameData();
     }
     public void RetryBtnOnclicked()
     {
@@ -53,6 +54,11 @@ public class UICanvas : MonoBehaviour
     }
     public void TitleBtnOnClicked()
     {
+        SceneManager.LoadScene("Title");
+    }
+    public void BackBtnOnClicked()
+    {
+        GameManager.Instance.SaveGameData();
         SceneManager.LoadScene("Title");
     }
 }

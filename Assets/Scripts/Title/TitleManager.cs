@@ -1,3 +1,4 @@
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -23,6 +24,12 @@ public class TitleManager : MonoBehaviour
     //싱글게임 -> 새게임 버튼
     public void SingleNewBtnOnclicked()
     {
+        string path = Application.persistentDataPath + "/save.json";
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+            Debug.Log("Save file deleted");
+        }
         SceneManager.LoadScene("SingleGame");
     }
     //싱글게임 -> 새게임 버튼

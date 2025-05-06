@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -18,6 +19,10 @@ public class GameManager : MonoBehaviour
     private void OnEnable()
     {
         instance = this;
+    }
+    private void Start()
+    { 
+        scoreManager.LoadBoardData();
     }
     public void UpdateFilledCubeArray(bool[,] array)
     {
@@ -69,5 +74,19 @@ public class GameManager : MonoBehaviour
             }
         }
         return true;
+    }
+    public void SaveGameData()
+    {
+        //blockSpawner.SaveBlockData();
+        scoreManager.SaveBoardData();
+    }
+    public void RemoveGameData()
+    {
+        string path = Application.persistentDataPath + "/save.json";
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+            Debug.Log("Save file deleted");
+        }
     }
 }

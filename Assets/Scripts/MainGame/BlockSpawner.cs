@@ -34,4 +34,27 @@ public class BlockSpawner : MonoBehaviour
     {
         return spawnedBlocks;
     }
+    //블록 데이터 저장
+    public void SaveBlockData()
+    {
+        BlockSaveDatas blockSaveDatas = new BlockSaveDatas();
+        blockSaveDatas.blocks = new List<BlockSaveData>();
+
+        foreach (GameObject go in spawnedBlocks)
+        {
+            Block block = go.GetComponent<Block>();
+            int spawnIndex = spawnPos.IndexOf(go.transform.parent);
+            string prefabName = go.name.Replace("(Clone)", "").Trim();
+            int rotStep = Mathf.RoundToInt(go.transform.rotation.eulerAngles.y / 90) % 4;
+
+            blockSaveDatas.blocks.Add(new BlockSaveData
+            {
+                prefabName = prefabName,
+                spawnIndex = spawnIndex,
+                rotationStep = rotStep
+            });
+        }
+        string json = JsonUtility.ToJson(blockSaveDatas);
+        System.IO.File.WriteAllText(Application.persistentDataPath + "/blockData.json", json);
+    }
 }

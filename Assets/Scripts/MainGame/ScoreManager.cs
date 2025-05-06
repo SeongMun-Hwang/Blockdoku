@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public class ScoreManager : MonoBehaviour
@@ -124,9 +125,9 @@ public class ScoreManager : MonoBehaviour
     public void UpdateFilledBoard()
     {
         bool[,] tempArray = new bool[9, 9];
-        for(int i = 0; i < 9; i++)
+        for (int i = 0; i < 9; i++)
         {
-            for( int j = 0; j < 9; j++)
+            for (int j = 0; j < 9; j++)
             {
                 tempArray[i, j] = grid[i].col[j].GetComponent<Cube>().isFilled;
             }
@@ -136,5 +137,46 @@ public class ScoreManager : MonoBehaviour
     public int ReturnScore()
     {
         return score;
+    }
+    public void SaveBoardData()
+    {
+        SaveData saveData = new SaveData();
+        for (int i = 0; i < 9; i++)
+        {
+            for (int j = 0; j < 9; j++)
+            {
+                saveData.cubeFilledStates[i * 9 + j] = grid[i].col[j].GetComponent<Cube>().isFilled;
+            }
+        }
+        saveData.score = score;
+        saveData.combo = combo;
+
+        string json = JsonUtility.ToJson(saveData);
+        string path = Application.persistentDataPath + "/save.json";
+        File.WriteAllText(path, json);
+        Debug.Log("Data saved to " + path);
+    }
+    public void LoadBoardData()
+    {
+        string path = Application.persistentDataPath + "/save.json";
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            SaveData saveData = JsonUtility.FromJson<SaveData>(json);
+            for (int i = 0; i < 9; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    grid[i].col[j].GetComponent<Cube>().isFilled = saveData.cubeFilledStates[i * 9 + j];
+                }
+            }
+            score = saveData.score;
+            combo = saveData.combo;
+            UICanvas.Instance.SetScore(score);
+        }
+        else
+        {
+            Debug.LogError("Save file not found at " + path);
+        }
     }
 }

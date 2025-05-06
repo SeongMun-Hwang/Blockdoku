@@ -69,6 +69,7 @@ public class MouseManager : MonoBehaviour
             else
             {
                 catchedBlock.transform.position = prevPos;
+                catchedBlock.GetComponent<BlockMaterialControl>().ChangeCubeMaterialBelow();
             }
             catchedBlock.GetComponent<BlockMaterialControl>().isClicked = false;
             catchedBlock = null;

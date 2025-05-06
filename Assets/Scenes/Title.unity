@@ -390,7 +390,7 @@ RectTransform:
   m_GameObject: {fileID: 392550034}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2.6618001, y: 2.6618001, z: 2.6618001}
+  m_LocalScale: {x: 2.2409496, y: 2.2891295, z: 2.6618}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 867913426}
@@ -398,7 +398,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 960, y: 1370}
+  m_AnchoredPosition: {x: 960, y: 1415}
   m_SizeDelta: {x: 320, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &392550036
@@ -462,7 +462,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1043639979}
         m_TargetAssemblyTypeName: TitleManager, Assembly-CSharp
-        m_MethodName: SingleBtnOnClicked
+        m_MethodName: SingleNewBtnOnclicked
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -537,7 +537,7 @@ RectTransform:
   m_GameObject: {fileID: 478797711}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.37568566, y: 0.37568566, z: 0.37568566}
+  m_LocalScale: {x: 0.44623944, y: 0.43684727, z: 0.37568566}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 392550035}
@@ -1393,7 +1393,7 @@ RectTransform:
   m_GameObject: {fileID: 1177263642}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2.6618001, y: 2.6618001, z: 2.6618001}
+  m_LocalScale: {x: 2.2409496, y: 2.2891295, z: 2.6618}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 868680734}
@@ -1401,7 +1401,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 960, y: 1370}
+  m_AnchoredPosition: {x: 960, y: 1415}
   m_SizeDelta: {x: 320, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1177263644
@@ -1465,7 +1465,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1043639979}
         m_TargetAssemblyTypeName: TitleManager, Assembly-CSharp
-        m_MethodName: SingleBtnOnClicked
+        m_MethodName: SingleLoadBtnOnClicked
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

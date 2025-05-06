@@ -28,7 +28,7 @@ public class BlockMaterialControl : MonoBehaviour
             ChangeCubeMaterialBelow();
         }
     }
-    void ChangeCubeMaterialBelow()
+    public void ChangeCubeMaterialBelow()
     {
         allHitCube = true;
         hitCubes = new HashSet<GameObject>(); // 레이를 맞은 Cube 저장
