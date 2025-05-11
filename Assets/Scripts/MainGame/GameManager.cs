@@ -79,14 +79,19 @@ public class GameManager : MonoBehaviour
     {
         //blockSpawner.SaveBlockData();
         scoreManager.SaveBoardData();
+        blockSpawner.SaveBlockData();
     }
     public void RemoveGameData()
     {
-        string path = Application.persistentDataPath + "/save.json";
-        if (File.Exists(path))
+        if (File.Exists(SavePaths.BoardDataPath))
         {
-            File.Delete(path);
-            Debug.Log("Save file deleted");
+            File.Delete(SavePaths.BoardDataPath);
+            Debug.Log("Board Save file deleted");
+        }        
+        if (File.Exists(SavePaths.BlockDataPath))
+        {
+            File.Delete(SavePaths.BlockDataPath);
+            Debug.Log("Block Save file deleted");
         }
     }
 }

@@ -24,11 +24,15 @@ public class TitleManager : MonoBehaviour
     //싱글게임 -> 새게임 버튼
     public void SingleNewBtnOnclicked()
     {
-        string path = Application.persistentDataPath + "/save.json";
-        if (File.Exists(path))
+        if (File.Exists(SavePaths.BoardDataPath))
         {
-            File.Delete(path);
-            Debug.Log("Save file deleted");
+            File.Delete(SavePaths.BoardDataPath);
+            Debug.Log("Board Save file deleted");
+        }
+        if (File.Exists(SavePaths.BlockDataPath))
+        {
+            File.Delete(SavePaths.BlockDataPath);
+            Debug.Log("Block Save file deleted");
         }
         SceneManager.LoadScene("SingleGame");
     }

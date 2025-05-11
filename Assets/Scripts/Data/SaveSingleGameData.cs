@@ -1,6 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public static class SavePaths
+{
+    public static readonly string BlockDataPath = Application.persistentDataPath + "/blockData.json";
+    public static string BoardDataPath = Application.persistentDataPath + "/save.json";
+}
 
 [System.Serializable]
 public class BlockSaveData

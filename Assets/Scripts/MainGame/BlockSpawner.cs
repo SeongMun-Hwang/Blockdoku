@@ -9,7 +9,14 @@ public class BlockSpawner : MonoBehaviour
 
     private void Start()
     {
-        SpawnBlocks();
+        if(System.IO.File.Exists(SavePaths.BlockDataPath))
+        {
+            LoadBlockData();
+        }
+        else
+        {
+            SpawnBlocks();
+        }
     }
     private void SpawnBlocks()
     {
@@ -56,5 +63,25 @@ public class BlockSpawner : MonoBehaviour
         }
         string json = JsonUtility.ToJson(blockSaveDatas);
         System.IO.File.WriteAllText(Application.persistentDataPath + "/blockData.json", json);
+    }
+    public void LoadBlockData()
+    {
+        string json = System.IO.File.ReadAllText(SavePaths.BlockDataPath);
+        BlockSaveDatas blockSaveDatas = JsonUtility.FromJson<BlockSaveDatas>(json);
+
+        foreach (BlockSaveData data in blockSaveDatas.blocks)
+        {
+            GameObject prefab = blockPrefabs.Find(x => x.name == data.prefabName);
+            if (prefab == null)
+            {
+                Debug.LogWarning($"Prefab {data.prefabName} not found.");
+                continue;
+            }
+            Transform transform = spawnPos[data.spawnIndex];
+            GameObject go = Instantiate(prefab, transform);
+            go.transform.rotation = Quaternion.Euler(0, data.rotationStep * 90, 0);
+            go.GetComponent<Block>().RotateShape(data.rotationStep);
+            spawnedBlocks.Add(go);
+        }
     }
 }

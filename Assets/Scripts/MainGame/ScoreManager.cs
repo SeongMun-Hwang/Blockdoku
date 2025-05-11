@@ -157,11 +157,10 @@ public class ScoreManager : MonoBehaviour
         Debug.Log("Data saved to " + path);
     }
     public void LoadBoardData()
-    {
-        string path = Application.persistentDataPath + "/save.json";
-        if (File.Exists(path))
+    {       
+        if (File.Exists(SavePaths.BoardDataPath))
         {
-            string json = File.ReadAllText(path);
+            string json = File.ReadAllText(SavePaths.BoardDataPath);
             SaveData saveData = JsonUtility.FromJson<SaveData>(json);
             for (int i = 0; i < 9; i++)
             {
@@ -176,7 +175,7 @@ public class ScoreManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Save file not found at " + path);
+            Debug.Log("Save file not found at " + SavePaths.BoardDataPath);
         }
     }
 }
