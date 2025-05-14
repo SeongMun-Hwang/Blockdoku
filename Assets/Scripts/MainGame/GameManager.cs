@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] public ScoreManager scoreManager;
     [SerializeField] public BlockSpawner blockSpawner;
     [SerializeField] public MouseManager mouseManager;
+    [SerializeField] public AudioManager audioManager;
     private bool[,] filledCubeArray = new bool[9, 9];
 
     private static GameManager instance;

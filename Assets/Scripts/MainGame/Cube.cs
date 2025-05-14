@@ -38,6 +38,7 @@ public class Cube : MonoBehaviour
         }
         else
         {
+            GameManager.Instance.audioManager.PlayerBlockDestoryAudio();
             GetComponent<Animator>().SetTrigger("ChangeMaterial");
         }
     }

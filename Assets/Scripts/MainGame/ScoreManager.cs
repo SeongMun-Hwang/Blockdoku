@@ -178,4 +178,8 @@ public class ScoreManager : MonoBehaviour
             Debug.Log("Save file not found at " + SavePaths.BoardDataPath);
         }
     }
+    public int GetCombo()
+    {
+        return combo;
+    }
 }
