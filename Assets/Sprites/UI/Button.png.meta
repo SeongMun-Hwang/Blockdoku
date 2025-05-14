@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 1b6ca199071bf9f4984c658a58e25619
+guid: 6c946b6e4114f4541ba247c001c93001
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -123,13 +123,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: "ChatGPT Image 2025\uB144 5\uC6D4 4\uC77C \uC624\uD6C4 08_23_55_0"
+      name: Button_0
       rect:
         serializedVersion: 2
-        x: 84
-        y: 182
-        width: 700
-        height: 700
+        x: 223
+        y: 801
+        width: 580
+        height: 580
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -138,20 +138,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 11be28bfca9aa2245be2296303457e8f
-      internalID: 1649663832
+      spriteID: 9519bcd3b10505745b9ebcd513e1a9c3
+      internalID: 1004503334
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: "ChatGPT Image 2025\uB144 5\uC6D4 4\uC77C \uC624\uD6C4 08_23_55_1"
+      name: Button_1
       rect:
         serializedVersion: 2
-        x: 787
-        y: 181
-        width: 700
-        height: 700
+        x: 221
+        y: 186
+        width: 580
+        height: 580
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -160,8 +160,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 1997b276f2a478740ac8b3640f5928fa
-      internalID: 1555922194
+      spriteID: e694357a1981f874bbfce122ed3c0892
+      internalID: -803130050
       vertices: []
       indices: 
       edges: []
@@ -170,7 +170,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 2e7e9a8f6e3302444a2f75f196640cd0
+    spriteID: 79213bcd31349724da11725ff3d95206
     internalID: 0
     vertices: []
     indices: 
@@ -180,8 +180,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      "ChatGPT Image 2025\uB144 5\uC6D4 4\uC77C \uC624\uD6C4 08_23_55_0": 1649663832
-      "ChatGPT Image 2025\uB144 5\uC6D4 4\uC77C \uC624\uD6C4 08_23_55_1": 1555922194
+      Button_0: 1004503334
+      Button_1: -803130050
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

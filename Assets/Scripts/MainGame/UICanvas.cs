@@ -61,4 +61,9 @@ public class UICanvas : MonoBehaviour
         GameManager.Instance.SaveGameData();
         SceneManager.LoadScene("Title");
     }
+    public void ResetBtnOnClicked()
+    {
+        GameManager.Instance.RemoveGameData();
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
 }
