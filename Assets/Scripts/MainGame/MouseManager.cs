@@ -58,6 +58,7 @@ public class MouseManager : MonoBehaviour
             BlockMaterialControl blockMaterialControl = catchedBlock.GetComponent<BlockMaterialControl>();
             if (blockMaterialControl.allHitCube)
             {
+                GameManager.Instance.audioManager.PlayerBlockThudAudio();
                 foreach (GameObject go in blockMaterialControl.hitCubes)
                 {
                     go.GetComponent<Cube>().isFilled = true;

@@ -8,6 +8,7 @@ public class UICanvas : MonoBehaviour
     [SerializeField] TextMeshProUGUI scoreTmp;
     [SerializeField] TextMeshProUGUI comboTmp;
     [SerializeField] GameObject gameOverPanel;
+    [SerializeField] GameObject gameResetPanel;
     private static UICanvas instance;
     public static UICanvas Instance
     {
@@ -61,9 +62,18 @@ public class UICanvas : MonoBehaviour
         GameManager.Instance.SaveGameData();
         SceneManager.LoadScene("Title");
     }
+    //게임 리셋 버튼 Onclick 함수
     public void ResetBtnOnClicked()
+    {
+        gameResetPanel.SetActive(true);
+    }
+    public void ResetPanelYes()
     {
         GameManager.Instance.RemoveGameData();
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+    public void ResetPanelNo()
+    {
+        gameResetPanel.SetActive(false);
     }
 }
