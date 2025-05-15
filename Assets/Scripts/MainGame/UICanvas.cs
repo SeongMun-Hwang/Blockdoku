@@ -2,6 +2,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class UICanvas : MonoBehaviour
 {
@@ -9,6 +10,11 @@ public class UICanvas : MonoBehaviour
     [SerializeField] TextMeshProUGUI comboTmp;
     [SerializeField] GameObject gameOverPanel;
     [SerializeField] GameObject gameResetPanel;
+
+    //음소거 버튼 이미지
+    [SerializeField] Image soundMuteButton;
+    [SerializeField] Sprite soundMute;
+    [SerializeField] Sprite soundOn;
     private static UICanvas instance;
     public static UICanvas Instance
     {
@@ -16,7 +22,7 @@ public class UICanvas : MonoBehaviour
     }
     private void Awake()
     {
-        if(instance == null)
+        if (instance == null)
         {
             instance = this;
         }
@@ -75,5 +81,17 @@ public class UICanvas : MonoBehaviour
     public void ResetPanelNo()
     {
         gameResetPanel.SetActive(false);
+    }
+    public void SoundMuteBtnOnClicked()
+    {
+        GameManager.Instance.audioManager.SetMultipier();
+        if (GameManager.Instance.audioManager.GetMultiplier() == 1)
+        {
+            soundMuteButton.sprite = soundOn;
+        }
+        else
+        {
+            soundMuteButton.sprite = soundMute;
+        }
     }
 }

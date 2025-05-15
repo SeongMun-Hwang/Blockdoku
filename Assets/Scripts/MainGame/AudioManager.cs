@@ -28,4 +28,8 @@ public class AudioManager : MonoBehaviour
         if (multiplier == 1) multiplier = 0;
         else multiplier = 1;
     }
+    public int GetMultiplier()
+    {
+        return multiplier;
+    }
 }
