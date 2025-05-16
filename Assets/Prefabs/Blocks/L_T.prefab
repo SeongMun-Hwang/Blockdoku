@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: -4226532873303589465}
   - component: {fileID: -2551896482358664466}
   m_Layer: 0
-  m_Name: LongT_Block
+  m_Name: L_T
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -28,8 +28,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 0.6, y: 0.6, z: 0.6}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 9189000457584783713}
   - {fileID: 1406808807587616872}
@@ -67,8 +67,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 827151898d7a90c468041f6e32c46892, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 3
-  height: 3
+  blockArray: {fileID: 11400000, guid: 5dd5179b9e14d584fb52ff33a998a82a, type: 2}
 --- !u!1001 &2849449260858390076
 PrefabInstance:
   m_ObjectHideFlags: 0
