@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class BlockSpawner : MonoBehaviour
@@ -20,14 +21,25 @@ public class BlockSpawner : MonoBehaviour
     }
     private void SpawnBlocks()
     {
+        List<int> randomIndexes = Randomize();
         for (int i = 0; i < spawnPos.Count; i++)
         {
-            GameObject go = Instantiate(blockPrefabs[Random.Range(0, blockPrefabs.Count)], spawnPos[i]);
+            GameObject go = Instantiate(blockPrefabs[randomIndexes[i]], spawnPos[i]);
             int randomRot = Random.Range(0, 4);
             go.transform.rotation = Quaternion.Euler(0, randomRot * 90, 0);
             go.GetComponent<Block>().RotateShape(randomRot);
             spawnedBlocks.Add(go);
         }
+    }
+    private List<int> Randomize()
+    {
+        HashSet<int> randomIndexes = new HashSet<int>();
+        while (randomIndexes.Count != 3)
+        {
+            int randomIndex = Random.Range(0, blockPrefabs.Count);
+            randomIndexes.Add(randomIndex);
+        }
+        return randomIndexes.ToList();
     }
     public void RemoveBlock(GameObject go)
     {
