@@ -27,7 +27,18 @@ public class UICanvas : MonoBehaviour
             instance = this;
         }
     }
-
+    private void Start()
+    {
+        GameManager.Instance.audioManager.LoadAudioData();
+        if (GameManager.Instance.audioManager.GetMultiplier() == 1)
+        {
+            soundMuteButton.sprite = soundOn;
+        }
+        else
+        {
+            soundMuteButton.sprite = soundMute;
+        }
+    }
     public void SetScore(int score)
     {
         scoreTmp.text = score.ToString();

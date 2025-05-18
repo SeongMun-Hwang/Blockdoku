@@ -81,6 +81,7 @@ public class GameManager : MonoBehaviour
         //blockSpawner.SaveBlockData();
         scoreManager.SaveBoardData();
         blockSpawner.SaveBlockData();
+        audioManager.SaveAudioData();
     }
     public void RemoveGameData()
     {

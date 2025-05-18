@@ -5,6 +5,7 @@ public static class SavePaths
 {
     public static readonly string BlockDataPath = Application.persistentDataPath + "/blockData.json";
     public static string BoardDataPath = Application.persistentDataPath + "/save.json";
+    public static string SettingDataPath = Application.persistentDataPath + "/setting.json";
 }
 
 [System.Serializable]
@@ -25,6 +26,11 @@ public class SaveData
     public bool[] cubeFilledStates = new bool[81];
     public int score;
     public int combo;
+}
+[System.Serializable]
+public class  AudioData
+{
+    public int multiplier;
 }
 public class SaveSingleGameData : MonoBehaviour
 {

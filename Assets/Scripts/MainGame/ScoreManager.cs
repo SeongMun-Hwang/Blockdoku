@@ -152,7 +152,7 @@ public class ScoreManager : MonoBehaviour
         saveData.combo = combo;
 
         string json = JsonUtility.ToJson(saveData);
-        string path = Application.persistentDataPath + "/save.json";
+        string path = SavePaths.BoardDataPath;
         File.WriteAllText(path, json);
         Debug.Log("Data saved to " + path);
     }
