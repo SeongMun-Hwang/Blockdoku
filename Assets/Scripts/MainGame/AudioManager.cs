@@ -53,6 +53,10 @@ public class AudioManager : MonoBehaviour
     {
         return bgmMute;
     }
+    public void PlayBgm()
+    {
+        audioSource.Play();
+    }
     public void SaveAudioData()
     {
         AudioData audioData = new AudioData();

@@ -46,6 +46,7 @@ public class UICanvas : MonoBehaviour
         if (!GameManager.Instance.audioManager.GetBgmMute())
         {
             bgmMuteButton.sprite = bgmOn;
+            GameManager.Instance.audioManager.PlayBgm();
         }
         else
         {
