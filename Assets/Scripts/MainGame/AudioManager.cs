@@ -5,8 +5,10 @@ public class AudioManager : MonoBehaviour
 {
     [SerializeField] AudioClip blockEraseClip;
     [SerializeField] AudioClip blockThudClip;
+    [SerializeField] AudioClip bgmClip;
     private AudioSource audioSource;
-    private int multiplier = 1;
+    private bool sfxMute;
+    private bool bgmMute;
 
     void Start()
     {
@@ -14,30 +16,48 @@ public class AudioManager : MonoBehaviour
     }
     public void PlayerBlockThudAudio()
     {
-        audioSource.volume = 1f * multiplier;
+        if(sfxMute) return;
         audioSource.PlayOneShot(blockThudClip);
     }
     public void PlayerBlockDestoryAudio()
     {
+        if (sfxMute) return;
         int combo = GameManager.Instance.scoreManager.GetCombo();
-        audioSource.volume = 0.1f * multiplier;
         audioSource.pitch = 1 + (combo * 0.1f);
         audioSource.PlayOneShot(blockEraseClip);
+        audioSource.pitch = 1f;
     }
-    public void SetMultipier()
+    public void SetSfxMute()
     {
-        if (multiplier == 1) multiplier = 0;
-        else multiplier = 1;
+        if (sfxMute == true) sfxMute = false;
+        else sfxMute = true;
     }
-    public int GetMultiplier()
+    public bool GetSfxMute()
     {
-        return multiplier;
+        return sfxMute;
+    }
+    public void SetBgmMute()
+    {
+        if (bgmMute == true)
+        {
+            bgmMute = false;
+            audioSource.Play();
+        }
+        else
+        {
+            bgmMute = true;
+            audioSource.Stop();
+        }
+    }
+    public bool GetBgmMute()
+    {
+        return bgmMute;
     }
     public void SaveAudioData()
     {
         AudioData audioData = new AudioData();
-        audioData.multiplier = multiplier;
-
+        audioData.sfxMute = sfxMute;
+        audioData.bgmMute = bgmMute;
         string json = JsonUtility.ToJson(audioData);
         string path = SavePaths.SettingDataPath;
 
@@ -50,7 +70,8 @@ public class AudioManager : MonoBehaviour
         {
             string json = File.ReadAllText(SavePaths.SettingDataPath);
             AudioData audioData = JsonUtility.FromJson<AudioData>(json);
-            multiplier = audioData.multiplier;
+            sfxMute = audioData.sfxMute;
+            bgmMute = audioData.bgmMute;
             Debug.Log("Audio data loaded from " + SavePaths.SettingDataPath);
         }
         else

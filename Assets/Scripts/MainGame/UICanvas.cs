@@ -12,9 +12,13 @@ public class UICanvas : MonoBehaviour
     [SerializeField] GameObject gameResetPanel;
 
     //음소거 버튼 이미지
-    [SerializeField] Image soundMuteButton;
-    [SerializeField] Sprite soundMute;
-    [SerializeField] Sprite soundOn;
+    [SerializeField] Image sfxMuteButton;
+    [SerializeField] Sprite sfxOff;
+    [SerializeField] Sprite sfxOn;
+
+    [SerializeField] Image bgmMuteButton;
+    [SerializeField] Sprite bgmOff;
+    [SerializeField] Sprite bgmOn;
     private static UICanvas instance;
     public static UICanvas Instance
     {
@@ -30,13 +34,22 @@ public class UICanvas : MonoBehaviour
     private void Start()
     {
         GameManager.Instance.audioManager.LoadAudioData();
-        if (GameManager.Instance.audioManager.GetMultiplier() == 1)
+        if (!GameManager.Instance.audioManager.GetSfxMute())
         {
-            soundMuteButton.sprite = soundOn;
+            sfxMuteButton.sprite = sfxOn;
         }
         else
         {
-            soundMuteButton.sprite = soundMute;
+            sfxMuteButton.sprite = sfxOff;
+        }
+
+        if (!GameManager.Instance.audioManager.GetBgmMute())
+        {
+            bgmMuteButton.sprite = bgmOn;
+        }
+        else
+        {
+            bgmMuteButton.sprite = bgmOff;
         }
     }
     public void SetScore(int score)
@@ -93,16 +106,28 @@ public class UICanvas : MonoBehaviour
     {
         gameResetPanel.SetActive(false);
     }
-    public void SoundMuteBtnOnClicked()
+    public void SfxMuteBtnOnClicked()
     {
-        GameManager.Instance.audioManager.SetMultipier();
-        if (GameManager.Instance.audioManager.GetMultiplier() == 1)
+        GameManager.Instance.audioManager.SetSfxMute();
+        if (!GameManager.Instance.audioManager.GetSfxMute())
         {
-            soundMuteButton.sprite = soundOn;
+            sfxMuteButton.sprite = sfxOn;
         }
         else
         {
-            soundMuteButton.sprite = soundMute;
+            sfxMuteButton.sprite = sfxOff;
+        }
+    }
+    public void BgmMuteBtnOnClicked()
+    {
+        GameManager.Instance.audioManager.SetBgmMute();
+        if (!GameManager.Instance.audioManager.GetBgmMute())
+        {
+            bgmMuteButton.sprite = bgmOn;
+        }
+        else
+        {
+            bgmMuteButton.sprite = bgmOff;
         }
     }
 }

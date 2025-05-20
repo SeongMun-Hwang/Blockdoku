@@ -30,7 +30,8 @@ public class SaveData
 [System.Serializable]
 public class  AudioData
 {
-    public int multiplier;
+    public bool bgmMute;
+    public bool sfxMute;
 }
 public class SaveSingleGameData : MonoBehaviour
 {
