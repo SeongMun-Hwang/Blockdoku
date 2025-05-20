@@ -5,22 +5,8 @@ using UnityEngine.SceneManagement;
 
 public class TitleManager : MonoBehaviour
 {
-    [SerializeField] GameObject singleBtn;
-    private bool isSingleBtnClicked = false;
-    //싱글게임 버튼
-    public void SingleBtnOnClicked()
-    {
-        if (!isSingleBtnClicked)
-        {
-            singleBtn.GetComponent<Animator>().SetTrigger("OnClicked");
-            isSingleBtnClicked = true;
-        }
-        else
-        {
-            singleBtn.GetComponent<Animator>().SetTrigger("OffClicked");
-            isSingleBtnClicked = false;
-        }
-    }
+    [SerializeField] GameObject multiAnnounce;
+    private bool isMultiAnnounceActive = false;
     //싱글게임 -> 새게임 버튼
     public void SingleNewBtnOnclicked()
     {
@@ -43,7 +29,11 @@ public class TitleManager : MonoBehaviour
     }
     public void MultiBtnOnClicked()
     {
-        Debug.Log("Multi game btn clicked");
+        multiAnnounce.SetActive(true);
+    }
+    public void MultiBtnOffClicked()
+    {
+        multiAnnounce.SetActive(false);
     }
     public void QuitBtnOnClicked()
     {
