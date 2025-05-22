@@ -2766,6 +2766,7 @@ MonoBehaviour:
   blockSpawner: {fileID: 1289218158}
   mouseManager: {fileID: 861520409}
   audioManager: {fileID: 11213670}
+  backgroundImg: {fileID: 2036395396}
 --- !u!4 &471281904
 Transform:
   m_ObjectHideFlags: 0
@@ -2780,10 +2781,10 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1322477977}
+  - {fileID: 2036395397}
   - {fileID: 1289218157}
   - {fileID: 861520408}
   - {fileID: 11213671}
-  - {fileID: 2036395397}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &472150344
