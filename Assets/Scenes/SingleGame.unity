@@ -2783,6 +2783,7 @@ Transform:
   - {fileID: 1289218157}
   - {fileID: 861520408}
   - {fileID: 11213671}
+  - {fileID: 2036395397}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &472150344
@@ -6452,7 +6453,6 @@ Transform:
   - {fileID: 437688547}
   - {fileID: 1449892920}
   - {fileID: 1346923874}
-  - {fileID: 2036395397}
   m_Father: {fileID: 471281904}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1322477978
@@ -9523,7 +9523,7 @@ GameObject:
   - component: {fileID: 2036395397}
   - component: {fileID: 2036395398}
   m_Layer: 0
-  m_Name: Square
+  m_Name: BackgroundImg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9538,11 +9538,11 @@ Transform:
   m_GameObject: {fileID: 2036395396}
   serializedVersion: 2
   m_LocalRotation: {x: 0.71879745, y: -0, z: -0, w: 0.6952196}
-  m_LocalPosition: {x: 0, y: -3.45, z: 0.16}
-  m_LocalScale: {x: 4.709983, y: 5.6, z: 4.709983}
+  m_LocalPosition: {x: 0, y: -1.8975, z: 0.088}
+  m_LocalScale: {x: 2.8181562, y: 3.3506863, z: 2.8181562}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1322477977}
+  m_Father: {fileID: 471281904}
   m_LocalEulerAnglesHint: {x: 91.91, y: 0, z: 0}
 --- !u!212 &2036395398
 SpriteRenderer:

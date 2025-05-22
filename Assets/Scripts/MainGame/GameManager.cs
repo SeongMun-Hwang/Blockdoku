@@ -19,6 +19,9 @@ public class GameManager : MonoBehaviour
 
     private void OnEnable()
     {
+        float targetWidthInWorldUnits = 0.5625f; // 기준이 되는 월드 너비
+        float screenAspect = (float)Screen.width / Screen.height;
+        Camera.main.orthographicSize = targetWidthInWorldUnits / screenAspect * 12f;
         instance = this;
     }
     private void Start()
