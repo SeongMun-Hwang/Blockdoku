@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: -7963529066381860764}
   - component: {fileID: -1819719939869028152}
   m_Layer: 0
-  m_Name: SmallSquare_Block
+  m_Name: Dot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -63,7 +63,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 827151898d7a90c468041f6e32c46892, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  blockArray: {fileID: 0}
+  blockArray: {fileID: 11400000, guid: f28beca10b350ab4d9cb87ade345d49e, type: 2}
 --- !u!1001 &6897388078186053683
 PrefabInstance:
   m_ObjectHideFlags: 0

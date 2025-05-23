@@ -3285,9 +3285,9 @@ RectTransform:
   - {fileID: 1711086583}
   m_Father: {fileID: 295346005}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 1}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -1467, y: -197.5}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: -507, y: -197.5}
   m_SizeDelta: {x: 250, y: 250}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &658586492
@@ -6336,6 +6336,10 @@ MonoBehaviour:
   - {fileID: 5584041722498124977, guid: 963b838f1aa1fdb4d9d0070199833a15, type: 3}
   - {fileID: 6651782799563965922, guid: 9f00c4090caf70445a873d6e6a1d781b, type: 3}
   - {fileID: 6651782799563965922, guid: 79326743a5303284a9cb1088439c9f59, type: 3}
+  - {fileID: 7352398340630924297, guid: 414728f75c3499a4bb67045dae3cc460, type: 3}
+  - {fileID: 2567980080897867281, guid: 91308276e80a2f8478bb094448acb5fe, type: 3}
+  - {fileID: 8872351744921879388, guid: 63d88673fdb0b67479927eec8f53e2d3, type: 3}
+  - {fileID: 7352398340630924297, guid: 3be48b294c2718b47aafedcceabba15a, type: 3}
   spawnPos:
   - {fileID: 2055603376}
   - {fileID: 1920092439}
