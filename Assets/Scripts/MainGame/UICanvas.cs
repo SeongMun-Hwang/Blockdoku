@@ -79,6 +79,7 @@ public class UICanvas : MonoBehaviour
     {
         gameOverPanel.SetActive(true);
         GameManager.Instance.RemoveGameData();
+        GameManager.Instance.scoreManager.SaveBestScore();
     }
     public void RetryBtnOnclicked()
     {

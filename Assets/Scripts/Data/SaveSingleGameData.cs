@@ -6,6 +6,7 @@ public static class SavePaths
     public static readonly string BlockDataPath = Application.persistentDataPath + "/blockData.json";
     public static string BoardDataPath = Application.persistentDataPath + "/save.json";
     public static string SettingDataPath = Application.persistentDataPath + "/setting.json";
+    public static string PersonalDataPath = Application.persistentDataPath + "/personal.json";
 }
 
 [System.Serializable]
@@ -32,6 +33,11 @@ public class  AudioData
 {
     public bool bgmMute;
     public bool sfxMute;
+}
+[System.Serializable]
+public class  PersonalData
+{
+    public int bestScore;
 }
 public class SaveSingleGameData : MonoBehaviour
 {

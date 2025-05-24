@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using TMPro;
 using UnityEngine;
 
 public class ScoreManager : MonoBehaviour
@@ -13,7 +14,7 @@ public class ScoreManager : MonoBehaviour
     public Row[] grid;
 
     [SerializeField] MouseManager mouseManager;
-
+    [SerializeField] TextMeshProUGUI bestScoreTmp;
     private int score = 0;
     private int combo = 0;
     private void OnEnable()
@@ -23,6 +24,10 @@ public class ScoreManager : MonoBehaviour
     private void OnDisable()
     {
         mouseManager.onMouseReleased -= CheckBoard;
+    }
+    private void Start()
+    {
+        bestScoreTmp.text = LoadBestScore();
     }
     void CheckBoard()
     {
@@ -177,6 +182,38 @@ public class ScoreManager : MonoBehaviour
         {
             Debug.Log("Save file not found at " + SavePaths.BoardDataPath);
         }
+    }
+    public void SaveBestScore()
+    {
+        PersonalData personalData;
+
+        if (File.Exists(SavePaths.PersonalDataPath))
+        {
+            string json = File.ReadAllText(SavePaths.PersonalDataPath);
+            personalData = JsonUtility.FromJson<PersonalData>(json);
+        }
+        else
+        {
+            personalData = new PersonalData();
+        }
+
+        if (score > personalData.bestScore)
+        {
+            personalData.bestScore = score;
+            string newJson = JsonUtility.ToJson(personalData);
+            File.WriteAllText(SavePaths.PersonalDataPath, newJson);
+        }
+    }
+
+    public string LoadBestScore()
+    {
+        if (File.Exists(SavePaths.PersonalDataPath))
+        {
+            string json = File.ReadAllText(SavePaths.PersonalDataPath);
+            PersonalData personalData = JsonUtility.FromJson<PersonalData>(json);
+            return personalData.bestScore.ToString();
+        }
+        return "";
     }
     public int GetCombo()
     {
