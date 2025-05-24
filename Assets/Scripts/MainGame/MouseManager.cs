@@ -6,6 +6,8 @@ public class MouseManager : MonoBehaviour
     GameObject catchedBlock;
     Vector3 prevPos;
     private Plane dragPlane;
+    private float originalScale = 0.6f;
+    private float increasedScale = 0.6f;
     public event Action onMouseReleased;
     private void Update()
     {
@@ -46,7 +48,7 @@ public class MouseManager : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (dragPlane.Raycast(ray, out float distance))
         {
-            catchedBlock.transform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
+            catchedBlock.transform.localScale = new Vector3(increasedScale, increasedScale, increasedScale);
             Vector3 targetPos = ray.GetPoint(distance) + new Vector3(0,0,3f);
             targetPos.y = catchedBlock.transform.position.y;
             catchedBlock.transform.position = targetPos;
@@ -71,7 +73,7 @@ public class MouseManager : MonoBehaviour
             else
             {
                 catchedBlock.transform.position = prevPos;
-                catchedBlock.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
+                catchedBlock.transform.localScale = new Vector3(originalScale, originalScale, originalScale);
                 catchedBlock.GetComponent<BlockMaterialControl>().ChangeCubeMaterialBelow();
             }
             catchedBlock.GetComponent<BlockMaterialControl>().isClicked = false;

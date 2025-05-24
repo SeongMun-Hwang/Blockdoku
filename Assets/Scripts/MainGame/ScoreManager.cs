@@ -15,6 +15,7 @@ public class ScoreManager : MonoBehaviour
 
     [SerializeField] MouseManager mouseManager;
     [SerializeField] TextMeshProUGUI bestScoreTmp;
+    private int bestScore;
     private int score = 0;
     private int combo = 0;
     private void OnEnable()
@@ -211,6 +212,7 @@ public class ScoreManager : MonoBehaviour
         {
             string json = File.ReadAllText(SavePaths.PersonalDataPath);
             PersonalData personalData = JsonUtility.FromJson<PersonalData>(json);
+            bestScore = personalData.bestScore;
             return personalData.bestScore.ToString();
         }
         return "";
