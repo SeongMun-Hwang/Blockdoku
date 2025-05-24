@@ -103,11 +103,11 @@ public class ScoreManager : MonoBehaviour
         }
         if (erasableCube.Count > 0)
         {
+            score += erasableCube.Count * combo;
             if (combo > 1)
             {
-                UICanvas.Instance.ShowCombo(combo + " Combo!");
+                UICanvas.Instance.ShowCombo(combo + " Combo!\n"+"+"+ erasableCube.Count * combo);
             }
-            score += erasableCube.Count * combo;
 
             UICanvas.Instance.SetScore(score);
             // 지울 블록 비우기
