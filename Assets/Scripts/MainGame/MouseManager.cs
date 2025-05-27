@@ -72,6 +72,10 @@ public class MouseManager : MonoBehaviour
             }
             else
             {
+                if (blockMaterialControl.hitCubes.Count != 0)
+                {
+                    GameManager.Instance.audioManager.PlayErrorAudio();
+                }
                 catchedBlock.transform.position = prevPos;
                 catchedBlock.transform.localScale = new Vector3(originalScale, originalScale, originalScale);
                 catchedBlock.GetComponent<BlockMaterialControl>().ChangeCubeMaterialBelow();

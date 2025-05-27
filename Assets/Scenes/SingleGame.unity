@@ -156,7 +156,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blockEraseClip: {fileID: 8300000, guid: f85f6c2ab0eac60478fecfa20835257c, type: 3}
   blockThudClip: {fileID: 8300000, guid: d3fbce05012e50247a14592d1aad58c4, type: 3}
-  bgmClip: {fileID: 0}
+  errorClip: {fileID: 8300000, guid: e7c82ace47084cf4080eaa5f4d511b3d, type: 3}
 --- !u!4 &11213671
 Transform:
   m_ObjectHideFlags: 0

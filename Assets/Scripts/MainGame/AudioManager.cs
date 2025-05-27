@@ -5,7 +5,7 @@ public class AudioManager : MonoBehaviour
 {
     [SerializeField] AudioClip blockEraseClip;
     [SerializeField] AudioClip blockThudClip;
-    [SerializeField] AudioClip bgmClip;
+    [SerializeField] AudioClip errorClip;
     private AudioSource audioSource;
     private bool sfxMute;
     private bool bgmMute;
@@ -18,6 +18,11 @@ public class AudioManager : MonoBehaviour
     {
         if(sfxMute) return;
         audioSource.PlayOneShot(blockThudClip);
+    }
+    public void PlayErrorAudio()
+    {
+        if (sfxMute) return;
+        audioSource.PlayOneShot(errorClip);
     }
     public void PlayerBlockDestoryAudio()
     {
