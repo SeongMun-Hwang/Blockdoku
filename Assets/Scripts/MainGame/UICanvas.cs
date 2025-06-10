@@ -80,6 +80,7 @@ public class UICanvas : MonoBehaviour
         gameOverPanel.SetActive(true);
         GameManager.Instance.RemoveGameData();
         GameManager.Instance.scoreManager.SaveBestScore();
+        AdManager.Instance.ShowInterstitialAd(); // 광고 표시
     }
     public void RetryBtnOnclicked()
     {
