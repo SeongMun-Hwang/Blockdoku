@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.HwangSeongMun.Blockdoku">
+    
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+
+    <application>
+        <!-- 여기에 필요한 meta-data나 activity 추가 가능 -->
+    </application>
+</manifest>
