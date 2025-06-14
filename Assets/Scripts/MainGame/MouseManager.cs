@@ -7,7 +7,7 @@ public class MouseManager : MonoBehaviour
     Vector3 prevPos;
     private Plane dragPlane;
     private float originalScale = 0.6f;
-    private float increasedScale = 0.7f;
+    private float increasedScale = 0.6f;
     public event Action onMouseReleased;
     private void Update()
     {

@@ -18,6 +18,7 @@ public class ScoreManager : MonoBehaviour
     private int bestScore;
     private int score = 0;
     private int combo = 0;
+    private int itemScore = 0;
     private void OnEnable()
     {
         mouseManager.onMouseReleased += CheckBoard;
@@ -110,6 +111,7 @@ public class ScoreManager : MonoBehaviour
         if (erasableCube.Count > 0)
         {
             score += erasableCube.Count * combo;
+            itemScore += erasableCube.Count * combo;
             if (combo > 1)
             {
                 UICanvas.Instance.ShowCombo(combo + " Combo!\n"+"+"+ erasableCube.Count * combo);
@@ -120,6 +122,11 @@ public class ScoreManager : MonoBehaviour
             foreach (GameObject cube in erasableCube)
             {
                 cube.GetComponent<Cube>().isFilled = false;
+            }
+            if (itemScore >= 1)
+            {
+                itemScore = 0;
+                GameManager.Instance.itemManager.SpawnItem();
             }
         }
         else

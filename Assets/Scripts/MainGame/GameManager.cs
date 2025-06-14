@@ -9,6 +9,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] public BlockSpawner blockSpawner;
     [SerializeField] public MouseManager mouseManager;
     [SerializeField] public AudioManager audioManager;
+    [SerializeField] public ItemManager itemManager;
     [SerializeField] GameObject backgroundImg;
     private bool[,] filledCubeArray = new bool[9, 9];
 

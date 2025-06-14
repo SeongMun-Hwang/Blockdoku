@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -7,7 +8,7 @@ public class BlockSpawner : MonoBehaviour
     [SerializeField] private List<GameObject> blockPrefabs;
     [SerializeField] private List<Transform> spawnPos;
     private List<GameObject> spawnedBlocks = new List<GameObject>();
-
+    public event Action OnBlocksSpawned;
     private void Start()
     {
         if(System.IO.File.Exists(SavePaths.BlockDataPath))
@@ -25,18 +26,19 @@ public class BlockSpawner : MonoBehaviour
         for (int i = 0; i < spawnPos.Count; i++)
         {
             GameObject go = Instantiate(blockPrefabs[randomIndexes[i]], spawnPos[i]);
-            int randomRot = Random.Range(0, 4);
+            int randomRot = UnityEngine.Random.Range(0, 4);
             go.transform.rotation = Quaternion.Euler(0, randomRot * 90, 0);
             go.GetComponent<Block>().RotateShape(randomRot);
             spawnedBlocks.Add(go);
         }
+        OnBlocksSpawned?.Invoke();
     }
     private List<int> Randomize()
     {
         HashSet<int> randomIndexes = new HashSet<int>();
         while (randomIndexes.Count != 3)
         {
-            int randomIndex = Random.Range(0, blockPrefabs.Count);
+            int randomIndex = UnityEngine.Random.Range(0, blockPrefabs.Count);
             randomIndexes.Add(randomIndex);
         }
         return randomIndexes.ToList();
@@ -58,7 +60,6 @@ public class BlockSpawner : MonoBehaviour
     {
         BlockSaveDatas blockSaveDatas = new BlockSaveDatas();
         blockSaveDatas.blocks = new List<BlockSaveData>();
-
         foreach (GameObject go in spawnedBlocks)
         {
             Block block = go.GetComponent<Block>();
