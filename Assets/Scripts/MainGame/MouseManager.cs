@@ -9,6 +9,8 @@ public class MouseManager : MonoBehaviour
     private float originalScale = 0.6f;
     private float increasedScale = 0.6f;
     public event Action onMouseReleased;
+    bool isItemClicked = false;
+    bool isBlockClicked = false;
     private void Update()
     {
         HandleMouseInput();
@@ -36,10 +38,19 @@ public class MouseManager : MonoBehaviour
         {
             if (hit.collider.CompareTag("Block"))
             {
+                isBlockClicked = true;
                 catchedBlock = hit.collider.transform.parent.gameObject;
                 catchedBlock.GetComponent<BlockMaterialControl>().isClicked = true;
                 prevPos = catchedBlock.transform.position;
             }
+            else if (hit.collider.CompareTag("Item"))
+            {
+                isItemClicked = true;
+                catchedBlock = hit.collider.gameObject;
+                catchedBlock.GetComponent<ItemMaterialControl>().isClicked = true;
+                prevPos = catchedBlock.transform.position;
+            }
+
             dragPlane = new Plane(Vector3.up, hit.point);
         }
     }
@@ -48,7 +59,7 @@ public class MouseManager : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (dragPlane.Raycast(ray, out float distance))
         {
-            catchedBlock.transform.localScale = new Vector3(increasedScale, increasedScale, increasedScale);
+            //catchedBlock.transform.localScale = new Vector3(increasedScale, increasedScale, increasedScale);
             Vector3 targetPos = ray.GetPoint(distance) + new Vector3(0,0,3f);
             targetPos.y = catchedBlock.transform.position.y;
             catchedBlock.transform.position = targetPos;
@@ -58,30 +69,65 @@ public class MouseManager : MonoBehaviour
     {
         if (catchedBlock != null)
         {
-            BlockMaterialControl blockMaterialControl = catchedBlock.GetComponent<BlockMaterialControl>();
-            if (blockMaterialControl.allHitCube)
+            if (isBlockClicked)
             {
-                GameManager.Instance.audioManager.PlayerBlockThudAudio();
-                foreach (GameObject go in blockMaterialControl.hitCubes)
+                isBlockClicked = false;
+                BlockMaterialControl blockMaterialControl = catchedBlock.GetComponent<BlockMaterialControl>();
+                if (blockMaterialControl.allHitCube)
                 {
-                    go.GetComponent<Cube>().isFilled = true;
+                    GameManager.Instance.audioManager.PlayerBlockThudAudio();
+                    foreach (GameObject go in blockMaterialControl.hitCubes)
+                    {
+                        go.GetComponent<Cube>().isFilled = true;
+                    }
+                    GameManager.Instance.blockSpawner.RemoveBlock(catchedBlock);
+                    Destroy(catchedBlock);
+                    onMouseReleased?.Invoke();
                 }
-                GameManager.Instance.blockSpawner.RemoveBlock(catchedBlock);
-                Destroy(catchedBlock);
-                onMouseReleased?.Invoke();
+                else
+                {
+                    if (blockMaterialControl.hitCubes.Count != 0)
+                    {
+                        GameManager.Instance.audioManager.PlayErrorAudio();
+                    }
+                    catchedBlock.transform.position = prevPos;
+                    catchedBlock.transform.localScale = new Vector3(originalScale, originalScale, originalScale);
+                    catchedBlock.GetComponent<BlockMaterialControl>().ChangeCubeMaterialBelow();
+                }
+                catchedBlock.GetComponent<BlockMaterialControl>().isClicked = false;
+                catchedBlock = null;
             }
-            else
+            else if (isItemClicked)
             {
-                if (blockMaterialControl.hitCubes.Count != 0)
+                isItemClicked = false;
+                ItemMaterialControl itemMaterialControl = catchedBlock.GetComponent<ItemMaterialControl>();
+                if (itemMaterialControl.hitCubes != null)
+                {
+                    int amount = 0;
+                    foreach (GameObject go in itemMaterialControl.hitCubes)
+                    {
+                        bool isFilled = go.GetComponent<Cube>().isFilled;
+                        if (isFilled)
+                        {
+                            isFilled = false;
+                            amount++;
+                        }
+                    }
+                    GameManager.Instance.scoreManager.AddScore(amount);
+                    GameManager.Instance.blockSpawner.RemoveBlock(catchedBlock);
+                    Destroy(catchedBlock);
+                    onMouseReleased?.Invoke();
+                }
+                else
                 {
                     GameManager.Instance.audioManager.PlayErrorAudio();
+                    catchedBlock.transform.position = prevPos;
+                    catchedBlock.transform.localScale = new Vector3(originalScale, originalScale, originalScale);
+                    catchedBlock.GetComponent<ItemMaterialControl>().ChangeCubeMaterialBelow();
                 }
-                catchedBlock.transform.position = prevPos;
-                catchedBlock.transform.localScale = new Vector3(originalScale, originalScale, originalScale);
-                catchedBlock.GetComponent<BlockMaterialControl>().ChangeCubeMaterialBelow();
+                catchedBlock.GetComponent<ItemMaterialControl>().isClicked = false;
+                catchedBlock = null;
             }
-            catchedBlock.GetComponent<BlockMaterialControl>().isClicked = false;
-            catchedBlock = null;
         }
     }
 }

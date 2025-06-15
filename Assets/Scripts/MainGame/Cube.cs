@@ -5,6 +5,7 @@ public class Cube : MonoBehaviour
 {
     [SerializeField] Material mat_Alpha;
     [SerializeField] Material mat_Fill;
+    [SerializeField] Material mat_Item;
     [SerializeField] GameObject itemMark;
     private bool _isFilled;
     private bool _isItemActive = false;

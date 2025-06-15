@@ -110,8 +110,8 @@ public class ScoreManager : MonoBehaviour
         }
         if (erasableCube.Count > 0)
         {
-            score += erasableCube.Count * combo;
-            itemScore += erasableCube.Count * combo;
+            AddScore(erasableCube.Count);
+
             if (combo > 1)
             {
                 UICanvas.Instance.ShowCombo(combo + " Combo!\n"+"+"+ erasableCube.Count * combo);
@@ -227,5 +227,10 @@ public class ScoreManager : MonoBehaviour
     public int GetCombo()
     {
         return combo;
+    }
+    public void AddScore(int amount)
+    {
+        score += amount * combo;
+        itemScore += amount * combo;
     }
 }
