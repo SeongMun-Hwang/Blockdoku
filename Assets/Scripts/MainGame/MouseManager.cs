@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class MouseManager : MonoBehaviour
@@ -11,6 +12,7 @@ public class MouseManager : MonoBehaviour
     public event Action onMouseReleased;
     bool isItemClicked = false;
     bool isBlockClicked = false;
+    private HashSet<GameObject> lastPreviewedCubes = new HashSet<GameObject>();
     private void Update()
     {
         HandleMouseInput();
@@ -41,7 +43,8 @@ public class MouseManager : MonoBehaviour
                 isBlockClicked = true;
                 catchedBlock = hit.collider.transform.parent.gameObject;
                 catchedBlock.GetComponent<BlockMaterialControl>().isClicked = true;
-                prevPos = catchedBlock.transform.position;
+            prevPos = catchedBlock.transform.position;
+            StopBlinkingAll();
             }
             else if (hit.collider.CompareTag("Item"))
             {
@@ -63,6 +66,32 @@ public class MouseManager : MonoBehaviour
             Vector3 targetPos = ray.GetPoint(distance) + new Vector3(0,0,3f);
             targetPos.y = catchedBlock.transform.position.y;
             catchedBlock.transform.position = targetPos;
+
+            if (isBlockClicked)
+            {
+                BlockMaterialControl blockMaterialControl = catchedBlock.GetComponent<BlockMaterialControl>();
+                HashSet<GameObject> erasableCubes = new HashSet<GameObject>();
+                if (blockMaterialControl.allHitCube)
+                {
+                    erasableCubes = GameManager.Instance.scoreManager.CheckBoardForPreview(blockMaterialControl.hitCubes);
+                }
+
+                // Stop blinking for cubes that are no longer in the preview
+                HashSet<GameObject> cubesToStopBlinking = new HashSet<GameObject>(lastPreviewedCubes);
+                cubesToStopBlinking.ExceptWith(erasableCubes);
+                foreach (GameObject cube in cubesToStopBlinking)
+                {
+                    cube.GetComponent<Cube>().StopBlinking();
+                }
+
+                // Start blinking for new preview cubes
+                foreach (GameObject cube in erasableCubes)
+                {
+                    cube.GetComponent<Cube>().StartBlinking();
+                }
+
+                lastPreviewedCubes = erasableCubes;
+            }
         }
     }
     void ReleaseBlock()
@@ -71,6 +100,7 @@ public class MouseManager : MonoBehaviour
         {
             if (isBlockClicked)
             {
+                StopBlinkingAll();
                 isBlockClicked = false;
                 BlockMaterialControl blockMaterialControl = catchedBlock.GetComponent<BlockMaterialControl>();
                 if (blockMaterialControl.allHitCube)
@@ -127,7 +157,23 @@ public class MouseManager : MonoBehaviour
                 }
                 catchedBlock.GetComponent<ItemMaterialControl>().isClicked = false;
                 catchedBlock = null;
+                StopBlinkingAll();
             }
+        }
+    }
+
+    private void StopBlinkingAll()
+    {
+        if (lastPreviewedCubes.Count > 0)
+        {
+            foreach (GameObject cube in lastPreviewedCubes)
+            {
+                if(cube != null)
+                {
+                    cube.GetComponent<Cube>().StopBlinking();
+                }
+            }
+            lastPreviewedCubes.Clear();
         }
     }
 }

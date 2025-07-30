@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 public class Cube : MonoBehaviour
@@ -10,6 +11,8 @@ public class Cube : MonoBehaviour
     private bool _isFilled;
     private bool _isItemActive = false;
     private int turn = 0;
+    private bool isBlinking = false;
+    private Coroutine blinkingCoroutine;
     public bool isFilled
     {
         get { return _isFilled; }
@@ -45,14 +48,77 @@ public class Cube : MonoBehaviour
         }
         else
         {
-            GameManager.Instance.audioManager.PlayerBlockDestoryAudio();
-            GetComponent<Animator>().SetTrigger("ChangeMaterial");
-            SetItemMarkInactive();
+            if (!isBlinking)
+            {
+                GameManager.Instance.audioManager.PlayerBlockDestoryAudio();
+                GetComponent<Animator>().SetTrigger("ChangeMaterial");
+                SetItemMarkInactive();
+            }
         }
     }
     public void ChangeMaterialToAlpha()
     {
         GetComponent<Renderer>().material = mat_Alpha;
+    }
+
+    public void StartBlinking()
+    {
+        if (!isBlinking && blinkingCoroutine==null)
+        {
+            isBlinking = true;
+            blinkingCoroutine = StartCoroutine(Blink());
+        }
+    }
+
+    public void StopBlinking()
+    {
+        if (isBlinking)
+        {
+            isBlinking = false;
+            StopCoroutine(blinkingCoroutine);
+            blinkingCoroutine=null;
+            Renderer renderer = GetComponent<Renderer>();
+            Color originalColor = renderer.material.color;
+            renderer.material.color = new Color(originalColor.r, originalColor.g, originalColor.b, 1f); // 알파 값을 1로 복원
+            if (isFilled)
+            {
+                GetComponent<Renderer>().material = mat_Fill;
+            }
+            else
+            {
+                GetComponent<Renderer>().material = mat_Alpha;
+            }
+        }
+    }
+
+    private IEnumerator Blink()
+    {
+        Renderer renderer = GetComponent<Renderer>();
+        Color originalColor = renderer.material.color;
+        float fadeDuration = 0.75f;
+
+        while (true)
+        {
+            // Fade out
+            float elapsedTime = 0f;
+            while (elapsedTime < fadeDuration)
+            {
+                elapsedTime += Time.deltaTime;
+                float alpha = Mathf.Lerp(1f, 0.2f, elapsedTime / fadeDuration);
+                renderer.material.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
+                yield return null;
+            }
+
+            // Fade in
+            elapsedTime = 0f;
+            while (elapsedTime < fadeDuration)
+            {
+                elapsedTime += Time.deltaTime;
+                float alpha = Mathf.Lerp(0.2f, 1f, elapsedTime / fadeDuration);
+                renderer.material.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
+                yield return null;
+            }
+        }
     }
     public void SetItemMarkActive()
     {
