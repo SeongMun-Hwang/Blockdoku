@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] public ItemManager itemManager;
     [SerializeField] GameObject backgroundImg;
     private bool[,] filledCubeArray = new bool[9, 9];
+    [HideInInspector] public float increasedScale;
 
     private static GameManager instance;
     public static GameManager Instance
@@ -23,6 +24,7 @@ public class GameManager : MonoBehaviour
     {
         float targetWidthInWorldUnits = 0.5625f; // 기준이 되는 월드 너비
         float screenAspect = (float)Screen.width / Screen.height;
+        increasedScale = targetWidthInWorldUnits / screenAspect;
         Camera.main.orthographicSize = targetWidthInWorldUnits / screenAspect * 12f;
         Vector3 currrentImgScale = backgroundImg.transform.localScale;
         backgroundImg.transform.localScale = new Vector3(currrentImgScale.x * targetWidthInWorldUnits / screenAspect,

@@ -8,11 +8,15 @@ public class MouseManager : MonoBehaviour
     Vector3 prevPos;
     private Plane dragPlane;
     private float originalScale = 0.6f;
-    private float increasedScale = 0.6f;
+    private float increasedScale;
     public event Action onMouseReleased;
     bool isItemClicked = false;
     bool isBlockClicked = false;
     private HashSet<GameObject> lastPreviewedCubes = new HashSet<GameObject>();
+    private void Start()
+    {
+        increasedScale = GameManager.Instance.increasedScale/1.75f;
+    }
     private void Update()
     {
         HandleMouseInput();
@@ -42,6 +46,7 @@ public class MouseManager : MonoBehaviour
             {
                 isBlockClicked = true;
                 catchedBlock = hit.collider.transform.parent.gameObject;
+                catchedBlock.transform.localScale = new Vector3(increasedScale, increasedScale, increasedScale);
                 catchedBlock.GetComponent<BlockMaterialControl>().isClicked = true;
             prevPos = catchedBlock.transform.position;
             StopBlinkingAll();
