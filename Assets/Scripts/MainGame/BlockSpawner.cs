@@ -35,6 +35,10 @@ public class BlockSpawner : MonoBehaviour
     }
     private List<int> Randomize()
     {
+        if(blockPrefabs.Count < 3)
+        {
+            return new List<int>() { 0 };
+        }
         HashSet<int> randomIndexes = new HashSet<int>();
         while (randomIndexes.Count != 3)
         {

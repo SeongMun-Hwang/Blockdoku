@@ -10,7 +10,7 @@ public class AudioManager : MonoBehaviour
     private bool sfxMute;
     private bool bgmMute;
 
-    void Start()
+    void Awake()
     {
         audioSource = GetComponent<AudioSource>();
     }

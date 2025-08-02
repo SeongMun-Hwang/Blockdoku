@@ -8,7 +8,7 @@ public class Cube : MonoBehaviour
     [SerializeField] Material mat_Fill;
     [SerializeField] Material mat_Item;
     [SerializeField] GameObject itemMark;
-    private bool _isFilled;
+    public bool _isFilled;
     private bool _isItemActive = false;
     private int turn = 0;
     private bool isBlinking = false;
@@ -26,19 +26,25 @@ public class Cube : MonoBehaviour
         }
     }
     event Action<bool> onIsFilledChanged;
-
-    private void OnEnable()
+    
+    private void Start()
     {
         onIsFilledChanged += ChangeMaterial;
+        GameManager.Instance.blockSpawner.OnBlocksSpawned += IncreaseItemTurn;
+        OnInit();
     }
 
     private void OnDisable()
     {
         onIsFilledChanged -= ChangeMaterial;
+        GameManager.Instance.blockSpawner.OnBlocksSpawned -= IncreaseItemTurn;
     }
-    private void Start()
+    private void OnInit()
     {
-        GameManager.Instance.blockSpawner.OnBlocksSpawned += IncreaseItemTurn;
+        if (isFilled)
+        {
+            GetComponent<Renderer>().material = mat_Fill;
+        }
     }
     void ChangeMaterial(bool isFilled)
     {
