@@ -1,16 +1,31 @@
+using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class TutorialManager : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    [SerializeField] List<GameObject> tutorialBoards;
+    [SerializeField] List<Cube> tutorialCubes;
+    private int tutorialIndex = 0;
+    private void Awake()
     {
-        
+        foreach (Cube cube in tutorialCubes)
+        {
+            cube.onIsFilledChanged += TutorialProgress;
+        }
     }
-
-    // Update is called once per frame
-    void Update()
+    public void TutorialProgress(bool isFilled)
     {
-        
+        if (tutorialIndex == 2)
+        {
+            SceneManager.LoadScene("SingleGame");
+            return;
+        }
+        tutorialBoards[tutorialIndex].gameObject.SetActive(false);
+        tutorialCubes[tutorialIndex].onIsFilledChanged -= TutorialProgress;
+        tutorialIndex++;
+        GameManager.Instance.scoreManager = tutorialBoards[tutorialIndex].GetComponent<ScoreManager>();
+        tutorialBoards[tutorialIndex].SetActive(true);
     }
 }

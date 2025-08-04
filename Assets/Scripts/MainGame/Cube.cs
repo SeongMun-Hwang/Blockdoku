@@ -25,7 +25,7 @@ public class Cube : MonoBehaviour
             }
         }
     }
-    event Action<bool> onIsFilledChanged;
+    public event Action<bool> onIsFilledChanged;
     
     private void Start()
     {
@@ -81,7 +81,7 @@ public class Cube : MonoBehaviour
         if (isBlinking)
         {
             isBlinking = false;
-            StopCoroutine(blinkingCoroutine);
+            if(blinkingCoroutine != null) StopCoroutine(blinkingCoroutine);
             blinkingCoroutine=null;
             Renderer renderer = GetComponent<Renderer>();
             Color originalColor = renderer.material.color;

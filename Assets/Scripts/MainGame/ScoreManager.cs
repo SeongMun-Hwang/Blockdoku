@@ -29,7 +29,10 @@ public class ScoreManager : MonoBehaviour
     }
     private void Start()
     {
-        bestScoreTmp.text = LoadBestScore();
+        if (bestScoreTmp != null)
+        {
+            bestScoreTmp.text = LoadBestScore();
+        }
     }
     void CheckBoard()
     {
@@ -123,10 +126,13 @@ public class ScoreManager : MonoBehaviour
             {
                 cube.GetComponent<Cube>().isFilled = false;
             }
-            if (itemScore >= 1)
+            if (GameManager.Instance.itemManager != null)
             {
-                itemScore = 0;
-                GameManager.Instance.itemManager.SpawnItem();
+                if (itemScore >= 1)
+                {
+                    itemScore = 0;
+                    GameManager.Instance.itemManager.SpawnItem();
+                }
             }
         }
         else
