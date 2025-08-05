@@ -55,6 +55,7 @@ public class UICanvas : MonoBehaviour
     }
     public void SetScore(int score)
     {
+        if (scoreTmp == null) return;
         scoreTmp.text = score.ToString();
     }
     public void ShowCombo(string str)
