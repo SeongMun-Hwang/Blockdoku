@@ -7,6 +7,7 @@ public class TutorialManager : MonoBehaviour
 {
     [SerializeField] List<GameObject> tutorialBoards;
     [SerializeField] List<Cube> tutorialCubes;
+    [SerializeField] GameObject tutorialEndPanel;
     private int tutorialIndex = 0;
     private void Awake()
     {
@@ -19,7 +20,7 @@ public class TutorialManager : MonoBehaviour
     {
         if (tutorialIndex == 2)
         {
-            SceneManager.LoadScene("SingleGame");
+            tutorialEndPanel.SetActive(true);
             return;
         }
         tutorialBoards[tutorialIndex].gameObject.SetActive(false);
@@ -27,5 +28,9 @@ public class TutorialManager : MonoBehaviour
         tutorialIndex++;
         GameManager.Instance.scoreManager = tutorialBoards[tutorialIndex].GetComponent<ScoreManager>();
         tutorialBoards[tutorialIndex].SetActive(true);
+    }
+    public void MoveToSingleGame()
+    {
+        SceneManager.LoadScene("SingleGame");
     }
 }

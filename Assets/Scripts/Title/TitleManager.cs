@@ -25,7 +25,18 @@ public class TitleManager : MonoBehaviour
     //싱글게임 -> 새게임 버튼
     public void SingleLoadBtnOnClicked()
     {
-        SceneManager.LoadScene("SingleGame");
+#if UNITY_EDITOR
+        PlayerPrefs.SetInt("NotFirstTime", 0);
+#endif
+        if (PlayerPrefs.GetInt("NotFirstTime") == 1)
+        {
+            SceneManager.LoadScene("SingleGame");
+        }
+        else
+        {
+            PlayerPrefs.SetInt("NotFirstTime", 1);
+            SceneManager.LoadScene("Tutorial");
+        }
     }
     public void MultiBtnOnClicked()
     {
@@ -42,5 +53,9 @@ public class TitleManager : MonoBehaviour
 #else
         Application.Quit();
 #endif
+    }
+    public void OnQuestionMarkClicked()
+    {
+        SceneManager.LoadScene("Tutorial");
     }
 }

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -10,7 +11,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] public MouseManager mouseManager;
     [SerializeField] public AudioManager audioManager;
     [SerializeField] public ItemManager itemManager;
-    [SerializeField] GameObject backgroundImg;
     private bool[,] filledCubeArray = new bool[9, 9];
     [HideInInspector] public float increasedScale;
 
@@ -26,14 +26,14 @@ public class GameManager : MonoBehaviour
         float screenAspect = (float)Screen.width / Screen.height;
         increasedScale = targetWidthInWorldUnits / screenAspect;
         Camera.main.orthographicSize = targetWidthInWorldUnits / screenAspect * 12f;
-        Vector3 currrentImgScale = backgroundImg.transform.localScale;
-        backgroundImg.transform.localScale = new Vector3(currrentImgScale.x * targetWidthInWorldUnits / screenAspect,
-            currrentImgScale.y * targetWidthInWorldUnits / screenAspect, currrentImgScale.z * targetWidthInWorldUnits / screenAspect);
         instance = this;
     }
     private void Start()
-    { 
-        scoreManager.LoadBoardData();
+    {
+        if (SceneManager.GetActiveScene().name != "Tutorial")
+        {
+            scoreManager.LoadBoardData();
+        }
     }
     public void UpdateFilledCubeArray(bool[,] array)
     {
@@ -99,7 +99,7 @@ public class GameManager : MonoBehaviour
         {
             File.Delete(SavePaths.BoardDataPath);
             Debug.Log("Board Save file deleted");
-        }        
+        }
         if (File.Exists(SavePaths.BlockDataPath))
         {
             File.Delete(SavePaths.BlockDataPath);

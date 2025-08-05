@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class BlockSpawner : MonoBehaviour
 {
@@ -11,9 +12,16 @@ public class BlockSpawner : MonoBehaviour
     public event Action OnBlocksSpawned;
     private void Start()
     {
-        if(System.IO.File.Exists(SavePaths.BlockDataPath))
+        if (SceneManager.GetActiveScene().name != "Tutorial")
         {
-            LoadBlockData();
+            if (System.IO.File.Exists(SavePaths.BlockDataPath))
+            {
+                LoadBlockData();
+            }
+            else
+            {
+                SpawnBlocks();
+            }
         }
         else
         {
@@ -35,7 +43,7 @@ public class BlockSpawner : MonoBehaviour
     }
     private List<int> Randomize()
     {
-        if(blockPrefabs.Count < 3)
+        if (blockPrefabs.Count < 3)
         {
             return new List<int>() { 0 };
         }
