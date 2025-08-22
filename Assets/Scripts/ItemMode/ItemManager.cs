@@ -5,19 +5,26 @@ using UnityEngine;
 public class ItemManager : MonoBehaviour
 {
     [SerializeField] List<GameObject> itemPrefabs;
-    private List<GameObject> blocks = new List<GameObject>();
+    private List<Cube> blocks = new List<Cube>();
     void Start()
     {
-        blocks=GameManager.Instance.scoreManager.grid.SelectMany(row=>row.col).ToList();
+        ScoreManager scoreManager = GameManager.Instance.scoreManager;
+        foreach (var row in scoreManager.grid)
+        {
+            foreach (var col in row.col)
+            {
+                blocks.Add(col.GetComponent<Cube>());
+            }
+        }
     }
 
     public void SpawnItem()
     {
         int randomPos = Random.Range(0, blocks.Count);
         int randomItem = Random.Range(0, itemPrefabs.Count);
-        
-        GameObject targetCube = blocks[randomPos];
-        targetCube.GetComponent<Cube>().SetItemMarkActive();
+
+        Cube targetCube = blocks[randomPos];
+        targetCube.SetItemMarkActive();
     }
     public void GetItem()
     {

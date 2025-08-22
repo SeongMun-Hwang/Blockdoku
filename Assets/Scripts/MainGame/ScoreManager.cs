@@ -36,88 +36,24 @@ public class ScoreManager : MonoBehaviour
     }
     void CheckBoard()
     {
-        HashSet<GameObject> erasableCube = new HashSet<GameObject>();
-
-        // 가로줄 검사
-        for (int i = 0; i < grid.Length; i++)
+        bool[,] currentFilledState = new bool[9, 9];
+        for (int i = 0; i < 9; i++)
         {
-            HashSet<GameObject> tempCube = new HashSet<GameObject>(); // 여기에 선언 (각 루프마다 새로 생성)
-            bool isRowFilled = true;
-            for (int j = 0; j < grid[i].col.Length; j++)
+            for (int j = 0; j < 9; j++)
             {
-                Cube cube = grid[i].col[j].GetComponent<Cube>();
-                if (cube == null || !cube.isFilled)
-                {
-                    isRowFilled = false;
-                    break;
-                }
-                tempCube.Add(cube.gameObject);
-            }
-            if (isRowFilled)
-            {
-                erasableCube.UnionWith(tempCube);
-                combo++;
+                currentFilledState[i, j] = grid[i].col[j].GetComponent<Cube>().isFilled;
             }
         }
 
-        // 세로줄 검사
-        for (int j = 0; j < grid[0].col.Length; j++)
-        {
-            HashSet<GameObject> tempCube = new HashSet<GameObject>(); // 새로운 tempCube 사용
-            bool isColFilled = true;
-            for (int i = 0; i < grid.Length; i++)
-            {
-                Cube cube = grid[i].col[j].GetComponent<Cube>();
-                if (cube == null || !cube.isFilled)
-                {
-                    isColFilled = false;
-                    break;
-                }
-                tempCube.Add(cube.gameObject);
-            }
-            if (isColFilled)
-            {
-                erasableCube.UnionWith(tempCube);
-                combo++;
-            }
-        }
+        HashSet<GameObject> erasableCube = GetErasableCubes(currentFilledState, true);
 
-        // 3x3 검사
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                HashSet<GameObject> tempCube = new HashSet<GameObject>(); // 3x3 검사에서도 새로 선언
-                bool isBlockFilled = true;
-                for (int x = i * 3; x < (i + 1) * 3; x++)
-                {
-                    for (int y = j * 3; y < (j + 1) * 3; y++)
-                    {
-                        Cube cube = grid[x].col[y].GetComponent<Cube>();
-                        if (cube == null || !cube.isFilled)
-                        {
-                            isBlockFilled = false;
-                            break;
-                        }
-                        tempCube.Add(cube.gameObject);
-                    }
-                    if (!isBlockFilled) break;
-                }
-
-                if (isBlockFilled)
-                {
-                    erasableCube.UnionWith(tempCube);
-                    combo++;
-                }
-            }
-        }
         if (erasableCube.Count > 0)
         {
             AddScore(erasableCube.Count);
 
             if (combo > 1)
             {
-                UICanvas.Instance.ShowCombo(combo + " Combo!\n"+"+"+ erasableCube.Count * combo);
+                UICanvas.Instance.ShowCombo(combo + " Combo!\n" + "+" + erasableCube.Count * combo);
             }
 
             UICanvas.Instance.SetScore(score);
@@ -141,6 +77,7 @@ public class ScoreManager : MonoBehaviour
         }
         UpdateFilledBoard();
     }
+
     public void UpdateFilledBoard()
     {
         bool[,] tempArray = new bool[9, 9];
@@ -156,7 +93,6 @@ public class ScoreManager : MonoBehaviour
 
     public HashSet<GameObject> CheckBoardForPreview(HashSet<GameObject> previewCubes)
     {
-        HashSet<GameObject> erasableCube = new HashSet<GameObject>();
         bool[,] previewFilled = new bool[9, 9];
         for (int i = 0; i < 9; i++)
         {
@@ -180,6 +116,13 @@ public class ScoreManager : MonoBehaviour
             }
         }
 
+        return GetErasableCubes(previewFilled, false);
+    }
+
+    private HashSet<GameObject> GetErasableCubes(bool[,] currentFilledState, bool countCombo)
+    {
+        HashSet<GameObject> erasableCube = new HashSet<GameObject>();
+
         // 가로줄 검사
         for (int i = 0; i < 9; i++)
         {
@@ -187,7 +130,7 @@ public class ScoreManager : MonoBehaviour
             HashSet<GameObject> tempCube = new HashSet<GameObject>();
             for (int j = 0; j < 9; j++)
             {
-                if (!previewFilled[i, j])
+                if (!currentFilledState[i, j])
                 {
                     isRowFilled = false;
                     break;
@@ -197,6 +140,7 @@ public class ScoreManager : MonoBehaviour
             if (isRowFilled)
             {
                 erasableCube.UnionWith(tempCube);
+                if (countCombo) combo++;
             }
         }
 
@@ -207,7 +151,7 @@ public class ScoreManager : MonoBehaviour
             HashSet<GameObject> tempCube = new HashSet<GameObject>();
             for (int i = 0; i < 9; i++)
             {
-                if (!previewFilled[i, j])
+                if (!currentFilledState[i, j])
                 {
                     isColFilled = false;
                     break;
@@ -217,6 +161,7 @@ public class ScoreManager : MonoBehaviour
             if (isColFilled)
             {
                 erasableCube.UnionWith(tempCube);
+                if (countCombo) combo++;
             }
         }
 
@@ -231,7 +176,7 @@ public class ScoreManager : MonoBehaviour
                 {
                     for (int y = j * 3; y < (j + 1) * 3; y++)
                     {
-                        if (!previewFilled[x, y])
+                        if (!currentFilledState[x, y])
                         {
                             isBlockFilled = false;
                             break;
@@ -244,6 +189,7 @@ public class ScoreManager : MonoBehaviour
                 if (isBlockFilled)
                 {
                     erasableCube.UnionWith(tempCube);
+                    if (countCombo) combo++;
                 }
             }
         }

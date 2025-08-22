@@ -101,70 +101,79 @@ public class MouseManager : MonoBehaviour
     }
     void ReleaseBlock()
     {
-        if (catchedBlock != null)
+        if (catchedBlock == null) return;
+
+        if (isBlockClicked)
         {
-            if (isBlockClicked)
-            {
-                StopBlinkingAll();
-                isBlockClicked = false;
-                BlockMaterialControl blockMaterialControl = catchedBlock.GetComponent<BlockMaterialControl>();
-                if (blockMaterialControl.allHitCube)
-                {
-                    GameManager.Instance.audioManager.PlayerBlockThudAudio();
-                    foreach (GameObject go in blockMaterialControl.hitCubes)
-                    {
-                        go.GetComponent<Cube>().isFilled = true;
-                    }
-                    GameManager.Instance.blockSpawner.RemoveBlock(catchedBlock);
-                    Destroy(catchedBlock);
-                    onMouseReleased?.Invoke();
-                }
-                else
-                {
-                    if (blockMaterialControl.hitCubes.Count != 0)
-                    {
-                        GameManager.Instance.audioManager.PlayErrorAudio();
-                    }
-                    catchedBlock.transform.position = prevPos;
-                    catchedBlock.transform.localScale = new Vector3(originalScale, originalScale, originalScale);
-                    catchedBlock.GetComponent<BlockMaterialControl>().ChangeCubeMaterialBelow();
-                }
-                catchedBlock.GetComponent<BlockMaterialControl>().isClicked = false;
-                catchedBlock = null;
-            }
-            else if (isItemClicked)
-            {
-                isItemClicked = false;
-                ItemMaterialControl itemMaterialControl = catchedBlock.GetComponent<ItemMaterialControl>();
-                if (itemMaterialControl.hitCubes != null)
-                {
-                    int amount = 0;
-                    foreach (GameObject go in itemMaterialControl.hitCubes)
-                    {
-                        bool isFilled = go.GetComponent<Cube>().isFilled;
-                        if (isFilled)
-                        {
-                            isFilled = false;
-                            amount++;
-                        }
-                    }
-                    GameManager.Instance.scoreManager.AddScore(amount);
-                    GameManager.Instance.blockSpawner.RemoveBlock(catchedBlock);
-                    Destroy(catchedBlock);
-                    onMouseReleased?.Invoke();
-                }
-                else
-                {
-                    GameManager.Instance.audioManager.PlayErrorAudio();
-                    catchedBlock.transform.position = prevPos;
-                    catchedBlock.transform.localScale = new Vector3(originalScale, originalScale, originalScale);
-                    catchedBlock.GetComponent<ItemMaterialControl>().ChangeCubeMaterialBelow();
-                }
-                catchedBlock.GetComponent<ItemMaterialControl>().isClicked = false;
-                catchedBlock = null;
-                StopBlinkingAll();
-            }
+            HandleBlockRelease();
         }
+        else if (isItemClicked)
+        {
+            HandleItemRelease();
+        }
+
+        // Reset common state
+        catchedBlock = null;
+        isBlockClicked = false;
+        isItemClicked = false;
+        StopBlinkingAll();
+    }
+
+    private void HandleBlockRelease()
+    {
+        BlockMaterialControl blockMaterialControl = catchedBlock.GetComponent<BlockMaterialControl>();
+        if (blockMaterialControl.allHitCube)
+        {
+            GameManager.Instance.audioManager.PlayerBlockThudAudio();
+            foreach (GameObject go in blockMaterialControl.hitCubes)
+            {
+                go.GetComponent<Cube>().isFilled = true;
+            }
+            GameManager.Instance.blockSpawner.RemoveBlock(catchedBlock);
+            Destroy(catchedBlock);
+            onMouseReleased?.Invoke();
+        }
+        else
+        {
+            if (blockMaterialControl.hitCubes.Count != 0)
+            {
+                GameManager.Instance.audioManager.PlayErrorAudio();
+            }
+            catchedBlock.transform.position = prevPos;
+            catchedBlock.transform.localScale = new Vector3(originalScale, originalScale, originalScale);
+            blockMaterialControl.ChangeCubeMaterialBelow();
+        }
+        blockMaterialControl.isClicked = false;
+    }
+
+    private void HandleItemRelease()
+    {
+        ItemMaterialControl itemMaterialControl = catchedBlock.GetComponent<ItemMaterialControl>();
+        if (itemMaterialControl.hitCubes != null)
+        {
+            int amount = 0;
+            foreach (GameObject go in itemMaterialControl.hitCubes)
+            {
+                Cube cube = go.GetComponent<Cube>();
+                if (cube.isFilled)
+                {
+                    cube.isFilled = false;
+                    amount++;
+                }
+            }
+            GameManager.Instance.scoreManager.AddScore(amount);
+            GameManager.Instance.blockSpawner.RemoveBlock(catchedBlock);
+            Destroy(catchedBlock);
+            onMouseReleased?.Invoke();
+        }
+        else
+        {
+            GameManager.Instance.audioManager.PlayErrorAudio();
+            catchedBlock.transform.position = prevPos;
+            catchedBlock.transform.localScale = new Vector3(originalScale, originalScale, originalScale);
+            itemMaterialControl.ChangeCubeMaterialBelow();
+        }
+        itemMaterialControl.isClicked = false;
     }
 
     private void StopBlinkingAll()
