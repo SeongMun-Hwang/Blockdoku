@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class AdManager : MonoBehaviour
 {
-    private string _adUnitId = "ca-app-pub-6320794629071327/8837498210";
+    [SerializeField] private string _adUnitId;
     private InterstitialAd _interstitialAd;
 
     public static AdManager Instance { get; private set; }

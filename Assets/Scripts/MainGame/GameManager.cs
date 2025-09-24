@@ -20,14 +20,22 @@ public class GameManager : MonoBehaviour
         get { return instance; }
     }
 
-    private void OnEnable()
+    private void Awake()
     {
-        float targetWidthInWorldUnits = 0.5625f; // 기준이 되는 월드 너비
-        float screenAspect = (float)Screen.width / Screen.height;
-        increasedScale = targetWidthInWorldUnits / screenAspect;
-        Camera.main.orthographicSize = targetWidthInWorldUnits / screenAspect * 12f;
-        instance = this;
+        if (instance == null)
+        {
+            instance = this;
+            float targetWidthInWorldUnits = 0.5625f; // 기준이 되는 월드 너비
+            float screenAspect = (float)Screen.width / Screen.height;
+            increasedScale = targetWidthInWorldUnits / screenAspect;
+            Camera.main.orthographicSize = targetWidthInWorldUnits / screenAspect * 12f;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
+
     private void Start()
     {
         if (SceneManager.GetActiveScene().name != "Tutorial")
