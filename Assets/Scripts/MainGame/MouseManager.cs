@@ -60,8 +60,15 @@ public class MouseManager : MonoBehaviour
                 prevPos = catchedBlock.transform.position;
             }
 
-            float boardY = board.transform.position.y;
-            dragPlane = new Plane(Vector3.up, new Vector3(0, boardY, 0));
+            if (board != null)
+            {
+                float boardY = board.transform.position.y;
+                dragPlane = new Plane(Vector3.up, new Vector3(0, boardY, 0));
+            }
+            else
+            {
+                dragPlane = new Plane(Vector3.up, hit.point);
+            }
         }
     }
     void MoveCatchedBlock()
