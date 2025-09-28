@@ -4081,6 +4081,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae2525c927ed23d4c8b76567481e733b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  board: {fileID: 1322477976}
 --- !u!1 &878348534
 GameObject:
   m_ObjectHideFlags: 0
@@ -9849,6 +9850,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6ad3a2ebcfd2944a918d86a1be35289, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _adUnitId: ca-app-pub-6320794629071327/8837498210
 --- !u!4 &1928069484
 Transform:
   m_ObjectHideFlags: 0

@@ -13,6 +13,7 @@ public class MouseManager : MonoBehaviour
     bool isItemClicked = false;
     bool isBlockClicked = false;
     private HashSet<GameObject> lastPreviewedCubes = new HashSet<GameObject>();
+    [SerializeField] private GameObject board;
     private void Start()
     {
         increasedScale = GameManager.Instance.increasedScale/1.75f;
@@ -59,7 +60,8 @@ public class MouseManager : MonoBehaviour
                 prevPos = catchedBlock.transform.position;
             }
 
-            dragPlane = new Plane(Vector3.up, hit.point);
+            float boardY = board.transform.position.y;
+            dragPlane = new Plane(Vector3.up, new Vector3(0, boardY, 0));
         }
     }
     void MoveCatchedBlock()
@@ -140,7 +142,7 @@ public class MouseManager : MonoBehaviour
                 GameManager.Instance.audioManager.PlayErrorAudio();
             }
             catchedBlock.transform.position = prevPos;
-            catchedBlock.transform.localScale = new Vector3(originalScale, originalScale, originalScale);
+            //catchedBlock.transform.localScale = new Vector3(originalScale, originalScale, originalScale);
             blockMaterialControl.ChangeCubeMaterialBelow();
         }
         blockMaterialControl.isClicked = false;
@@ -170,7 +172,7 @@ public class MouseManager : MonoBehaviour
         {
             GameManager.Instance.audioManager.PlayErrorAudio();
             catchedBlock.transform.position = prevPos;
-            catchedBlock.transform.localScale = new Vector3(originalScale, originalScale, originalScale);
+            //catchedBlock.transform.localScale = new Vector3(originalScale, originalScale, originalScale);
             itemMaterialControl.ChangeCubeMaterialBelow();
         }
         itemMaterialControl.isClicked = false;
