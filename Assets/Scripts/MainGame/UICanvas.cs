@@ -19,6 +19,14 @@ public class UICanvas : MonoBehaviour
     [SerializeField] Image bgmMuteButton;
     [SerializeField] Sprite bgmOff;
     [SerializeField] Sprite bgmOn;
+
+    [SerializeField] Image vibrationMuteButton;
+    [SerializeField] Sprite vibrationOff;
+    [SerializeField] Sprite vibrationOn;
+    private bool isVibrationMuted = false;
+
+    [SerializeField] GameObject settingPanel;
+
     private static UICanvas instance;
     public static UICanvas Instance
     {
@@ -52,6 +60,9 @@ public class UICanvas : MonoBehaviour
         {
             bgmMuteButton.sprite = bgmOff;
         }
+
+        isVibrationMuted = PlayerPrefs.GetInt("VibrationMuted", 0) == 1;
+        UpdateVibrationButtonSprite();
     }
     public void SetScore(int score)
     {
@@ -82,6 +93,11 @@ public class UICanvas : MonoBehaviour
         GameManager.Instance.RemoveGameData();
         GameManager.Instance.scoreManager.SaveBestScore();
         AdManager.Instance.ShowInterstitialAd(); // 광고 표시
+    }
+    public void SettingPanelClicked()
+    {
+        if (settingPanel.activeSelf) settingPanel.SetActive(false);
+        else settingPanel.SetActive(true);
     }
     public void RetryBtnOnclicked()
     {
@@ -132,6 +148,29 @@ public class UICanvas : MonoBehaviour
         else
         {
             bgmMuteButton.sprite = bgmOff;
+        }
+    }
+    public void VibrationMuteBtnOnClicked()
+    {
+        isVibrationMuted = !isVibrationMuted;
+        PlayerPrefs.SetInt("VibrationMuted", isVibrationMuted ? 1 : 0);
+        PlayerPrefs.Save();
+        UpdateVibrationButtonSprite();
+    }
+
+    private void UpdateVibrationButtonSprite()
+    {
+        if (vibrationMuteButton != null)
+        {
+            vibrationMuteButton.sprite = isVibrationMuted ? vibrationOff : vibrationOn;
+        }
+    }
+
+    public void Vibrate()
+    {
+        if (!isVibrationMuted)
+        {
+            Handheld.Vibrate();
         }
     }
 }

@@ -54,6 +54,7 @@ public class ScoreManager : MonoBehaviour
 
         if (erasableCube.Count > 0)
         {
+            UICanvas.Instance.Vibrate();
             foreach (GameObject cube in erasableCube)
             {
                 cube.GetComponent<Cube>().StopBlinking();
