@@ -1280,6 +1280,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae2525c927ed23d4c8b76567481e733b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  board: {fileID: 0}
 --- !u!4 &143568263
 Transform:
   m_ObjectHideFlags: 0
@@ -10528,6 +10529,10 @@ MonoBehaviour:
   bgmMuteButton: {fileID: 199756319}
   bgmOff: {fileID: -1570974051, guid: 9f9a61a067678084688190021c2cd4df, type: 3}
   bgmOn: {fileID: 1660306564, guid: bbb8b6ea567905344992910e8ba47721, type: 3}
+  vibrationMuteButton: {fileID: 0}
+  vibrationOff: {fileID: 0}
+  vibrationOn: {fileID: 0}
+  settingPanel: {fileID: 0}
 --- !u!114 &943457808
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10694,7 +10699,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 72fcd50c0b732aa4abca597abd34dba9, type: 3}
+  m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 72fcd50c0b732aa4abca597abd34dba9, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
@@ -11137,7 +11142,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &981069436
 RectTransform:
   m_ObjectHideFlags: 0
@@ -14518,7 +14523,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1286466608
 RectTransform:
   m_ObjectHideFlags: 0
