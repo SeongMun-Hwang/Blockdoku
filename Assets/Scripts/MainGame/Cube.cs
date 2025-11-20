@@ -67,6 +67,11 @@ public class Cube : MonoBehaviour
         GetComponent<Renderer>().material = mat_Alpha;
     }
 
+    public void SetToFillMaterial()
+    {
+        GetComponent<Renderer>().material = mat_Fill;
+    }
+
     public void StartBlinking()
     {
         if (!isBlinking && blinkingCoroutine==null)

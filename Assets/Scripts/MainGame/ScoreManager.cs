@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using TMPro;
@@ -21,11 +22,11 @@ public class ScoreManager : MonoBehaviour
     private int itemScore = 0;
     private void OnEnable()
     {
-        mouseManager.onMouseReleased += CheckBoard;
+        mouseManager.onMouseReleased += StartCheckBoardRoutine;
     }
     private void OnDisable()
     {
-        mouseManager.onMouseReleased -= CheckBoard;
+        mouseManager.onMouseReleased -= StartCheckBoardRoutine;
     }
     private void Start()
     {
@@ -34,7 +35,11 @@ public class ScoreManager : MonoBehaviour
             bestScoreTmp.text = LoadBestScore();
         }
     }
-    void CheckBoard()
+    void StartCheckBoardRoutine()
+    {
+        StartCoroutine(CheckBoardRoutine());
+    }
+    IEnumerator CheckBoardRoutine()
     {
         bool[,] currentFilledState = new bool[9, 9];
         for (int i = 0; i < 9; i++)
@@ -49,6 +54,13 @@ public class ScoreManager : MonoBehaviour
 
         if (erasableCube.Count > 0)
         {
+            foreach (GameObject cube in erasableCube)
+            {
+                cube.GetComponent<Cube>().StopBlinking();
+                cube.GetComponent<Cube>().SetToFillMaterial();
+            }
+            //yield return new WaitForSeconds(0.2f);
+
             AddScore(erasableCube.Count);
 
             if (combo > 1)
@@ -62,6 +74,9 @@ public class ScoreManager : MonoBehaviour
             {
                 cube.GetComponent<Cube>().isFilled = false;
             }
+
+            yield return new WaitForSeconds(0.5f);
+
             if (GameManager.Instance.itemManager != null)
             {
                 if (itemScore >= 1)
