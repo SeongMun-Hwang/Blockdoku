@@ -53,6 +53,13 @@ public class BlockMaterialControl : MonoBehaviour
                 allHitCube = false; // 레이가 아무것도 맞추지 못하면 실패
             }
         }
+
+        // 블록 모양이 일치하는지 확인
+        if (allHitCube)
+        {
+            allHitCube = CheckShape(cubes, hitCubes);
+        }
+
         previouslyHitCubes.UnionWith(hitCubes);
 
         // 모든 Ray가 Cube를 맞췄다면 Green, 하나라도 실패하면 Red 적용
@@ -72,6 +79,46 @@ public class BlockMaterialControl : MonoBehaviour
             }
         }
     }
+
+    private bool CheckShape(List<GameObject> blockCubes, HashSet<GameObject> hitBoardCubes)
+    {
+        if (blockCubes.Count != hitBoardCubes.Count)
+        {
+            return false;
+        }
+
+        if (blockCubes.Count <= 1)
+        {
+            return true;
+        }
+
+        // Sort both lists by world position to establish a common reference frame.
+        var blockCubesSorted = blockCubes.OrderBy(c => c.transform.position.x).ThenBy(c => c.transform.position.z).ToList();
+        var hitCubesSorted = hitBoardCubes.OrderBy(c => c.transform.position.x).ThenBy(c => c.transform.position.z).ToList();
+
+        // Get the world position of the anchor cube for the held block.
+        Vector3 blockAnchorPos = blockCubesSorted[0].transform.position;
+        // Get the world position of the anchor cube for the corresponding board cells.
+        Vector3 hitAnchorPos = hitCubesSorted[0].transform.position;
+
+        // Check if the relative positions of all other cubes match.
+        for (int i = 1; i < blockCubesSorted.Count; i++)
+        {
+            // Calculate the relative position of a cube in the held block.
+            Vector3 blockRelativePos = blockCubesSorted[i].transform.position - blockAnchorPos;
+            // Calculate the relative position of the corresponding cube on the board.
+            Vector3 hitRelativePos = hitCubesSorted[i].transform.position - hitAnchorPos;
+
+            // If the relative positions don't match (within a tolerance), the shape is wrong.
+            if (Vector3.Distance(blockRelativePos, hitRelativePos) > 0.1f)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     void ApplyMaterial(GameObject obj, Material mat)
     {
         Renderer renderer = obj.GetComponent<Renderer>();
