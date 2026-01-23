@@ -9,8 +9,6 @@ public class Cube : MonoBehaviour
     [SerializeField] Material mat_Item;
     [SerializeField] GameObject itemMark;
     public bool _isFilled;
-    private bool _isItemActive = false;
-    private int turn = 0;
     private bool isBlinking = false;
     private Coroutine blinkingCoroutine;
     public bool isFilled
@@ -30,14 +28,12 @@ public class Cube : MonoBehaviour
     private void Start()
     {
         onIsFilledChanged += ChangeMaterial;
-        GameManager.Instance.blockSpawner.OnBlocksSpawned += IncreaseItemTurn;
         OnInit();
     }
 
     private void OnDisable()
     {
         onIsFilledChanged -= ChangeMaterial;
-        GameManager.Instance.blockSpawner.OnBlocksSpawned -= IncreaseItemTurn;
     }
     private void OnInit()
     {
@@ -58,7 +54,6 @@ public class Cube : MonoBehaviour
             {
                 GameManager.Instance.audioManager.PlayerBlockDestoryAudio();
                 GetComponent<Animator>().SetTrigger("ChangeMaterial");
-                SetItemMarkInactive();
             }
         }
     }
@@ -128,38 +123,6 @@ public class Cube : MonoBehaviour
                 float alpha = Mathf.Lerp(0.2f, 1f, elapsedTime / fadeDuration);
                 renderer.material.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
                 yield return null;
-            }
-        }
-    }
-    public void SetItemMarkActive()
-    {
-        _isItemActive = true;
-        itemMark.SetActive(true);
-    }
-    public void SetItemMarkInactive()
-    {
-        if (_isItemActive)
-        {
-            _isItemActive = false;
-            itemMark.SetActive(false);
-
-            GameManager.Instance.itemManager.GetItem();
-        }
-    }
-    private void IncreaseItemTurn()
-    {
-        if (_isItemActive)
-        {
-            turn++;
-            if (turn == 2)
-            {
-                itemMark.GetComponent<StarItem>().StartBlink();
-            }
-            else if (turn > 2)
-            {
-                _isItemActive = false;
-                itemMark.SetActive(false);
-
             }
         }
     }

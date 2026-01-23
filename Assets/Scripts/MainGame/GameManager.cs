@@ -10,7 +10,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] public BlockSpawner blockSpawner;
     [SerializeField] public MouseManager mouseManager;
     [SerializeField] public AudioManager audioManager;
-    [SerializeField] public ItemManager itemManager;
     private bool[,] filledCubeArray = new bool[9, 9];
     [HideInInspector] public float increasedScale;
 

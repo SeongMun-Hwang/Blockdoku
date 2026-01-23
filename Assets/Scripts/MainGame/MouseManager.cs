@@ -10,7 +10,6 @@ public class MouseManager : MonoBehaviour
     private float originalScale = 0.6f;
     private float increasedScale;
     public event Action onMouseReleased;
-    bool isItemClicked = false;
     bool isBlockClicked = false;
     private HashSet<GameObject> lastPreviewedCubes = new HashSet<GameObject>();
     [SerializeField] private GameObject board;
@@ -51,13 +50,6 @@ public class MouseManager : MonoBehaviour
                 catchedBlock.GetComponent<BlockMaterialControl>().isClicked = true;
             prevPos = catchedBlock.transform.position;
             StopBlinkingAll();
-            }
-            else if (hit.collider.CompareTag("Item"))
-            {
-                isItemClicked = true;
-                catchedBlock = hit.collider.gameObject;
-                catchedBlock.GetComponent<ItemMaterialControl>().isClicked = true;
-                prevPos = catchedBlock.transform.position;
             }
 
             if (board != null)
@@ -116,15 +108,10 @@ public class MouseManager : MonoBehaviour
         {
             HandleBlockRelease();
         }
-        else if (isItemClicked)
-        {
-            HandleItemRelease();
-        }
 
         // Reset common state
         catchedBlock = null;
         isBlockClicked = false;
-        isItemClicked = false;
         StopBlinkingAll();
     }
 
@@ -154,37 +141,6 @@ public class MouseManager : MonoBehaviour
         }
         blockMaterialControl.isClicked = false;
     }
-
-    private void HandleItemRelease()
-    {
-        ItemMaterialControl itemMaterialControl = catchedBlock.GetComponent<ItemMaterialControl>();
-        if (itemMaterialControl.hitCubes != null)
-        {
-            int amount = 0;
-            foreach (GameObject go in itemMaterialControl.hitCubes)
-            {
-                Cube cube = go.GetComponent<Cube>();
-                if (cube.isFilled)
-                {
-                    cube.isFilled = false;
-                    amount++;
-                }
-            }
-            GameManager.Instance.scoreManager.AddScore(amount);
-            GameManager.Instance.blockSpawner.RemoveBlock(catchedBlock);
-            Destroy(catchedBlock);
-            onMouseReleased?.Invoke();
-        }
-        else
-        {
-            GameManager.Instance.audioManager.PlayErrorAudio();
-            catchedBlock.transform.position = prevPos;
-            //catchedBlock.transform.localScale = new Vector3(originalScale, originalScale, originalScale);
-            itemMaterialControl.ChangeCubeMaterialBelow();
-        }
-        itemMaterialControl.isClicked = false;
-    }
-
     private void StopBlinkingAll()
     {
         if (lastPreviewedCubes.Count > 0)

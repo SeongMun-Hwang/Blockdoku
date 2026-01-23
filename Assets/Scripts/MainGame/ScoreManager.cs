@@ -77,15 +77,6 @@ public class ScoreManager : MonoBehaviour
             }
 
             yield return new WaitForSeconds(0.5f);
-
-            if (GameManager.Instance.itemManager != null)
-            {
-                if (itemScore >= 1)
-                {
-                    itemScore = 0;
-                    GameManager.Instance.itemManager.SpawnItem();
-                }
-            }
         }
         else
         {
