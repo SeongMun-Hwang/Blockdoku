@@ -6,7 +6,6 @@ using UnityEngine.SceneManagement;
 public class TitleManager : MonoBehaviour
 {
     [SerializeField] GameObject multiAnnounce;
-    private bool isMultiAnnounceActive = false;
     //싱글게임 -> 새게임 버튼
     public void SingleNewBtnOnclicked()
     {
@@ -20,7 +19,7 @@ public class TitleManager : MonoBehaviour
             File.Delete(SavePaths.BlockDataPath);
             Debug.Log("Block Save file deleted");
         }
-        SceneManager.LoadScene("SingleGame");
+        SceneManager.LoadScene("Blockdoku");
     }
     //싱글게임 -> 새게임 버튼
     public void SingleLoadBtnOnClicked()
@@ -30,7 +29,7 @@ public class TitleManager : MonoBehaviour
 #endif
         if (PlayerPrefs.GetInt("NotFirstTime") == 1)
         {
-            SceneManager.LoadScene("SingleGame");
+            SceneManager.LoadScene("Blockdoku");
         }
         else
         {

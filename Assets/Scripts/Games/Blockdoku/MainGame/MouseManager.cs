@@ -12,10 +12,11 @@ public class MouseManager : MonoBehaviour
     public event Action onMouseReleased;
     bool isBlockClicked = false;
     private HashSet<GameObject> lastPreviewedCubes = new HashSet<GameObject>();
+    public float mouseSensivility = 1.5f;
     [SerializeField] private GameObject board;
     private void Start()
     {
-        increasedScale = GameManager.Instance.increasedScale/1.75f;
+        increasedScale = GameManager.Instance.increasedScale / 1.75f;
     }
     private void Update()
     {
@@ -48,8 +49,8 @@ public class MouseManager : MonoBehaviour
                 catchedBlock = hit.collider.transform.parent.gameObject;
                 catchedBlock.transform.localScale = new Vector3(increasedScale, increasedScale, increasedScale);
                 catchedBlock.GetComponent<BlockMaterialControl>().isClicked = true;
-            prevPos = catchedBlock.transform.position;
-            StopBlinkingAll();
+                prevPos = catchedBlock.transform.position;
+                StopBlinkingAll();
             }
 
             if (board != null)
@@ -69,7 +70,7 @@ public class MouseManager : MonoBehaviour
         if (dragPlane.Raycast(ray, out float distance))
         {
             //catchedBlock.transform.localScale = new Vector3(increasedScale, increasedScale, increasedScale);
-            Vector3 targetPos = ray.GetPoint(distance) + new Vector3(0,0,3f);
+            Vector3 targetPos = ray.GetPoint(distance) + new Vector3(0, 0, 2f) * mouseSensivility;
             targetPos.y = catchedBlock.transform.position.y;
             catchedBlock.transform.position = targetPos;
 
@@ -147,7 +148,7 @@ public class MouseManager : MonoBehaviour
         {
             foreach (GameObject cube in lastPreviewedCubes)
             {
-                if(cube != null)
+                if (cube != null)
                 {
                     cube.GetComponent<Cube>().StopBlinking();
                 }

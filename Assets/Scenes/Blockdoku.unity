@@ -2967,7 +2967,6 @@ MonoBehaviour:
   blockSpawner: {fileID: 1289218158}
   mouseManager: {fileID: 861520409}
   audioManager: {fileID: 11213670}
-  itemManager: {fileID: 0}
   increasedScale: 0
 --- !u!4 &471281904
 Transform:
@@ -4283,6 +4282,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae2525c927ed23d4c8b76567481e733b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mouseSensivility: 2
   board: {fileID: 1322477976}
 --- !u!1 &878348534
 GameObject:

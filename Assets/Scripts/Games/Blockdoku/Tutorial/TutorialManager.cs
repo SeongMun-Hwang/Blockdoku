@@ -31,6 +31,6 @@ public class TutorialManager : MonoBehaviour
     }
     public void MoveToSingleGame()
     {
-        SceneManager.LoadScene("SingleGame");
+        SceneManager.LoadScene("Blockdoku");
     }
 }
