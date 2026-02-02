@@ -5,6 +5,9 @@ using System.Collections.Generic;
 public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
     public BlockArray blockData;
+    [SerializeField] private float dragMovementMultiplier = 1.5f; // Adjust this value to change movement sensitivity
+    [SerializeField] private float yOffsetOnGrab = 30f; // The amount the block moves up when grabbed
+    private Vector3 grabWorldSpaceOffset;
     private List<Vector2Int> shape;
     private RectTransform rectTransform;
     private Canvas canvas;
@@ -17,7 +20,7 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
     void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
-        
+
         // Find the visual cubes that are children of this block
         foreach (Transform child in transform)
         {
@@ -65,11 +68,11 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
             }
         }
 
-        // Update visual child cubes to match the loaded shape
-        Vector2 cellSize = Vector2.one * 50f; // Default value in case GridManager is not available
+        // Update visual child cubes to match the loaded shape, accounting for grid spacing
+        Vector2 cellPitch = Vector2.one * 50f; // Default value in case GridManager is not available
         if (GridManager_2D.Instance != null)
         {
-            cellSize = GridManager_2D.Instance.GetCellSize();
+            cellPitch = GridManager_2D.Instance.GetCellPitch(); // Use GetCellPitch to include spacing
         }
 
         // Deactivate all child cubes first
@@ -81,21 +84,15 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         if (childCubes.Count < shape.Count)
         {
             Debug.LogError($"Block_2D: Not enough child cubes ({childCubes.Count}) for shape ({shape.Count}) in Block '{gameObject.name}'. Please check the prefab.");
-            // Optionally, handle this by destroying extra shape elements or just proceeding with what's available
-            return; // Exit if prefab is malformed, to prevent further errors
+            return; 
         }
 
-        // If there are more child cubes than shape elements, it means some cubes will remain inactive
-        // This is fine, as long as there are *at least* enough child cubes.
-
+        // Reposition child cubes to reflect the current shape (including rotation)
         for (int i = 0; i < shape.Count; i++)
         {
             RectTransform childRect = childCubes[i];
             childRect.gameObject.SetActive(true);
-            // Position relative to the parent Block_2D's RectTransform.
-            // The 'shape' provides coordinates relative to the block's pivot (top-left '1').
-            // We need to multiply by cellSize to get actual pixel offsets.
-            childRect.anchoredPosition = new Vector2(shape[i].x * cellSize.x, shape[i].y * cellSize.y);
+            childRect.anchoredPosition = new Vector2(shape[i].x * cellPitch.x, shape[i].y * cellPitch.y);
         }
     }
 
@@ -174,17 +171,22 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         transform.SetParent(canvas.transform);
         transform.SetAsLastSibling();
 
-        // Optional: Scale up
-        rectTransform.localScale = Vector3.one * 1.2f;
+        // Calculate the world space offset for the visual lift
+        Vector3 originalWorldPosition = rectTransform.position;
+        rectTransform.anchoredPosition += new Vector2(0, yOffsetOnGrab);
+        grabWorldSpaceOffset = rectTransform.position - originalWorldPosition;
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        rectTransform.anchoredPosition += eventData.delta / canvas.scaleFactor;
+        // Apply movement with multiplier
+        rectTransform.anchoredPosition += (eventData.delta / canvas.scaleFactor) * dragMovementMultiplier;
 
         if (GridManager_2D.Instance != null)
         {
-            Vector2Int gridPosition = GridManager_2D.Instance.GetGridPosition(rectTransform.position);
+            // Use the logical position (without the visual offset) for grid calculations
+            Vector3 checkPosition = rectTransform.position - grabWorldSpaceOffset;
+            Vector2Int gridPosition = GridManager_2D.Instance.GetGridPosition(checkPosition);
             if (gridPosition != lastGridPosition)
             {
                 lastGridPosition = gridPosition;
@@ -195,13 +197,12 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        // Optional: Scale down
-        rectTransform.localScale = Vector3.one;
-
         if (GridManager_2D.Instance != null)
         {
             GridManager_2D.Instance.ClearPreview();
-            Vector2Int gridPosition = GridManager_2D.Instance.GetGridPosition(rectTransform.position);
+            // Use the logical position (without the visual offset) for final placement
+            Vector3 checkPosition = rectTransform.position - grabWorldSpaceOffset;
+            Vector2Int gridPosition = GridManager_2D.Instance.GetGridPosition(checkPosition);
 
             if (GridManager_2D.Instance.IsValidPlacement(gridPosition, shape))
             {
@@ -211,7 +212,7 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
             }
             else
             {
-                // Return to original position
+                // Return to original position if placement is invalid
                 transform.SetParent(originalParent);
                 rectTransform.anchoredPosition = originalPosition;
             }

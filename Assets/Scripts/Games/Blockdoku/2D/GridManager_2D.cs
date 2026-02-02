@@ -307,6 +307,17 @@ public class GridManager_2D : MonoBehaviour
         }
     }
     
+    public Vector2 GetCellPitch()
+    {
+        if (gridLayoutGroup != null)
+        {
+            return gridLayoutGroup.cellSize + gridLayoutGroup.spacing;
+        }
+        // Fallback to a default size if GridLayoutGroup is not found
+        Debug.LogWarning("GridManager_2D: GridLayoutGroup is null, returning default cell pitch of 50x50.");
+        return Vector2.one * 50f;
+    }
+
     public Vector2 GetCellSize()
     {
         if (gridLayoutGroup != null)
@@ -400,7 +411,7 @@ public class GridManager_2D : MonoBehaviour
     public Vector2Int GetGridPosition(Vector2 worldPosition)
     {
         float minDistance = float.MaxValue;
-        Vector2Int closestCellPosition = Vector2Int.zero;
+        Vector2Int closestCellPosition = new Vector2Int(-1, -1); // Default to invalid
 
         for (int r = 0; r < GRID_SIZE; r++)
         {
@@ -414,6 +425,14 @@ public class GridManager_2D : MonoBehaviour
                 }
             }
         }
+
+        // Check if the closest cell is within a reasonable threshold
+        float threshold = GetCellSize().x; 
+        if (minDistance > threshold)
+        {
+            return new Vector2Int(-1, -1); // Return invalid position
+        }
+
         return closestCellPosition;
     }
 
