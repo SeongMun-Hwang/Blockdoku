@@ -410,30 +410,42 @@ public class GridManager_2D : MonoBehaviour
 
     public Vector2Int GetGridPosition(Vector2 worldPosition)
     {
-        float minDistance = float.MaxValue;
-        Vector2Int closestCellPosition = new Vector2Int(-1, -1); // Default to invalid
-
-        for (int r = 0; r < GRID_SIZE; r++)
+        // Ensure grid is initialized
+        if (grid[0, 0] == null)
         {
-            for (int c = 0; c < GRID_SIZE; c++)
-            {
-                float distance = Vector2.Distance(worldPosition, grid[r, c].transform.position);
-                if (distance < minDistance)
-                {
-                    minDistance = distance;
-                    closestCellPosition = new Vector2Int(c, r);
-                }
-            }
+            Debug.LogWarning("GridManager_2D: Grid not initialized for GetGridPosition.");
+            return new Vector2Int(-1, -1);
         }
 
-        // Check if the closest cell is within a reasonable threshold
-        float threshold = GetCellSize().x; 
-        if (minDistance > threshold)
+        // World position of the center of the grid's top-left cell (grid[0,0])
+        Vector2 gridOriginWorldPos = grid[0, 0].transform.position;
+
+        // Calculate the offset of the worldPosition (block's anchor) from the grid's top-left cell center
+        Vector2 offsetWorld = worldPosition - gridOriginWorldPos;
+
+        // Get cell dimensions (pitch includes cell size + spacing)
+        Vector2 cellPitchDesignTime = GetCellPitch();
+
+        // Get the actual runtime scale factor from the Canvas
+        Canvas parentCanvas = gridParent.GetComponentInParent<Canvas>();
+        float canvasScaleFactor = (parentCanvas != null) ? parentCanvas.scaleFactor : 1.0f;
+
+        // Convert cellPitch to world space pixels by applying the canvas scale factor
+        Vector2 cellPitchWorld = cellPitchDesignTime * canvasScaleFactor;
+
+        // Calculate grid indices by dividing the offset by pitch and rounding to the nearest integer
+        // X-axis: offsetWorld.x / cellPitchWorld.x directly gives column count
+        // Y-axis: -offsetWorld.y / cellPitchWorld.y because world Y is up, but grid row index increases downwards
+        int c = Mathf.RoundToInt(offsetWorld.x / cellPitchWorld.x);
+        int r = Mathf.RoundToInt(-offsetWorld.y / cellPitchWorld.y);
+
+        // Ensure calculated indices are within grid bounds
+        if (r < 0 || r >= GRID_SIZE || c < 0 || c >= GRID_SIZE)
         {
-            return new Vector2Int(-1, -1); // Return invalid position
+            return new Vector2Int(-1, -1); // Return invalid position if out of bounds
         }
 
-        return closestCellPosition;
+        return new Vector2Int(c, r); // Return as (column, row)
     }
 
      private void ClearSquare(int startRow, int startCol)

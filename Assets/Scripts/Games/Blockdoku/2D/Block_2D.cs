@@ -22,6 +22,7 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
     private Vector2Int lastGridPosition;
 
     private readonly List<Transform> childCubes = new List<Transform>();
+    private Vector2 anchorOffsetPixels;
 
     /// <summary>
     /// Initializes the block with data, loads its shape, and applies rotation.
@@ -73,7 +74,7 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
 
     /// <summary>
     /// Clears existing visuals and creates new ones based on the current 'shape' data.
-    /// It automatically centers the final visual shape.
+    /// It automatically centers the final visual shape and matches its cell size to the grid.
     /// </summary>
     private void UpdateVisuals()
     {
@@ -84,7 +85,7 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         }
         childCubes.Clear();
 
-        if (shape == null || shape.Count == 0) return;
+        if (shape == null || shape.Count == 0 || GridManager_2D.Instance == null) return;
         
         // --- Centering Logic ---
         // Find the bounds of the current shape
@@ -97,7 +98,8 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         Vector2 shapeCenter = new Vector2((minX + maxX) / 2.0f, (minY + maxY) / 2.0f);
         // --- End of Centering Logic ---
 
-        Vector2 cellPitch = GridManager_2D.Instance != null ? GridManager_2D.Instance.GetCellPitch() : new Vector2(50, 50);
+        Vector2 cellPitch = GridManager_2D.Instance.GetCellPitch();
+        Vector2 cellSize = GridManager_2D.Instance.GetCellSize();
 
         // Create and position new visuals
         foreach (Vector2Int pos in shape)
@@ -105,11 +107,33 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
             GameObject newCell = Instantiate(cellPrefab, transform);
             RectTransform cellRect = newCell.GetComponent<RectTransform>();
 
+            // Set the size of the cell to match the grid
+            cellRect.sizeDelta = cellSize;
+
             // Position relative to the calculated center
             Vector2 centeredPos = new Vector2(pos.x - shapeCenter.x, pos.y - shapeCenter.y);
             cellRect.anchoredPosition = centeredPos * cellPitch;
             
             childCubes.Add(newCell.transform);
+        }
+
+        // --- Calculate anchorOffsetPixels ---
+        if (shape.Count > 0)
+        {
+            float maxAnchorY = shape.Max(p => p.y); // For consistency, though now we're using Vector2Int.zero
+            
+            // Define the anchor cell as (0,0) in the block's local coordinate system (fixed origin)
+            Vector2Int anchorCellLocal = Vector2Int.zero; 
+
+            // Calculate the position of this anchor cell relative to the block's *current* pivot
+            // (which is where the shapeCenter is adjusted to)
+            // The anchorOffsetPixels represents the shift from the block's (container's) pivot
+            // to the center of the designated anchorCellLocal.
+            anchorOffsetPixels = new Vector2(anchorCellLocal.x - shapeCenter.x, anchorCellLocal.y - shapeCenter.y) * cellPitch;
+        }
+        else
+        {
+            anchorOffsetPixels = Vector2.zero;
         }
     }
 
@@ -146,8 +170,9 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
 
         if (GridManager_2D.Instance != null)
         {
-            // Use the logical position (without the visual offset) for grid calculations
-            Vector3 checkPosition = rectTransform.position - grabWorldSpaceOffset;
+            // Use the logical position (without the visual offset) for grid calculations,
+            // adjusted to the block's anchor point.
+            Vector3 checkPosition = (rectTransform.position - grabWorldSpaceOffset) + (Vector3)anchorOffsetPixels;
             Vector2Int gridPosition = GridManager_2D.Instance.GetGridPosition(checkPosition);
             if (gridPosition != lastGridPosition)
             {
@@ -162,8 +187,9 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         if (GridManager_2D.Instance != null)
         {
             GridManager_2D.Instance.ClearPreview();
-            // Use the logical position (without the visual offset) for final placement
-            Vector3 checkPosition = rectTransform.position - grabWorldSpaceOffset;
+            // Use the logical position (without the visual offset) for final placement,
+            // adjusted to the block's anchor point.
+            Vector3 checkPosition = (rectTransform.position - grabWorldSpaceOffset) + (Vector3)anchorOffsetPixels;
             Vector2Int gridPosition = GridManager_2D.Instance.GetGridPosition(checkPosition);
 
             if (GridManager_2D.Instance.IsValidPlacement(gridPosition, shape))
