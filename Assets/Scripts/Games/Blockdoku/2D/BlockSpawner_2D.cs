@@ -1,15 +1,16 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class BlockSpawner_2D : MonoBehaviour
 {
     public static BlockSpawner_2D Instance { get; private set; }
-    
-    [SerializeField] private List<GameObject> blockPrefabs;
+
+    [Header("Spawning Configuration")]
+    [SerializeField] private GameObject blockContainerPrefab; // The empty container prefab with Block_2D script
+    [SerializeField] private List<BlockArray> blockArrays; // List of all possible block shapes
     [SerializeField] private List<Transform> spawnPositions;
 
-    private List<GameObject> spawnedBlocks = new List<GameObject>();
+    private readonly List<GameObject> spawnedBlocks = new List<GameObject>();
 
     void Awake()
     {
@@ -33,29 +34,44 @@ public class BlockSpawner_2D : MonoBehaviour
         // Clear any existing blocks first
         foreach (GameObject block in spawnedBlocks)
         {
-            Destroy(block);
+            if (block != null)
+            {
+                Destroy(block);
+            }
         }
         spawnedBlocks.Clear();
 
-        // Create a list of random, unique indices from the blockDataList
-        HashSet<int> randomIndexes = new HashSet<int>();
-        while (randomIndexes.Count < spawnPositions.Count)
+        if (blockArrays.Count == 0 || spawnPositions.Count == 0)
         {
-            randomIndexes.Add(Random.Range(0, blockPrefabs.Count));
+            Debug.LogError("BlockSpawner_2D: Block Arrays or Spawn Positions are not set.");
+            return;
+        }
+
+        // Create a list of random, unique indices from the blockArrays list
+        HashSet<int> randomIndexes = new HashSet<int>();
+        while (randomIndexes.Count < spawnPositions.Count && randomIndexes.Count < blockArrays.Count)
+        {
+            randomIndexes.Add(Random.Range(0, blockArrays.Count));
         }
 
         int i = 0;
         foreach (int index in randomIndexes)
         {
             Transform spawnPos = spawnPositions[i];
-            // Instantiate with no rotation, as visuals are now data-driven
-            GameObject blockGO = Instantiate(blockPrefabs[index], spawnPos.position, Quaternion.identity, spawnPos);
-
-            int randomRot = UnityEngine.Random.Range(0, 4);
-            // RotateShape now handles both logic and visuals. No more direct transform rotation.
-            if(randomRot > 0)
+            
+            // Instantiate the empty container
+            GameObject blockGO = Instantiate(blockContainerPrefab, spawnPos.position, Quaternion.identity, spawnPos);
+            
+            // Get the script and initialize it with data and a random rotation
+            Block_2D blockScript = blockGO.GetComponent<Block_2D>();
+            if (blockScript != null)
             {
-                blockGO.GetComponent<Block_2D>().RotateShape(randomRot);
+                int randomRot = Random.Range(0, 4);
+                blockScript.Initialize(blockArrays[index], randomRot);
+            }
+            else
+            {
+                Debug.LogError($"BlockSpawner_2D: The prefab '{blockContainerPrefab.name}' is missing the Block_2D script.");
             }
 
             spawnedBlocks.Add(blockGO);

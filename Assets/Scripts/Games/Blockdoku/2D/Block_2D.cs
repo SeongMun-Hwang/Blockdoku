@@ -1,12 +1,18 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
+using System.Linq;
 
 public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
+    [Header("Data")]
     public BlockArray blockData;
+    [SerializeField] private GameObject cellPrefab; // The prefab for a single visual cell
+
+    [Header("Interaction")]
     [SerializeField] private float dragMovementMultiplier = 1.5f; // Adjust this value to change movement sensitivity
     [SerializeField] private float yOffsetOnGrab = 30f; // The amount the block moves up when grabbed
+
     private Vector3 grabWorldSpaceOffset;
     private List<Vector2Int> shape;
     private RectTransform rectTransform;
@@ -15,45 +21,28 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
     private Transform originalParent;
     private Vector2Int lastGridPosition;
 
-    private List<RectTransform> childCubes = new List<RectTransform>();
+    private readonly List<Transform> childCubes = new List<Transform>();
 
-    void Awake()
+    /// <summary>
+    /// Initializes the block with data, loads its shape, and applies rotation.
+    /// This should be called by the spawner right after instantiation.
+    /// </summary>
+    public void Initialize(BlockArray data, int rotationCount)
     {
         rectTransform = GetComponent<RectTransform>();
-
-        // Find the visual cubes that are children of this block
-        foreach (Transform child in transform)
-        {
-            RectTransform childRect = child.GetComponent<RectTransform>();
-            if (childRect != null)
-            {
-                childCubes.Add(childRect);
-            }
-        }
-
-        LoadShape(); // Loads shape data
+        blockData = data;
+        LoadShapeFromData();
+        RotateShape(rotationCount);
+        UpdateVisuals();
     }
 
-    private void LoadShape()
+    /// <summary>
+    /// Parses the BlockArray data into a local 'shape' list.
+    /// </summary>
+    private void LoadShapeFromData()
     {
         shape = new List<Vector2Int>();
         if (blockData == null) return;
-
-        // Find the top-leftmost '1' to use as the pivot/origin (0,0)
-        Vector2Int offset = new Vector2Int(int.MaxValue, int.MinValue);
-        for (int r = 0; r < blockData.shapeRows.Count; r++)
-        {
-            for (int c = 0; c < blockData.shapeRows[r].Length; c++)
-            {
-                if (blockData.shapeRows[r][c] == '1')
-                {
-                    if (c < offset.x) offset.x = c;
-                    if (r > offset.y) offset.y = r; // Using regular row index here
-                }
-            }
-        }
-        if (offset.x == int.MaxValue) offset = Vector2Int.zero;
-
 
         for (int r = 0; r < blockData.shapeRows.Count; r++)
         {
@@ -62,98 +51,71 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
             {
                 if (row[c] == '1')
                 {
-                    // Position relative to the top-left corner of the shape's bounding box
-                    shape.Add(new Vector2Int(c - offset.x, -(r - offset.y)));
+                    // Invert 'r' to treat top-left as (0,0) in a standard Cartesian coordinate system for easier rotation
+                    shape.Add(new Vector2Int(c, -r));
                 }
             }
         }
+    }
 
-        // Update visual child cubes to match the loaded shape, accounting for grid spacing
-        Vector2 cellPitch = Vector2.one * 50f; // Default value in case GridManager is not available
-        if (GridManager_2D.Instance != null)
+    /// <summary>
+    /// Rotates the local shape data N times.
+    /// This does NOT modify the source BlockArray asset.
+    /// </summary>
+    private void RotateShape(int n)
+    {
+        for (int i = 0; i < n; i++)
         {
-            cellPitch = GridManager_2D.Instance.GetCellPitch(); // Use GetCellPitch to include spacing
+            // 90-degree clockwise rotation matrix: (x, y) -> (y, -x)
+            shape = shape.Select(p => new Vector2Int(p.y, -p.x)).ToList();
         }
+    }
 
-        // Deactivate all child cubes first
-        foreach (RectTransform child in childCubes)
+    /// <summary>
+    /// Clears existing visuals and creates new ones based on the current 'shape' data.
+    /// It automatically centers the final visual shape.
+    /// </summary>
+    private void UpdateVisuals()
+    {
+        // Clear old visuals
+        foreach (Transform child in childCubes)
         {
-            child.gameObject.SetActive(false);
+            Destroy(child.gameObject);
         }
+        childCubes.Clear();
 
-        if (childCubes.Count < shape.Count)
-        {
-            Debug.LogError($"Block_2D: Not enough child cubes ({childCubes.Count}) for shape ({shape.Count}) in Block '{gameObject.name}'. Please check the prefab.");
-            return; 
-        }
+        if (shape == null || shape.Count == 0) return;
+        
+        // --- Centering Logic ---
+        // Find the bounds of the current shape
+        float minX = shape.Min(p => p.x);
+        float maxX = shape.Max(p => p.x);
+        float minY = shape.Min(p => p.y);
+        float maxY = shape.Max(p => p.y);
 
-        // Reposition child cubes to reflect the current shape (including rotation)
-        for (int i = 0; i < shape.Count; i++)
+        // The center of the shape is the average of its min/max bounds
+        Vector2 shapeCenter = new Vector2((minX + maxX) / 2.0f, (minY + maxY) / 2.0f);
+        // --- End of Centering Logic ---
+
+        Vector2 cellPitch = GridManager_2D.Instance != null ? GridManager_2D.Instance.GetCellPitch() : new Vector2(50, 50);
+
+        // Create and position new visuals
+        foreach (Vector2Int pos in shape)
         {
-            RectTransform childRect = childCubes[i];
-            childRect.gameObject.SetActive(true);
-            childRect.anchoredPosition = new Vector2(shape[i].x * cellPitch.x, shape[i].y * cellPitch.y);
+            GameObject newCell = Instantiate(cellPrefab, transform);
+            RectTransform cellRect = newCell.GetComponent<RectTransform>();
+
+            // Position relative to the calculated center
+            Vector2 centeredPos = new Vector2(pos.x - shapeCenter.x, pos.y - shapeCenter.y);
+            cellRect.anchoredPosition = centeredPos * cellPitch;
+            
+            childCubes.Add(newCell.transform);
         }
     }
 
     public List<Vector2Int> GetShape()
     {
         return shape;
-    }
-
-    public void RotateShape(int n)
-    {
-        for (int r_rot = 0; r_rot < n; r_rot++) // n rotations
-        {
-            char[,] currentChars = ConvertShapeRowsToCharArray(blockData.shapeRows);
-            int rows = currentChars.GetLength(0);
-            int cols = currentChars.GetLength(1);
-
-            char[,] rotatedChars = new char[cols, rows]; // new rows = old cols, new cols = old rows
-
-            for (int i = 0; i < rows; i++) // old row
-            {
-                for (int j = 0; j < cols; j++) // old col
-                {
-                    rotatedChars[j, (rows - 1) - i] = currentChars[i, j];
-                }
-            }
-            blockData.shapeRows = ConvertCharArrayToShapeRows(rotatedChars);
-        }
-        LoadShape(); // This will reload the shape data and update visuals
-    }
-
-    private char[,] ConvertShapeRowsToCharArray(List<string> shapeRows)
-    {
-        if (shapeRows == null || shapeRows.Count == 0) return new char[0, 0];
-        int rows = shapeRows.Count;
-        int cols = shapeRows[0].Length;
-        char[,] charArray = new char[rows, cols];
-        for (int i = 0; i < rows; i++)
-        {
-            for (int j = 0; j < cols; j++)
-            {
-                charArray[i, j] = shapeRows[i][j];
-            }
-        }
-        return charArray;
-    }
-
-    private List<string> ConvertCharArrayToShapeRows(char[,] charArray)
-    {
-        List<string> shapeRows = new List<string>();
-        int rows = charArray.GetLength(0);
-        int cols = charArray.GetLength(1);
-        for (int i = 0; i < rows; i++)
-        {
-            string row = "";
-            for (int j = 0; j < cols; j++)
-            {
-                row += charArray[i, j];
-            }
-            shapeRows.Add(row);
-        }
-        return shapeRows;
     }
 
     public void OnPointerDown(PointerEventData eventData)
