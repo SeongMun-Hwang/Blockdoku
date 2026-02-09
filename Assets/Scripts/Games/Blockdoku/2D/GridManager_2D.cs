@@ -464,11 +464,19 @@ public class GridManager_2D : MonoBehaviour
         // Convert cellPitch to world space pixels by applying the canvas scale factor
         Vector2 cellPitchWorld = cellPitchDesignTime * canvasScaleFactor;
 
-        // Calculate grid indices by dividing the offset by pitch and rounding to the nearest integer
-        // X-axis: offsetWorld.x / cellPitchWorld.x directly gives column count
-        // Y-axis: -offsetWorld.y / cellPitchWorld.y because world Y is up, but grid row index increases downwards
-        int c = Mathf.RoundToInt(offsetWorld.x / cellPitchWorld.x);
-        int r = Mathf.RoundToInt(-offsetWorld.y / cellPitchWorld.y);
+        // To make snapping "looser", we can adjust the rounding threshold.
+        // Instead of snapping at 0.5, we can snap at a larger value (e.g., 0.65).
+        // This makes the user drag the block further before it snaps to the next cell.
+        const float snappingThreshold = 0.65f; // Snap when 65% into the next cell. Standard is 0.5.
+        float roundingPoint = 1.0f - snappingThreshold;
+
+        float normX = offsetWorld.x / cellPitchWorld.x;
+        float normY = -offsetWorld.y / cellPitchWorld.y;
+
+        // Custom rounding logic for symmetrical, "looser" snapping
+        int c = (normX >= 0) ? Mathf.FloorToInt(normX + roundingPoint) : Mathf.CeilToInt(normX - roundingPoint);
+        int r = (normY >= 0) ? Mathf.FloorToInt(normY + roundingPoint) : Mathf.CeilToInt(normY - roundingPoint);
+
 
         // Ensure calculated indices are within grid bounds
         if (r < 0 || r >= GRID_SIZE || c < 0 || c >= GRID_SIZE)
