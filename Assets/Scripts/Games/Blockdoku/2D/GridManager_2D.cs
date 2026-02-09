@@ -46,6 +46,9 @@ public class GridManager_2D : MonoBehaviour
         }
     }
 
+    public Color subgridBorderColor = Color.black;
+    public float subgridBorderWidth = 5f;
+
     public void InitializeGrid()
     {
         for (int r = 0; r < GRID_SIZE; r++)
@@ -56,6 +59,34 @@ public class GridManager_2D : MonoBehaviour
                 cellGO.name = $"Cell_{r}_{c}";
                 grid[r, c] = cellGO.AddComponent<Cell_2D>();
                 grid[r, c].Initialize(r, c, true); // true for isEmtpy
+
+                // Add borders for the 3x3 grid visualization
+                if (r % 3 == 2 && r < GRID_SIZE - 1)
+                {
+                    GameObject borderGO = new GameObject("HorizontalBorder");
+                    borderGO.transform.SetParent(cellGO.transform, false);
+                    Image borderImage = borderGO.AddComponent<Image>();
+                    borderImage.color = subgridBorderColor;
+                    RectTransform rt = borderGO.GetComponent<RectTransform>();
+                    rt.anchorMin = new Vector2(0, 0);
+                    rt.anchorMax = new Vector2(1, 0);
+                    rt.pivot = new Vector2(0.5f, 0);
+                    rt.anchoredPosition = Vector2.zero;
+                    rt.sizeDelta = new Vector2(0, subgridBorderWidth);
+                }
+                if (c % 3 == 2 && c < GRID_SIZE - 1)
+                {
+                    GameObject borderGO = new GameObject("VerticalBorder");
+                    borderGO.transform.SetParent(cellGO.transform, false);
+                    Image borderImage = borderGO.AddComponent<Image>();
+                    borderImage.color = subgridBorderColor;
+                    RectTransform rt = borderGO.GetComponent<RectTransform>();
+                    rt.anchorMin = new Vector2(1, 0);
+                    rt.anchorMax = new Vector2(1, 1);
+                    rt.pivot = new Vector2(1, 0.5f);
+                    rt.anchoredPosition = Vector2.zero;
+                    rt.sizeDelta = new Vector2(subgridBorderWidth, 0);
+                }
             }
         }
     }
