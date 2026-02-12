@@ -19,23 +19,23 @@ public class TitleManager : MonoBehaviour
             File.Delete(SavePaths.BlockDataPath);
             Debug.Log("Block Save file deleted");
         }
-        SceneManager.LoadScene("Blockdoku");
+        SceneManager.LoadScene("Blockdoku_2D");
     }
     //싱글게임 -> 새게임 버튼
     public void SingleLoadBtnOnClicked()
     {
-#if UNITY_EDITOR
-        PlayerPrefs.SetInt("NotFirstTime", 0);
-#endif
-        if (PlayerPrefs.GetInt("NotFirstTime") == 1)
-        {
-            SceneManager.LoadScene("Blockdoku");
-        }
-        else
-        {
-            PlayerPrefs.SetInt("NotFirstTime", 1);
-            SceneManager.LoadScene("Tutorial");
-        }
+//#if UNITY_EDITOR
+//        PlayerPrefs.SetInt("NotFirstTime", 0);
+//#endif
+//        if (PlayerPrefs.GetInt("NotFirstTime") == 1)
+//        {
+            SceneManager.LoadScene("Blockdoku_2D");
+//        }
+//        else
+//        {
+//            PlayerPrefs.SetInt("NotFirstTime", 1);
+//            SceneManager.LoadScene("Tutorial");
+//        }
     }
     public void MultiBtnOnClicked()
     {

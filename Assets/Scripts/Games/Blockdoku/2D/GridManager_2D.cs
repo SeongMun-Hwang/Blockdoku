@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Collections; // Added for Coroutines
 using System.Linq; // Added for HashSet.ToList()
 using UnityEngine.UI; // Added for GridLayoutGroup
+using System.IO;
+
+using static SavePaths;
 
 public class GridManager_2D : MonoBehaviour
 {
@@ -49,8 +52,22 @@ public class GridManager_2D : MonoBehaviour
     public Color subgridBorderColor = Color.black;
     public float subgridBorderWidth = 5f;
 
+    [System.Serializable]
+    public class SaveData_2D
+    {
+        public bool[] cellOccupiedStates = new bool[GRID_SIZE * GRID_SIZE];
+        public int score;
+        public int combo;
+    }
+
     public void InitializeGrid()
     {
+        // Clear existing grid cells if any
+        foreach (Transform child in gridParent)
+        {
+            Destroy(child.gameObject);
+        }
+
         for (int r = 0; r < GRID_SIZE; r++)
         {
             for (int c = 0; c < GRID_SIZE; c++)
@@ -289,6 +306,7 @@ public class GridManager_2D : MonoBehaviour
 
         List<int> completedRows = new List<int>();
         List<int> completedCols = new List<int>();
+        int currentComboCount = 0; // Local variable to count combo for this placement
 
         // Check rows and columns
         for (int i = 0; i < GRID_SIZE; i++)
@@ -321,6 +339,7 @@ public class GridManager_2D : MonoBehaviour
                 {
                     ClearSquare(r, c);
                     GameManager_2D.Instance.AddScore(9);
+                    currentComboCount++;
                 }
             }
         }
@@ -330,11 +349,27 @@ public class GridManager_2D : MonoBehaviour
         {
             ClearRow(row);
             GameManager_2D.Instance.AddScore(9);
+            currentComboCount++;
         }
         foreach (var col in completedCols)
         {
             ClearCol(col);
             GameManager_2D.Instance.AddScore(9);
+            currentComboCount++;
+        }
+
+        // Update global combo in GameManager
+        if (currentComboCount > 0)
+        {
+            // If any lines were cleared, increment GameManager's combo
+            // The score calculation in AddScore uses the combo AFTER it's updated.
+            // So, we need to increment GameManager_2D.Instance.combo first.
+            GameManager_2D.Instance.combo += currentComboCount; 
+        }
+        else
+        {
+            // No lines cleared, reset combo
+            GameManager_2D.Instance.combo = 0;
         }
     }
     
@@ -496,5 +531,62 @@ public class GridManager_2D : MonoBehaviour
                 grid[r, c].SetEmpty();
             }
         }
+    }
+
+    public void SaveBoardData_2D(int currentScore, int currentCombo)
+    {
+        SaveData_2D saveData = new SaveData_2D();
+        for (int r = 0; r < GRID_SIZE; r++)
+        {
+            for (int c = 0; c < GRID_SIZE; c++)
+            {
+                saveData.cellOccupiedStates[r * GRID_SIZE + c] = !grid[r, c].IsEmpty;
+            }
+        }
+        saveData.score = currentScore;
+        saveData.combo = currentCombo;
+
+        string json = JsonUtility.ToJson(saveData);
+        string path = BoardDataPath;
+        File.WriteAllText(path, json);
+        Debug.Log("2D Board data saved to " + path);
+    }
+
+    public (int score, int combo) LoadBoardData_2D()
+    {
+        int loadedScore = 0;
+        int loadedCombo = 0;
+
+        if (File.Exists(BoardDataPath))
+        {
+            string json = File.ReadAllText(BoardDataPath);
+            SaveData_2D saveData = JsonUtility.FromJson<SaveData_2D>(json);
+
+            // Re-initialize grid before loading states
+            InitializeGrid();
+
+            for (int r = 0; r < GRID_SIZE; r++)
+            {
+                for (int c = 0; c < GRID_SIZE; c++)
+                {
+                    if (saveData.cellOccupiedStates[r * GRID_SIZE + c])
+                    {
+                        grid[r, c].SetOccupied();
+                    }
+                    else
+                    {
+                        grid[r, c].SetEmpty();
+                    }
+                }
+            }
+            loadedScore = saveData.score;
+            loadedCombo = saveData.combo;
+            Debug.Log("2D Board data loaded from " + BoardDataPath);
+        }
+        else
+        {
+            Debug.Log("2D Board save file not found at " + SavePaths.BoardDataPath);
+        }
+        return (loadedScore, loadedCombo);
     }
 }

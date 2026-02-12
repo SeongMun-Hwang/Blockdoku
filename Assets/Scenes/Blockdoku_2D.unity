@@ -677,7 +677,6 @@ GameObject:
   - component: {fileID: 868880333}
   - component: {fileID: 868880332}
   - component: {fileID: 868880331}
-  - component: {fileID: 868880335}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -743,8 +742,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05ef9d0f16c2c584681103c3fdf04166, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uiManager: {fileID: 868880335}
+  uiManager: {fileID: 96169909}
   gridManager: {fileID: 868880332}
+  blockSpawner: {fileID: 868880331}
+  audioManager: {fileID: 0}
 --- !u!4 &868880334
 Transform:
   m_ObjectHideFlags: 0
@@ -760,23 +761,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &868880335
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 868880329}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3bda2b2505b77c74686672fb2a83eabb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  scoreText: {fileID: 0}
-  gameOverPanel: {fileID: 0}
-  finalScoreText: {fileID: 0}
-  restartButton: {fileID: 0}
-  titleButton: {fileID: 0}
 --- !u!1 &906906724
 GameObject:
   m_ObjectHideFlags: 0

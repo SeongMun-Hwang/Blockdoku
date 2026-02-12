@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+
+using static SavePaths;
 
 public class GameManager_2D : MonoBehaviour
 {
@@ -8,8 +11,11 @@ public class GameManager_2D : MonoBehaviour
 
     public UIManager_2D uiManager; // To be created
     public GridManager_2D gridManager;
+    [SerializeField] public BlockSpawner_2D blockSpawner;
+    [SerializeField] public AudioManager_2D audioManager;
 
     private int score = 0;
+    public int combo = 0;
     private bool isGameOver = false;
 
     void Awake()
@@ -26,7 +32,14 @@ public class GameManager_2D : MonoBehaviour
 
     void Start()
     {
-        StartGame();
+        if (File.Exists(BoardDataPath))
+        {
+            LoadGameData();
+        }
+        else
+        {
+            StartGame();
+        }
     }
 
     void Update()
@@ -41,16 +54,23 @@ public class GameManager_2D : MonoBehaviour
     public void StartGame()
     {
         score = 0;
+        combo = 0;
         isGameOver = false;
         uiManager.UpdateScore(score);
         uiManager.ShowGameOverPanel(false);
         gridManager.InitializeGrid();
+        RemoveGameData(); // Start a new game, so remove old save data
     }
 
     public void AddScore(int amount)
     {
-        score += amount;
+        score += amount * combo;
         uiManager.UpdateScore(score);
+    }
+
+    public int GetCombo()
+    {
+        return combo;
     }
 
     public void EndGame()
@@ -58,6 +78,7 @@ public class GameManager_2D : MonoBehaviour
         isGameOver = true;
         uiManager.ShowGameOverPanel(true, score);
         Debug.Log("Game Over! Final Score: " + score);
+        SaveGameData();
     }
 
     public void RestartGame()
@@ -67,6 +88,7 @@ public class GameManager_2D : MonoBehaviour
 
     public void GoToTitle()
     {
+        SaveGameData();
         SceneManager.LoadScene("Title");
     }
 
@@ -112,4 +134,38 @@ public class GameManager_2D : MonoBehaviour
         }
         return false; // This block cannot be placed anywhere
     }
+
+    public void SaveGameData()
+    {
+        gridManager.SaveBoardData_2D(score, combo);
+        blockSpawner.SaveBlockData_2D();
+        audioManager.SaveAudioData_2D(); 
+        Debug.Log("2D Game data saved!");
+    }
+
+    public void LoadGameData()
+    {
+        (int loadedScore, int loadedCombo) = gridManager.LoadBoardData_2D();
+        score = loadedScore;
+        combo = loadedCombo;
+        uiManager.UpdateScore(score); // Update UI with loaded score
+        blockSpawner.LoadBlockData_2D();
+        audioManager.LoadAudioData_2D();
+        Debug.Log("2D Game data loaded!");
+    }
+
+    public void RemoveGameData()
+    {
+        if (File.Exists(BoardDataPath))
+        {
+            File.Delete(BoardDataPath);
+            Debug.Log("2D Board Save file deleted");
+        }
+        if (File.Exists(BlockDataPath))
+        {
+            File.Delete(BlockDataPath);
+            Debug.Log("2D Block Save file deleted");
+        }
+    }
 }
+

@@ -6,7 +6,8 @@ using System.Linq;
 public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
     [Header("Data")]
-    public BlockArray blockData;
+    [SerializeField] private BlockArray blockData;
+    public BlockArray BlockData { get { return blockData; } } // Public getter for blockData
     [SerializeField] private GameObject cellPrefab; // The prefab for a single visual cell
 
     [Header("Interaction")]
@@ -20,6 +21,8 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
     private Vector2 originalPosition;
     private Transform originalParent;
     private Vector2Int lastGridPosition;
+    private int currentRotationStep; // New field to store rotation step
+    public int CurrentRotationStep { get { return currentRotationStep; } } // Public getter
 
     private readonly List<Transform> childCubes = new List<Transform>();
     private Vector2 anchorOffsetPixels;
@@ -65,12 +68,14 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
     /// </summary>
     private void RotateShape(int n)
     {
+        currentRotationStep = n; // Store the rotation step
         for (int i = 0; i < n; i++)
         {
             // 90-degree clockwise rotation matrix: (x, y) -> (y, -x)
             shape = shape.Select(p => new Vector2Int(p.y, -p.x)).ToList();
         }
     }
+
 
     /// <summary>
     /// Clears existing visuals and creates new ones based on the current 'shape' data.
