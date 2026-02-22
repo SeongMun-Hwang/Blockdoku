@@ -107,6 +107,15 @@ public class BlockSpawner_2D : MonoBehaviour
     public void BlockPlaced(GameObject blockGO)
     {
         spawnedBlocks.Remove(blockGO);
+        if (GameManager_2D.Instance != null)
+        {
+            GameManager_2D.Instance.SaveGameData(); // Save game data after a block is placed
+        }
+        else
+        {
+            Debug.LogWarning("GameManager_2D.Instance is null. Cannot save game data.");
+        }
+        
         if (spawnedBlocks.Count == 0)
         {
             SpawnBlocks();

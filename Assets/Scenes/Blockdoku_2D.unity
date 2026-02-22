@@ -458,7 +458,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 165525163}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1274586992}
+        m_TargetAssemblyTypeName: UI_Functions, Assembly-CSharp
+        m_MethodName: BacktoTitleOnClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &165525163
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -597,6 +609,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 227779258}
   m_CullTransparentMesh: 1
+--- !u!1 &634728896
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 634728898}
+  - component: {fileID: 634728897}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &634728897
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 634728896}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70f9204722bad05438f436be69f9d406, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bgmMute: 0
+  sfxMute: 0
+--- !u!4 &634728898
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 634728896}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 799.3307, y: 1364.004, z: 142.23091}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &636334693
 GameObject:
   m_ObjectHideFlags: 0
@@ -745,7 +803,8 @@ MonoBehaviour:
   uiManager: {fileID: 96169909}
   gridManager: {fileID: 868880332}
   blockSpawner: {fileID: 868880331}
-  audioManager: {fileID: 0}
+  audioManager: {fileID: 634728897}
+  combo: 0
 --- !u!4 &868880334
 Transform:
   m_ObjectHideFlags: 0
@@ -1298,7 +1357,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1697606311}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1274586992}
+        m_TargetAssemblyTypeName: UI_Functions, Assembly-CSharp
+        m_MethodName: RestartGameOnClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1697606311
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1790,6 +1861,7 @@ SceneRoots:
   - {fileID: 1797766090}
   - {fileID: 1262972751}
   - {fileID: 868880334}
+  - {fileID: 634728898}
   - {fileID: 636334694}
   - {fileID: 1229751205}
   - {fileID: 1274586993}

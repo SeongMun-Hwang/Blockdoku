@@ -18,6 +18,16 @@ public class GameManager_2D : MonoBehaviour
     public int combo = 0;
     private bool isGameOver = false;
 
+    void OnEnable()
+    {
+        UI_Functions.OnGameRestart += HandleGameRestart;
+    }
+
+    void OnDisable()
+    {
+        UI_Functions.OnGameRestart -= HandleGameRestart;
+    }
+
     void Awake()
     {
         if (Instance == null)
@@ -32,6 +42,11 @@ public class GameManager_2D : MonoBehaviour
 
     void Start()
     {
+        Debug.Log("GameManager_2D Start called.");
+        Debug.Log($"BoardDataPath exists: {File.Exists(BoardDataPath)}");
+        Debug.Log($"GridManager is null in Start: {gridManager == null}");
+        Debug.Log($"BlockSpawner is null in Start: {blockSpawner == null}"); // Added this line
+
         if (File.Exists(BoardDataPath))
         {
             LoadGameData();
@@ -51,15 +66,33 @@ public class GameManager_2D : MonoBehaviour
         // This logic will be implemented later.
     }
 
+    private void HandleGameRestart()
+    {
+        RemoveGameData();
+    }
+
     public void StartGame()
     {
+        Debug.Log("GameManager_2D StartGame called.");
         score = 0;
         combo = 0;
         isGameOver = false;
         uiManager.UpdateScore(score);
         uiManager.ShowGameOverPanel(false);
+        Debug.Log($"GridManager is null in StartGame: {gridManager == null}");
+        Debug.Log("Calling gridManager.InitializeGrid().");
         gridManager.InitializeGrid();
         RemoveGameData(); // Start a new game, so remove old save data
+        Debug.Log($"BlockSpawner is null in StartGame: {blockSpawner == null}");
+        if (blockSpawner != null)
+        {
+            blockSpawner.SpawnBlocks(); // <--- Added this line to spawn blocks
+            Debug.Log("BlockSpawner.SpawnBlocks() called.");
+        }
+        else
+        {
+            Debug.LogError("BlockSpawner is null, cannot spawn blocks.");
+        }
     }
 
     public void AddScore(int amount)
@@ -79,11 +112,6 @@ public class GameManager_2D : MonoBehaviour
         uiManager.ShowGameOverPanel(true, score);
         Debug.Log("Game Over! Final Score: " + score);
         SaveGameData();
-    }
-
-    public void RestartGame()
-    {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void GoToTitle()
@@ -139,7 +167,7 @@ public class GameManager_2D : MonoBehaviour
     {
         gridManager.SaveBoardData_2D(score, combo);
         blockSpawner.SaveBlockData_2D();
-        audioManager.SaveAudioData_2D(); 
+        audioManager.SaveAudioData_2D();
         Debug.Log("2D Game data saved!");
     }
 
@@ -156,15 +184,26 @@ public class GameManager_2D : MonoBehaviour
 
     public void RemoveGameData()
     {
+        Debug.Log($"Attempting to remove game data. BoardDataPath exists before: {File.Exists(BoardDataPath)}");
         if (File.Exists(BoardDataPath))
         {
             File.Delete(BoardDataPath);
-            Debug.Log("2D Board Save file deleted");
+            Debug.Log($"2D Board Save file deleted. BoardDataPath exists after: {File.Exists(BoardDataPath)}");
         }
+        else
+        {
+            Debug.Log("BoardDataPath did not exist, no need to delete.");
+        }
+
+        Debug.Log($"Attempting to remove game data. BlockDataPath exists before: {File.Exists(BlockDataPath)}");
         if (File.Exists(BlockDataPath))
         {
             File.Delete(BlockDataPath);
-            Debug.Log("2D Block Save file deleted");
+            Debug.Log($"2D Block Save file deleted. BlockDataPath exists after: {File.Exists(BlockDataPath)}");
+        }
+        else
+        {
+            Debug.Log("BlockDataPath did not exist, no need to delete.");
         }
     }
 }

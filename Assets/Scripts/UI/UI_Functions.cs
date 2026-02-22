@@ -1,16 +1,34 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System;
 
 public class UI_Functions : MonoBehaviour
 {
-    private UI_Functions instance;
-    public UI_Functions Instance { get { return instance; } }
+    public static UI_Functions Instance { get; private set; }
+
+    public static event Action OnGameRestart;
+
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
     public void BacktoTitleOnClicked()
     {
         SceneManager.LoadScene("Title");
     }
-    public void RestartGameOnClicked()
+
+    public void TriggerGameRestart()
     {
+        OnGameRestart?.Invoke();
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
