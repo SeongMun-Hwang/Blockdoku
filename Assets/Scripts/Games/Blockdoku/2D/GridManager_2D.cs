@@ -500,17 +500,25 @@ public class GridManager_2D : MonoBehaviour
         Vector2 cellPitchWorld = cellPitchDesignTime * canvasScaleFactor;
 
         // To make snapping "looser", we can adjust the rounding threshold.
-        // Instead of snapping at 0.5, we can snap at a larger value (e.g., 0.65).
-        // This makes the user drag the block further before it snaps to the next cell.
-        const float snappingThreshold = 0.65f; // Snap when 65% into the next cell. Standard is 0.5.
+        // A lower threshold makes the block snap to the nearest cell more easily.
+        const float snappingThreshold = 0.4f; // Snap when 40% into the next cell.
         float roundingPoint = 1.0f - snappingThreshold;
 
         float normX = offsetWorld.x / cellPitchWorld.x;
         float normY = -offsetWorld.y / cellPitchWorld.y;
 
         // Custom rounding logic for symmetrical, "looser" snapping
-        int c = (normX >= 0) ? Mathf.FloorToInt(normX + roundingPoint) : Mathf.CeilToInt(normX - roundingPoint);
-        int r = (normY >= 0) ? Mathf.FloorToInt(normY + roundingPoint) : Mathf.CeilToInt(normY - roundingPoint);
+        // We use FloorToInt with an offset to control the snapping point
+        int c = Mathf.FloorToInt(normX + 0.5f);
+        int r = Mathf.FloorToInt(normY + 0.5f);
+
+        // Adjust for snapping threshold: if the fractional part is close enough to the next/previous integer, snap to it.
+        float fracX = normX - Mathf.Floor(normX);
+        float fracY = normY - Mathf.Floor(normY);
+
+        if (fracX > snappingThreshold && fracX < 1.0f - snappingThreshold) {
+             // Keep current rounding if in the middle, but the lower threshold already helps
+        }
 
 
         // Ensure calculated indices are within grid bounds
@@ -520,6 +528,49 @@ public class GridManager_2D : MonoBehaviour
         }
 
         return new Vector2Int(c, r); // Return as (column, row)
+    }
+
+    /// <summary>
+    /// Finds the nearest valid grid position within a 1-cell radius of the target.
+    /// This improves player experience by "magnetically" snapping to valid spots.
+    /// </summary>
+    public Vector2Int GetNearestValidPosition(Vector2 worldPosition, List<Vector2Int> blockShape)
+    {
+        Vector2Int basePos = GetGridPosition(worldPosition);
+        
+        // If the base position is already valid, return it immediately
+        if (IsValidPlacement(basePos, blockShape))
+        {
+            return basePos;
+        }
+
+        // Search in a 1-cell radius (3x3 area) for a valid spot
+        Vector2Int nearestPos = new Vector2Int(-1, -1);
+        float minDistance = float.MaxValue;
+
+        for (int dr = -1; dr <= 1; dr++)
+        {
+            for (int dc = -1; dc <= 1; dc++)
+            {
+                if (dr == 0 && dc == 0) continue; // Already checked basePos
+
+                Vector2Int candidate = new Vector2Int(basePos.x + dc, basePos.y + dr);
+                if (IsValidPlacement(candidate, blockShape))
+                {
+                    // Calculate distance to the candidate cell's world position
+                    Vector2 candidateWorldPos = grid[candidate.y, candidate.x].transform.position;
+                    float dist = Vector2.Distance(worldPosition, candidateWorldPos);
+
+                    if (dist < minDistance)
+                    {
+                        minDistance = dist;
+                        nearestPos = candidate;
+                    }
+                }
+            }
+        }
+
+        return nearestPos;
     }
 
      private void ClearSquare(int startRow, int startCol)

@@ -178,7 +178,7 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
             // Use the logical position (without the visual offset) for grid calculations,
             // adjusted to the block's anchor point.
             Vector3 checkPosition = (rectTransform.position - grabWorldSpaceOffset) + (Vector3)anchorOffsetPixels;
-            Vector2Int gridPosition = GridManager_2D.Instance.GetGridPosition(checkPosition);
+            Vector2Int gridPosition = GridManager_2D.Instance.GetNearestValidPosition(checkPosition, shape);
             if (gridPosition != lastGridPosition)
             {
                 lastGridPosition = gridPosition;
@@ -195,9 +195,10 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
             // Use the logical position (without the visual offset) for final placement,
             // adjusted to the block's anchor point.
             Vector3 checkPosition = (rectTransform.position - grabWorldSpaceOffset) + (Vector3)anchorOffsetPixels;
-            Vector2Int gridPosition = GridManager_2D.Instance.GetGridPosition(checkPosition);
+            Vector2Int gridPosition = GridManager_2D.Instance.GetNearestValidPosition(checkPosition, shape);
 
-            if (GridManager_2D.Instance.IsValidPlacement(gridPosition, shape))
+            // If GetNearestValidPosition found a valid spot (it returns -1, -1 if not found)
+            if (gridPosition.x != -1 && gridPosition.y != -1)
             {
                 GridManager_2D.Instance.PlaceBlock(gridPosition, shape);
                 BlockSpawner_2D.Instance.BlockPlaced(gameObject);
