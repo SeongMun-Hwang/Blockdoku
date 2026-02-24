@@ -364,7 +364,9 @@ public class GridManager_2D : MonoBehaviour
             // If any lines were cleared, increment GameManager's combo
             // The score calculation in AddScore uses the combo AFTER it's updated.
             // So, we need to increment GameManager_2D.Instance.combo first.
-            GameManager_2D.Instance.combo += currentComboCount; 
+            GameManager_2D.Instance.combo += currentComboCount;
+            GameManager_2D.Instance.ShowComboEffect(GameManager_2D.Instance.combo);
+            if (AudioManager_2D.Instance != null) AudioManager_2D.Instance.PlayBlockDestroyAudio(GameManager_2D.Instance.combo);
         }
         else
         {

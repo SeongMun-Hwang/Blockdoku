@@ -15,6 +15,7 @@ public class GameManager_2D : MonoBehaviour
     [SerializeField] public AudioManager_2D audioManager;
 
     private int score = 0;
+    private int bestScore = 0;
     public int combo = 0;
     private bool isGameOver = false;
 
@@ -33,6 +34,7 @@ public class GameManager_2D : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            LoadPersonalData();
         }
         else
         {
@@ -78,6 +80,7 @@ public class GameManager_2D : MonoBehaviour
         combo = 0;
         isGameOver = false;
         uiManager.UpdateScore(score);
+        uiManager.UpdateBestScore(bestScore);
         uiManager.ShowGameOverPanel(false);
         Debug.Log($"GridManager is null in StartGame: {gridManager == null}");
         Debug.Log("Calling gridManager.InitializeGrid().");
@@ -97,8 +100,21 @@ public class GameManager_2D : MonoBehaviour
 
     public void AddScore(int amount)
     {
-        score += amount * combo;
+        score += amount * (combo + 1); // 콤보 가중치 수정 (0콤보일 때도 점수 나게)
         uiManager.UpdateScore(score);
+        if (score > bestScore)
+        {
+            bestScore = score;
+            uiManager.UpdateBestScore(bestScore);
+        }
+    }
+
+    public void ShowComboEffect(int comboCount)
+    {
+        if (comboCount > 1)
+        {
+            uiManager.ShowCombo($"{comboCount} COMBO!");
+        }
     }
 
     public int GetCombo()
@@ -109,14 +125,15 @@ public class GameManager_2D : MonoBehaviour
     public void EndGame()
     {
         isGameOver = true;
-        uiManager.ShowGameOverPanel(true, score);
+        SavePersonalData();
+        uiManager.ShowGameOverPanel(true, score, bestScore);
         Debug.Log("Game Over! Final Score: " + score);
-        SaveGameData();
+        RemoveGameData(); // 게임 오버 시 세이브 데이터 삭제
     }
 
     public void GoToTitle()
     {
-        SaveGameData();
+        if (!isGameOver) SaveGameData();
         SceneManager.LoadScene("Title");
     }
 
@@ -176,10 +193,28 @@ public class GameManager_2D : MonoBehaviour
         (int loadedScore, int loadedCombo) = gridManager.LoadBoardData_2D();
         score = loadedScore;
         combo = loadedCombo;
-        uiManager.UpdateScore(score); // Update UI with loaded score
+        uiManager.UpdateScore(score); 
+        uiManager.UpdateBestScore(bestScore);
         blockSpawner.LoadBlockData_2D();
         audioManager.LoadAudioData_2D();
         Debug.Log("2D Game data loaded!");
+    }
+
+    public void SavePersonalData()
+    {
+        PersonalData data = new PersonalData { bestScore = this.bestScore };
+        string json = JsonUtility.ToJson(data);
+        File.WriteAllText(PersonalDataPath, json);
+    }
+
+    public void LoadPersonalData()
+    {
+        if (File.Exists(PersonalDataPath))
+        {
+            string json = File.ReadAllText(PersonalDataPath);
+            PersonalData data = JsonUtility.FromJson<PersonalData>(json);
+            bestScore = data.bestScore;
+        }
     }
 
     public void RemoveGameData()

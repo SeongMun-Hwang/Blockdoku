@@ -202,6 +202,7 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
             {
                 GridManager_2D.Instance.PlaceBlock(gridPosition, shape);
                 BlockSpawner_2D.Instance.BlockPlaced(gameObject);
+                if (AudioManager_2D.Instance != null) AudioManager_2D.Instance.PlayBlockThudAudio();
                 Destroy(gameObject);
             }
             else
