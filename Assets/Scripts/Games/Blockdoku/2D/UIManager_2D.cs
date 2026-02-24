@@ -21,7 +21,7 @@ public class UIManager_2D : MonoBehaviour
         // Assign button listeners
         if (restartButton != null)
         {
-            restartButton.onClick.AddListener(() => GameManager_2D.Instance.RemoveGameData());
+            restartButton.onClick.AddListener(() => UI_Functions.Instance.TriggerGameRestart());
         }
         if (titleButton != null)
         {
