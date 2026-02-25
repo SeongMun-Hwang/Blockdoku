@@ -509,19 +509,9 @@ public class GridManager_2D : MonoBehaviour
         float normX = offsetWorld.x / cellPitchWorld.x;
         float normY = -offsetWorld.y / cellPitchWorld.y;
 
-        // Custom rounding logic for symmetrical, "looser" snapping
-        // We use FloorToInt with an offset to control the snapping point
-        int c = Mathf.FloorToInt(normX + 0.5f);
-        int r = Mathf.FloorToInt(normY + 0.5f);
-
-        // Adjust for snapping threshold: if the fractional part is close enough to the next/previous integer, snap to it.
-        float fracX = normX - Mathf.Floor(normX);
-        float fracY = normY - Mathf.Floor(normY);
-
-        if (fracX > snappingThreshold && fracX < 1.0f - snappingThreshold) {
-             // Keep current rounding if in the middle, but the lower threshold already helps
-        }
-
+        // Use standard rounding to find the nearest cell index
+        int c = Mathf.RoundToInt(normX);
+        int r = Mathf.RoundToInt(normY);
 
         // Ensure calculated indices are within grid bounds
         if (r < 0 || r >= GRID_SIZE || c < 0 || c >= GRID_SIZE)

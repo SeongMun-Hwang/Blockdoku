@@ -31,7 +31,7 @@ public class UIManager_2D : MonoBehaviour
 
     [Header("Game Over UI")]
     public TextMeshProUGUI finalScoreText;
-    public TextMeshProUGUI finalBestScoreText;
+    public GameObject newBestObj;
 
     private bool isVibrationMuted = false;
 
@@ -108,7 +108,10 @@ public class UIManager_2D : MonoBehaviour
             if (show)
             {
                 if (finalScoreText != null) finalScoreText.text = $"Score: {finalScore}";
-                if (finalBestScoreText != null) finalBestScoreText.text = $"Best: {bestScore}";
+                if (newBestObj != null)
+                {
+                    if (finalScore > bestScore) newBestObj.SetActive(true);
+                }
                 
                 // Call external systems (Ads, Vibration)
                 Vibrate();

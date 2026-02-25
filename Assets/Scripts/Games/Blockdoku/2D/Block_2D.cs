@@ -12,7 +12,7 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
 
     [Header("Interaction")]
     [SerializeField] private float dragMovementMultiplier = 1.5f; // Adjust this value to change movement sensitivity
-    [SerializeField] private float yOffsetOnGrab = 30f; // The amount the block moves up when grabbed
+    [SerializeField] private float yOffsetOnGrab = 0f; // The amount the block moves up when grabbed
 
     private Vector3 grabWorldSpaceOffset;
     private List<Vector2Int> shape;
@@ -162,10 +162,7 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         transform.SetParent(canvas.transform);
         transform.SetAsLastSibling();
 
-        // Calculate the world space offset for the visual lift
-        Vector3 originalWorldPosition = rectTransform.position;
-        rectTransform.anchoredPosition += new Vector2(0, yOffsetOnGrab);
-        grabWorldSpaceOffset = rectTransform.position - originalWorldPosition;
+        grabWorldSpaceOffset = Vector3.zero;
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -175,9 +172,7 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
 
         if (GridManager_2D.Instance != null)
         {
-            // Use the logical position (without the visual offset) for grid calculations,
-            // adjusted to the block's anchor point.
-            Vector3 checkPosition = (rectTransform.position - grabWorldSpaceOffset) + (Vector3)anchorOffsetPixels;
+            Vector3 checkPosition = rectTransform.position + (Vector3)anchorOffsetPixels;
             Vector2Int gridPosition = GridManager_2D.Instance.GetNearestValidPosition(checkPosition, shape);
             if (gridPosition != lastGridPosition)
             {
@@ -192,9 +187,7 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         if (GridManager_2D.Instance != null)
         {
             GridManager_2D.Instance.ClearPreview();
-            // Use the logical position (without the visual offset) for final placement,
-            // adjusted to the block's anchor point.
-            Vector3 checkPosition = (rectTransform.position - grabWorldSpaceOffset) + (Vector3)anchorOffsetPixels;
+            Vector3 checkPosition = rectTransform.position + (Vector3)anchorOffsetPixels;
             Vector2Int gridPosition = GridManager_2D.Instance.GetNearestValidPosition(checkPosition, shape);
 
             // If GetNearestValidPosition found a valid spot (it returns -1, -1 if not found)
