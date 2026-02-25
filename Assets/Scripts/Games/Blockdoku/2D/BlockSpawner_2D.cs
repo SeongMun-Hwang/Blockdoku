@@ -102,19 +102,16 @@ public class BlockSpawner_2D : MonoBehaviour
             spawnedBlocks.Add(blockGO);
             i++;
         }
+
+        if (GameManager_2D.Instance != null)
+        {
+            GameManager_2D.Instance.SaveGameData();
+        }
     }
 
     public void BlockPlaced(GameObject blockGO)
     {
         spawnedBlocks.Remove(blockGO);
-        if (GameManager_2D.Instance != null)
-        {
-            GameManager_2D.Instance.SaveGameData(); // Save game data after a block is placed
-        }
-        else
-        {
-            Debug.LogWarning("GameManager_2D.Instance is null. Cannot save game data.");
-        }
         
         if (spawnedBlocks.Count == 0)
         {
@@ -122,6 +119,14 @@ public class BlockSpawner_2D : MonoBehaviour
         }
         else
         {
+            if (GameManager_2D.Instance != null)
+            {
+                GameManager_2D.Instance.SaveGameData(); // Save game data after a block is placed
+            }
+            else
+            {
+                Debug.LogWarning("GameManager_2D.Instance is null. Cannot save game data.");
+            }
             // After a block is placed, check if any of the remaining blocks can be placed.
             // If not, it's game over.
             CheckForGameOver();
