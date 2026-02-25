@@ -104,8 +104,7 @@ public class GameManager_2D : MonoBehaviour
         uiManager.UpdateScore(score);
         if (score > bestScore)
         {
-            bestScore = score;
-            uiManager.UpdateBestScore(bestScore);
+            uiManager.UpdateBestScore(score);
         }
     }
 
@@ -125,8 +124,13 @@ public class GameManager_2D : MonoBehaviour
     public void EndGame()
     {
         isGameOver = true;
-        SavePersonalData();
         uiManager.ShowGameOverPanel(true, score, bestScore);
+
+        if (score > bestScore)
+        {
+            bestScore = score;
+        }
+        SavePersonalData();
         Debug.Log("Game Over! Final Score: " + score);
         RemoveGameData(); // 게임 오버 시 세이브 데이터 삭제
     }
