@@ -5,9 +5,8 @@ using UnityEngine.SceneManagement;
 
 public class TitleManager : MonoBehaviour
 {
-    [SerializeField] GameObject multiAnnounce;
     //싱글게임 -> 새게임 버튼
-    public void SingleNewBtnOnclicked()
+    public void BlockdokuBtnOnClicked()
     {
         if (File.Exists(SavePaths.BoardDataPath))
         {
@@ -22,28 +21,9 @@ public class TitleManager : MonoBehaviour
         SceneManager.LoadScene("Blockdoku_2D");
     }
     //싱글게임 -> 새게임 버튼
-    public void SingleLoadBtnOnClicked()
+    public void TenSumBtnOnClicked()
     {
-//#if UNITY_EDITOR
-//        PlayerPrefs.SetInt("NotFirstTime", 0);
-//#endif
-//        if (PlayerPrefs.GetInt("NotFirstTime") == 1)
-//        {
-            SceneManager.LoadScene("Blockdoku_2D");
-//        }
-//        else
-//        {
-//            PlayerPrefs.SetInt("NotFirstTime", 1);
-//            SceneManager.LoadScene("Tutorial");
-//        }
-    }
-    public void MultiBtnOnClicked()
-    {
-        multiAnnounce.SetActive(true);
-    }
-    public void MultiBtnOffClicked()
-    {
-        multiAnnounce.SetActive(false);
+        SceneManager.LoadScene("10SUM");
     }
     public void QuitBtnOnClicked()
     {
@@ -52,9 +32,5 @@ public class TitleManager : MonoBehaviour
 #else
         Application.Quit();
 #endif
-    }
-    public void OnQuestionMarkClicked()
-    {
-        SceneManager.LoadScene("Tutorial");
     }
 }
