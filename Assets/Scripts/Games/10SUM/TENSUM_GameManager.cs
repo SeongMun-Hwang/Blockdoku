@@ -55,6 +55,16 @@ public class TENSUM_GameManager : MonoBehaviour
         uiManager.UpdateScore(score);
         uiManager.ShowGameOverPanel(false);
         gridManager.InitializeGrid();
+
+        // Load and display best score on main game screen
+        int bestScore = 0;
+        if (File.Exists(SavePaths.TenSumDataPath))
+        {
+            string json = File.ReadAllText(SavePaths.TenSumDataPath);
+            TenSumData data = JsonUtility.FromJson<TenSumData>(json);
+            bestScore = data.bestScore;
+        }
+        uiManager.UpdateBestScoreMainGame(bestScore);
     }
 
     public void AddScore(int amount)

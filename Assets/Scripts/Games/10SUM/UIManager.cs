@@ -7,9 +7,9 @@ public class UIManager : MonoBehaviour
 {
     public TextMeshProUGUI timerText;
     public TextMeshProUGUI scoreText;
+    public TextMeshProUGUI bestScoreMainGameText; // New field for best score on main game screen
     public GameObject gameOverPanel;
     public TextMeshProUGUI finalScoreText;
-    public TextMeshProUGUI bestScoreText; // Added this line
     public Button restartButton;
     public Button titleButton;
 
@@ -35,13 +35,17 @@ public class UIManager : MonoBehaviour
         scoreText.text = $"{score}";
     }
 
-    public void ShowGameOverPanel(bool show, int finalScore = 0, int bestScore = 0) // Modified this line
+    public void UpdateBestScoreMainGame(int bestScore) // New method to update best score on main game screen
+    {
+        bestScoreMainGameText.text = $"{bestScore}";
+    }
+
+    public void ShowGameOverPanel(bool show, int finalScore = 0, int bestScore = 0)
     {
         gameOverPanel.SetActive(show);
         if (show)
         {
-            finalScoreText.text = $"Score: {finalScore}"; // Modified this line
-            bestScoreText.text = $"Best Score: {bestScore}"; // Added this line
+            finalScoreText.text = $"Score: {finalScore}";
         }
     }
 }
