@@ -7,6 +7,7 @@ public static class SavePaths
     public static string BoardDataPath = Application.persistentDataPath + "/save.json";
     public static string SettingDataPath = Application.persistentDataPath + "/setting.json";
     public static string PersonalDataPath = Application.persistentDataPath + "/personal.json";
+    public static string TenSumDataPath = Application.persistentDataPath + "/TenSum.json";
 }
 
 [System.Serializable]
@@ -39,7 +40,8 @@ public class  PersonalData
 {
     public int bestScore;
 }
-public class SaveSingleGameData : MonoBehaviour
+[System.Serializable]
+public class TenSumData
 {
-
+    public int bestScore;
 }

@@ -1,6 +1,7 @@
 
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.IO;
 
 public class TENSUM_GameManager : MonoBehaviour
 {
@@ -65,7 +66,37 @@ public class TENSUM_GameManager : MonoBehaviour
     private void EndGame()
     {
         isGameOver = true;
-        uiManager.ShowGameOverPanel(true, score);
+        int currentBestScore = 0;
+        if (File.Exists(SavePaths.TenSumDataPath))
+        {
+            string json = File.ReadAllText(SavePaths.TenSumDataPath);
+            TenSumData data = JsonUtility.FromJson<TenSumData>(json);
+            currentBestScore = data.bestScore;
+        }
+
+        uiManager.ShowGameOverPanel(true, score, currentBestScore);
+        SaveScore();
+    }
+
+    private void SaveScore()
+    {
+        int bestScore = 0;
+        if (File.Exists(SavePaths.TenSumDataPath))
+        {
+            string json = File.ReadAllText(SavePaths.TenSumDataPath);
+            TenSumData data = JsonUtility.FromJson<TenSumData>(json);
+            bestScore = data.bestScore;
+        }
+
+        if (score > bestScore)
+        {
+            TenSumData data = new TenSumData
+            {
+                bestScore = score
+            };
+            string json = JsonUtility.ToJson(data);
+            File.WriteAllText(SavePaths.TenSumDataPath, json);
+        }
     }
 
     public void RestartGame()

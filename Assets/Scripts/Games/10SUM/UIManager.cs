@@ -9,6 +9,7 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI scoreText;
     public GameObject gameOverPanel;
     public TextMeshProUGUI finalScoreText;
+    public TextMeshProUGUI bestScoreText; // Added this line
     public Button restartButton;
     public Button titleButton;
 
@@ -34,12 +35,13 @@ public class UIManager : MonoBehaviour
         scoreText.text = $"{score}";
     }
 
-    public void ShowGameOverPanel(bool show, int finalScore = 0)
+    public void ShowGameOverPanel(bool show, int finalScore = 0, int bestScore = 0) // Modified this line
     {
         gameOverPanel.SetActive(show);
         if (show)
         {
-            finalScoreText.text = $"{finalScore}";
+            finalScoreText.text = $"Score: {finalScore}"; // Modified this line
+            bestScoreText.text = $"Best Score: {bestScore}"; // Added this line
         }
     }
 }
