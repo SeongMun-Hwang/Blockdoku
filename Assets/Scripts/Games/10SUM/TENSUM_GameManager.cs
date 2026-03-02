@@ -84,8 +84,12 @@ public class TENSUM_GameManager : MonoBehaviour
             currentBestScore = data.bestScore;
         }
 
-        uiManager.ShowGameOverPanel(true, score, currentBestScore);
         SaveScore();
+
+        AdEventBus.TriggerGamePlayEnded(MinigameType.TenSum, () =>
+        {
+            uiManager.ShowGameOverPanel(true, score, currentBestScore);
+        });
     }
 
     private void SaveScore()
@@ -111,7 +115,10 @@ public class TENSUM_GameManager : MonoBehaviour
 
     public void RestartGame()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        AdEventBus.TriggerGamePlayEnded(MinigameType.TenSum, () =>
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        });
     }
 
     public void GoToTitle()

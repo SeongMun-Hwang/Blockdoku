@@ -124,7 +124,6 @@ public class GameManager_2D : MonoBehaviour
     public void EndGame()
     {
         isGameOver = true;
-        uiManager.ShowGameOverPanel(true, score, bestScore);
 
         if (score > bestScore)
         {
@@ -133,6 +132,11 @@ public class GameManager_2D : MonoBehaviour
         SavePersonalData();
         Debug.Log("Game Over! Final Score: " + score);
         RemoveGameData(); // 게임 오버 시 세이브 데이터 삭제
+
+        AdEventBus.TriggerGamePlayEnded(MinigameType.Blockdoku, () =>
+        {
+            uiManager.ShowGameOverPanel(true, score, bestScore);
+        });
     }
 
     public void GoToTitle()
