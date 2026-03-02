@@ -72,37 +72,62 @@ public class BlockSpawner_2D : MonoBehaviour
             return;
         }
 
-        // Create a list of random, unique indices from the blockArrays list
-        HashSet<int> randomIndexes = new HashSet<int>();
-        while (randomIndexes.Count < spawnPositions.Count && randomIndexes.Count < blockArrays.Count)
-        {
-            randomIndexes.Add(Random.Range(0, blockArrays.Count));
-        }
+        List<Block_2D> potentialBlocks = new List<Block_2D>();
+        bool isPlaceableSetFound = false;
 
-        int i = 0;
-        foreach (int index in randomIndexes)
+        while (!isPlaceableSetFound)
         {
-            Transform spawnPos = spawnPositions[i];
-            
-            // Instantiate the empty container
-            GameObject blockGO = Instantiate(blockContainerPrefab, spawnPos.position, Quaternion.identity, spawnPos);
-            
-            // Get the script and initialize it with data and a random rotation
-            Block_2D blockScript = blockGO.GetComponent<Block_2D>();
-            if (blockScript != null)
+            // Clear potential blocks from previous loop
+            foreach (var block in potentialBlocks)
             {
+                if (block != null) Destroy(block.gameObject);
+            }
+            potentialBlocks.Clear();
+
+            // 1. Generate a set of 3 temporary blocks
+            HashSet<int> randomIndexes = new HashSet<int>();
+            while (randomIndexes.Count < spawnPositions.Count && randomIndexes.Count < blockArrays.Count)
+            {
+                randomIndexes.Add(Random.Range(0, blockArrays.Count));
+            }
+
+            foreach (int index in randomIndexes)
+            {
+                // Instantiate the container, but keep it inactive and out of sight
+                GameObject blockGO = Instantiate(blockContainerPrefab, new Vector3(-1000, -1000, 0), Quaternion.identity);
+                blockGO.SetActive(false); // Keep it inactive for now
+                Block_2D blockScript = blockGO.GetComponent<Block_2D>();
+
                 int randomRot = Random.Range(0, 4);
                 blockScript.Initialize(blockArrays[index], randomRot);
-            }
-            else
-            {
-                Debug.LogError($"BlockSpawner_2D: The prefab '{blockContainerPrefab.name}' is missing the Block_2D script.");
+                potentialBlocks.Add(blockScript);
             }
 
-            spawnedBlocks.Add(blockGO);
-            i++;
+            // 2. Check if any block in the set is placeable
+            foreach (var block in potentialBlocks)
+            {
+                if (GameManager_2D.Instance.CanBlockBePlaced(block))
+                {
+                    isPlaceableSetFound = true;
+                    break; // Found a placeable block, so this set is valid
+                }
+            }
         }
 
+        // 3. Once a valid set is found, spawn them properly
+        for (int i = 0; i < potentialBlocks.Count; i++)
+        {
+            Block_2D blockScript = potentialBlocks[i];
+            Transform spawnPos = spawnPositions[i];
+
+            blockScript.transform.SetParent(spawnPos, false);
+            blockScript.transform.position = spawnPos.position;
+            blockScript.gameObject.SetActive(true);
+            spawnedBlocks.Add(blockScript.gameObject);
+        }
+
+
+        // Save game state after new blocks are spawned
         if (GameManager_2D.Instance != null)
         {
             GameManager_2D.Instance.SaveGameData();

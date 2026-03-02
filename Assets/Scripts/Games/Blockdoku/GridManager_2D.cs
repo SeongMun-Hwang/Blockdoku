@@ -141,6 +141,12 @@ public class GridManager_2D : MonoBehaviour
         }
 
         CheckForCompletedLines();
+
+        // Ensure game data is saved after a block is placed.
+        if (GameManager_2D.Instance != null)
+        {
+            GameManager_2D.Instance.SaveGameData();
+        }
     }
     
     public void ShowPreview(Vector2Int gridPosition, List<Vector2Int> blockShape)
