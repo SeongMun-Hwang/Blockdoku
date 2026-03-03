@@ -172,7 +172,7 @@ public class GameManager_2D : MonoBehaviour
         }
     }
 
-    private bool CanBlockBePlaced(Block_2D block)
+    public bool CanBlockBePlaced(Block_2D block)
     {
         List<Vector2Int> shape = block.GetShape();
         for (int r = 0; r < 9; r++)
