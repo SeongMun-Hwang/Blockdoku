@@ -56,6 +56,7 @@ public class GridManager_2D : MonoBehaviour
     public class SaveData_2D
     {
         public bool[] cellOccupiedStates = new bool[GRID_SIZE * GRID_SIZE];
+        public List<SerializableColor> cellColors = new List<SerializableColor>(GRID_SIZE * GRID_SIZE); // Changed to List for better JsonUtility serialization
         public int score;
         public int combo;
     }
@@ -75,7 +76,7 @@ public class GridManager_2D : MonoBehaviour
                 GameObject cellGO = Instantiate(cellPrefab, gridParent);
                 cellGO.name = $"Cell_{r}_{c}";
                 grid[r, c] = cellGO.AddComponent<Cell_2D>();
-                grid[r, c].Initialize(r, c, true); // true for isEmtpy
+                grid[r, c].Initialize(r, c, true); // true for isEmtpy, Cell_2D now initializes BlockColor to clear
 
                 // Add borders for the 3x3 grid visualization
                 if (r % 3 == 2 && r < GRID_SIZE - 1)
@@ -128,7 +129,7 @@ public class GridManager_2D : MonoBehaviour
         return true;
     }
 
-    public void PlaceBlock(Vector2Int gridPosition, List<Vector2Int> blockShape)
+    public void PlaceBlock(Vector2Int gridPosition, List<Vector2Int> blockShape, Color blockColor)
     {
         // First, clear any ongoing clear prediction blinks
         StopClearPredictBlink();
@@ -137,7 +138,7 @@ public class GridManager_2D : MonoBehaviour
         {
             int r = gridPosition.y - pos.y; // Corrected: subtract pos.y
             int c = gridPosition.x + pos.x;
-            grid[r, c].SetOccupied();
+            grid[r, c].SetOccupied(blockColor); // Pass the block's color
         }
 
         CheckForCompletedLines();
@@ -585,11 +586,18 @@ public class GridManager_2D : MonoBehaviour
     public void SaveBoardData_2D(int currentScore, int currentCombo)
     {
         SaveData_2D saveData = new SaveData_2D();
+        // Ensure the list is sized correctly before filling
+        saveData.cellColors.Capacity = GRID_SIZE * GRID_SIZE; // Pre-allocate capacity
+        for (int i = 0; i < GRID_SIZE * GRID_SIZE; i++) saveData.cellColors.Add(new SerializableColor()); // Fill with default values
+
         for (int r = 0; r < GRID_SIZE; r++)
         {
             for (int c = 0; c < GRID_SIZE; c++)
             {
-                saveData.cellOccupiedStates[r * GRID_SIZE + c] = !grid[r, c].IsEmpty;
+                int index = r * GRID_SIZE + c;
+                saveData.cellOccupiedStates[index] = !grid[r, c].IsEmpty;
+                // Save the color only if the cell is occupied
+                saveData.cellColors[index] = grid[r, c].BlockColor;
             }
         }
         saveData.score = currentScore;
@@ -614,13 +622,25 @@ public class GridManager_2D : MonoBehaviour
             // Re-initialize grid before loading states
             InitializeGrid();
 
+            // Ensure cellColors list is consistent with grid size after loading
+            // If the loaded list is smaller, it means older data without color was saved
+            // We should ensure the list is at least the expected size before accessing by index.
+            while (saveData.cellColors.Count < GRID_SIZE * GRID_SIZE)
+            {
+                saveData.cellColors.Add(new SerializableColor()); // Add default colors if missing
+            }
+
+
             for (int r = 0; r < GRID_SIZE; r++)
             {
                 for (int c = 0; c < GRID_SIZE; c++)
                 {
-                    if (saveData.cellOccupiedStates[r * GRID_SIZE + c])
+                    int index = r * GRID_SIZE + c;
+                    if (saveData.cellOccupiedStates[index])
                     {
-                        grid[r, c].SetOccupied();
+                        // Load and apply the saved color
+                        // Use default color (e.g., Color.clear) if for some reason color data is missing for a cell
+                        grid[r, c].SetOccupied(saveData.cellColors[index]);
                     }
                     else
                     {

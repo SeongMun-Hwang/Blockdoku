@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.UI; // Added for Image component
 
 public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
@@ -9,6 +10,7 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
     [SerializeField] private BlockArray blockData;
     public BlockArray BlockData { get { return blockData; } } // Public getter for blockData
     [SerializeField] private GameObject cellPrefab; // The prefab for a single visual cell
+    public Color blockColor; // New: Stores the color of this block
 
     [Header("Interaction")]
     [SerializeField] private float dragMovementMultiplier = 1.5f; // Adjust this value to change movement sensitivity
@@ -31,13 +33,15 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
     /// Initializes the block with data, loads its shape, and applies rotation.
     /// This should be called by the spawner right after instantiation.
     /// </summary>
-    public void Initialize(BlockArray data, int rotationCount)
+    public void Initialize(BlockArray data, int rotationCount, Color color)
     {
         rectTransform = GetComponent<RectTransform>();
         blockData = data;
+        blockColor = color; // Assign the color
         LoadShapeFromData();
         RotateShape(rotationCount);
         UpdateVisuals();
+        SetColor(blockColor); // Apply the color to the visuals
     }
 
     /// <summary>
@@ -147,6 +151,22 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         return shape;
     }
 
+    /// <summary>
+    /// Sets the color of all individual cells within this block.
+    /// </summary>
+    public void SetColor(Color color)
+    {
+        blockColor = color; // Also update the stored blockColor
+        foreach (Transform child in childCubes)
+        {
+            Image cellImage = child.GetComponent<Image>();
+            if (cellImage != null)
+            {
+                cellImage.color = color;
+            }
+        }
+    }
+
     public void OnPointerDown(PointerEventData eventData)
     {
         originalPosition = rectTransform.anchoredPosition;
@@ -193,7 +213,7 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
             // If GetNearestValidPosition found a valid spot (it returns -1, -1 if not found)
             if (gridPosition.x != -1 && gridPosition.y != -1)
             {
-                GridManager_2D.Instance.PlaceBlock(gridPosition, shape);
+                GridManager_2D.Instance.PlaceBlock(gridPosition, shape, blockColor); // Pass the blockColor
                 BlockSpawner_2D.Instance.BlockPlaced(gameObject);
                 if (AudioManager_2D.Instance != null) AudioManager_2D.Instance.PlayBlockThudAudio();
                 Destroy(gameObject);

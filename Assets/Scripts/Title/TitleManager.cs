@@ -8,16 +8,7 @@ public class TitleManager : MonoBehaviour
     //싱글게임 -> 새게임 버튼
     public void BlockdokuBtnOnClicked()
     {
-        if (File.Exists(SavePaths.BoardDataPath))
-        {
-            File.Delete(SavePaths.BoardDataPath);
-            Debug.Log("Board Save file deleted");
-        }
-        if (File.Exists(SavePaths.BlockDataPath))
-        {
-            File.Delete(SavePaths.BlockDataPath);
-            Debug.Log("Block Save file deleted");
-        }
+        // Removed File.Delete calls to allow loading existing save data
         SceneManager.LoadScene("Blockdoku_2D");
     }
     //싱글게임 -> 새게임 버튼
