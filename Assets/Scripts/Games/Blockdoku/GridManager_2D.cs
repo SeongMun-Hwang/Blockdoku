@@ -16,6 +16,7 @@ public class GridManager_2D : MonoBehaviour
     public Color previewColor = new Color(0f, 1f, 0f, 0.5f); // Green, semi-transparent for block placement preview
     public Color clearBlinkColor = Color.cyan; // Cyan, for cells that will be cleared
     public float clearBlinkInterval = 0.3f; // Interval for clear prediction blinking
+    public float clearAnimationSequentialDelay = 0.05f; // Delay between sequential cell clears
 
     // New: Sprites for cell visuals
     public Sprite defaultEmptyCellSprite;
@@ -308,12 +309,10 @@ public class GridManager_2D : MonoBehaviour
 
     private void CheckForCompletedLines()
     {
-        // This method will now ONLY be called after a block is actually placed,
-        // so it doesn't need to predict, just execute the clearing.
-
+        HashSet<Cell_2D> cellsToClear = new HashSet<Cell_2D>();
         List<int> completedRows = new List<int>();
         List<int> completedCols = new List<int>();
-        int currentComboCount = 0; // Local variable to count combo for this placement
+        int currentComboCount = 0;
 
         // Check rows and columns
         for (int i = 0; i < GRID_SIZE; i++)
@@ -325,8 +324,16 @@ public class GridManager_2D : MonoBehaviour
                 if (grid[i, j].IsEmpty) rowComplete = false;
                 if (grid[j, i].IsEmpty) colComplete = false;
             }
-            if (rowComplete) completedRows.Add(i);
-            if (colComplete) completedCols.Add(i);
+            if (rowComplete)
+            {
+                completedRows.Add(i);
+                for (int c = 0; c < GRID_SIZE; c++) cellsToClear.Add(grid[i, c]);
+            }
+            if (colComplete)
+            {
+                completedCols.Add(i);
+                for (int r = 0; r < GRID_SIZE; r++) cellsToClear.Add(grid[r, i]);
+            }
         }
 
         // Check 3x3 squares
@@ -344,41 +351,64 @@ public class GridManager_2D : MonoBehaviour
                 }
                 if (squareComplete)
                 {
-                    ClearSquare(r, c);
-                    GameManager_2D.Instance.AddScore(9);
                     currentComboCount++;
+                    GameManager_2D.Instance.AddScore(9);
+                    for (int i = r; i < r + 3; i++)
+                    {
+                        for (int j = c; j < c + 3; j++)
+                        {
+                            cellsToClear.Add(grid[i, j]);
+                        }
+                    }
                 }
             }
         }
 
-        // Clear lines and add score
-        foreach (var row in completedRows)
-        {
-            ClearRow(row);
-            GameManager_2D.Instance.AddScore(9);
-            currentComboCount++;
-        }
-        foreach (var col in completedCols)
-        {
-            ClearCol(col);
-            GameManager_2D.Instance.AddScore(9);
-            currentComboCount++;
-        }
+        currentComboCount += completedRows.Count + completedCols.Count;
+        GameManager_2D.Instance.AddScore((completedRows.Count + completedCols.Count) * 9);
 
-        // Update global combo in GameManager
-        if (currentComboCount > 0)
+        if (cellsToClear.Count > 0)
         {
-            // If any lines were cleared, increment GameManager's combo
-            // The score calculation in AddScore uses the combo AFTER it's updated.
-            // So, we need to increment GameManager_2D.Instance.combo first.
+            StartCoroutine(SequentialClear(cellsToClear));
+
+            // Update global combo in GameManager
             GameManager_2D.Instance.combo += currentComboCount;
             GameManager_2D.Instance.ShowComboEffect(GameManager_2D.Instance.combo);
             if (AudioManager_2D.Instance != null) AudioManager_2D.Instance.PlayBlockDestroyAudio(GameManager_2D.Instance.combo);
         }
         else
         {
-            // No lines cleared, reset combo
             GameManager_2D.Instance.combo = 0;
+        }
+    }
+
+    private IEnumerator SequentialClear(HashSet<Cell_2D> cells)
+    {
+        List<Cell_2D> sortedCells = cells.ToList();
+
+        // 0: Top-Bottom, 1: Bottom-Top, 2: Left-Right, 3: Right-Left
+        int direction = Random.Range(0, 4);
+
+        switch (direction)
+        {
+            case 0: // Top-Bottom (y: 0 to 8)
+                sortedCells = sortedCells.OrderBy(c => c.gridPosition.y).ThenBy(c => c.gridPosition.x).ToList();
+                break;
+            case 1: // Bottom-Top (y: 8 to 0)
+                sortedCells = sortedCells.OrderByDescending(c => c.gridPosition.y).ThenBy(c => c.gridPosition.x).ToList();
+                break;
+            case 2: // Left-Right (x: 0 to 8)
+                sortedCells = sortedCells.OrderBy(c => c.gridPosition.x).ThenBy(c => c.gridPosition.y).ToList();
+                break;
+            case 3: // Right-Left (x: 8 to 0)
+                sortedCells = sortedCells.OrderByDescending(c => c.gridPosition.x).ThenBy(c => c.gridPosition.y).ToList();
+                break;
+        }
+
+        foreach (var cell in sortedCells)
+        {
+            cell.TriggerClearAnimation();
+            yield return new WaitForSeconds(clearAnimationSequentialDelay);
         }
     }
     
@@ -434,22 +464,6 @@ public class GridManager_2D : MonoBehaviour
         }
     }
 
-
-    private void ClearRow(int row)
-    {
-        for (int c = 0; c < GRID_SIZE; c++)
-        {
-            grid[row, c].SetEmpty();
-        }
-    }
-
-    private void ClearCol(int col)
-    {
-        for (int r = 0; r < GRID_SIZE; r++)
-        {
-            grid[r, col].SetEmpty();
-        }
-    }
 
     public Vector2Int GetGridPosition(Vector2 worldPosition)
     {
@@ -536,17 +550,6 @@ public class GridManager_2D : MonoBehaviour
         }
 
         return nearestPos;
-    }
-
-     private void ClearSquare(int startRow, int startCol)
-    {
-        for (int r = startRow; r < startRow + 3; r++)
-        {
-            for (int c = startCol; c < startCol + 3; c++)
-            {
-                grid[r, c].SetEmpty();
-            }
-        }
     }
 
     public void SaveBoardData_2D(int currentScore, int currentCombo)

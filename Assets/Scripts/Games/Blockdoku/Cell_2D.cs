@@ -9,6 +9,7 @@ public class Cell_2D : MonoBehaviour
     public Color BlockColor { get; private set; } // New: Stores the color of the block occupying this cell
 
     public Image cellImage;
+    private Animator animator;
 
     void Awake()
     {
@@ -16,6 +17,19 @@ public class Cell_2D : MonoBehaviour
         {
             cellImage = GetComponent<Image>();
         }
+        animator = GetComponent<Animator>();
+    }
+
+    public void TriggerClearAnimation()
+    {
+        if (animator != null)
+        {
+            animator.SetTrigger("Clear");
+        }
+        
+        // Logic state update
+        IsEmpty = true;
+        BlockColor = Color.clear;
     }
 
     public void Initialize(int row, int col, bool isEmpty)
@@ -36,6 +50,7 @@ public class Cell_2D : MonoBehaviour
         {
             cellImage.sprite = GridManager_2D.Instance.defaultOccupiedCellSprite;
             cellImage.color = BlockColor; // Apply the block's color
+            transform.localScale = Vector3.one; // Ensure scale is 1 when occupied
         }
     }
 
@@ -47,6 +62,7 @@ public class Cell_2D : MonoBehaviour
         {
             cellImage.sprite = GridManager_2D.Instance.defaultEmptyCellSprite;
             cellImage.color = Color.white; // Default color for empty cells
+            transform.localScale = Vector3.one; // Ensure scale is reset to 1
         }
     }
 
