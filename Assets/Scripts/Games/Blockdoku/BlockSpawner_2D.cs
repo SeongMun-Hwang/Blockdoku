@@ -174,9 +174,23 @@ public class BlockSpawner_2D : MonoBehaviour
         }
     }
 
-    public void BlockPlaced(GameObject blockGO)
+    public void BlockPlaced(GameObject blockGO, Vector2Int gridPosition, List<Vector2Int> shape, Color blockColor)
     {
         spawnedBlocks.Remove(blockGO);
+        StartCoroutine(BlockPlacedRoutine(gridPosition, shape, blockColor));
+    }
+
+    private System.Collections.IEnumerator BlockPlacedRoutine(Vector2Int gridPosition, List<Vector2Int> shape, Color blockColor)
+    {
+        // Actually place the block on the grid
+        int clearCount = GridManager_2D.Instance.PlaceBlock(gridPosition, shape, blockColor);
+        
+        if (clearCount > 0)
+        {
+            // Wait for sequential clear animations to finish
+            float waitTime = clearCount * GridManager_2D.Instance.clearAnimationSequentialDelay + 0.4f; 
+            yield return new WaitForSeconds(waitTime);
+        }
 
         if (spawnedBlocks.Count == 0)
         {
@@ -186,14 +200,8 @@ public class BlockSpawner_2D : MonoBehaviour
         {
             if (GameManager_2D.Instance != null)
             {
-                GameManager_2D.Instance.SaveGameData(); // Save game data after a block is placed
+                GameManager_2D.Instance.SaveGameData();
             }
-            else
-            {
-                Debug.LogWarning("GameManager_2D.Instance is null. Cannot save game data.");
-            }
-            // After a block is placed, check if any of the remaining blocks can be placed.
-            // If not, it's game over.
             CheckForGameOver();
         }
     }

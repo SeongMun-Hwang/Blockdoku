@@ -130,7 +130,7 @@ public class GridManager_2D : MonoBehaviour
         return true;
     }
 
-    public void PlaceBlock(Vector2Int gridPosition, List<Vector2Int> blockShape, Color blockColor)
+    public int PlaceBlock(Vector2Int gridPosition, List<Vector2Int> blockShape, Color blockColor)
     {
         // First, clear any ongoing clear prediction blinks
         StopClearPredictBlink();
@@ -142,13 +142,15 @@ public class GridManager_2D : MonoBehaviour
             grid[r, c].SetOccupied(blockColor); // Pass the block's color
         }
 
-        CheckForCompletedLines();
+        int clearCount = CheckForCompletedLines();
 
         // Ensure game data is saved after a block is placed.
         if (GameManager_2D.Instance != null)
         {
             GameManager_2D.Instance.SaveGameData();
         }
+
+        return clearCount;
     }
     
     public void ShowPreview(Vector2Int gridPosition, List<Vector2Int> blockShape)
@@ -307,7 +309,7 @@ public class GridManager_2D : MonoBehaviour
     }
 
 
-    private void CheckForCompletedLines()
+    public int CheckForCompletedLines()
     {
         HashSet<Cell_2D> cellsToClear = new HashSet<Cell_2D>();
         List<int> completedRows = new List<int>();
@@ -380,6 +382,8 @@ public class GridManager_2D : MonoBehaviour
         {
             GameManager_2D.Instance.combo = 0;
         }
+
+        return cellsToClear.Count;
     }
 
     private IEnumerator SequentialClear(HashSet<Cell_2D> cells)
