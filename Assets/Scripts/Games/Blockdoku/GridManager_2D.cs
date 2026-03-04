@@ -411,15 +411,7 @@ public class GridManager_2D : MonoBehaviour
         storedOriginalClearPredictColors.Clear(); // Ensure it's clean
         foreach (var cell in cells)
         {
-            bool isPartOfBlockPreview = false;
-            foreach(var previewCell in previewCells) {
-                if (previewCell == cell) {
-                    isPartOfBlockPreview = true;
-                    break;
-                }
-            }
-
-            if (!isPartOfBlockPreview)
+            if (!previewCells.Contains(cell))
             {
                 // Store the current visual color of the cell
                 storedOriginalClearPredictColors[cell] = cell.cellImage.color; 
@@ -428,41 +420,17 @@ public class GridManager_2D : MonoBehaviour
 
         while (true)
         {
+            float t = Mathf.PingPong(Time.time / interval, 1.0f);
             foreach (var cell in cells)
             {
-                bool isPartOfBlockPreview = false;
-                foreach(var previewCell in previewCells) {
-                    if (previewCell == cell) {
-                        isPartOfBlockPreview = true;
-                        break;
-                    }
-                    if (cell.gameObject == null) continue; // Defensive check
-                }
+                if (cell == null || cell.gameObject == null) continue;
 
-                if (!isPartOfBlockPreview)
+                if (!previewCells.Contains(cell) && storedOriginalClearPredictColors.TryGetValue(cell, out Color originalColor))
                 {
-                    cell.cellImage.color = blinkColor;
+                    cell.cellImage.color = Color.Lerp(originalColor, blinkColor, t);
                 }
             }
-            yield return new WaitForSeconds(interval);
-
-            foreach (var cell in cells)
-            {
-                bool isPartOfBlockPreview = false;
-                foreach(var previewCell in previewCells) {
-                    if (previewCell == cell) {
-                        isPartOfBlockPreview = true;
-                        break;
-                    }
-                    if (cell.gameObject == null) continue; // Defensive check
-                }
-
-                if (!isPartOfBlockPreview && storedOriginalClearPredictColors.ContainsKey(cell))
-                {
-                    cell.cellImage.color = storedOriginalClearPredictColors[cell];
-                }
-            }
-            yield return new WaitForSeconds(interval);
+            yield return null;
         }
     }
 
@@ -510,8 +478,6 @@ public class GridManager_2D : MonoBehaviour
 
         // To make snapping "looser", we can adjust the rounding threshold.
         // A lower threshold makes the block snap to the nearest cell more easily.
-        const float snappingThreshold = 0.4f; // Snap when 40% into the next cell.
-        float roundingPoint = 1.0f - snappingThreshold;
 
         float normX = offsetWorld.x / cellPitchWorld.x;
         float normY = -offsetWorld.y / cellPitchWorld.y;

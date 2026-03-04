@@ -14,7 +14,6 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
 
     [Header("Interaction")]
     [SerializeField] private float dragMovementMultiplier = 1.5f; // Adjust this value to change movement sensitivity
-    [SerializeField] private float yOffsetOnGrab = 0f; // The amount the block moves up when grabbed
 
     private Vector3 grabWorldSpaceOffset;
     private List<Vector2Int> shape;
