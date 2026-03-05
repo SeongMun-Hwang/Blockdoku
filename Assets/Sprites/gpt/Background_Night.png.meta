@@ -1,12 +1,5 @@
 fileFormatVersion: 2
-guid: bfaa6a06070d3461a8c6b100e9fd503c
-AssetOrigin:
-  serializedVersion: 1
-  productId: 48850
-  packageName: Cartoon GUI Pack
-  packageVersion: 2.0.5
-  assetPath: Assets/GUIPackCartoon/Demo/Sprites/Icons/Icons Colored/Food/Apple.png
-  uploadId: 769476
+guid: 22674a2a227f9e54ea07e4dab827b5af
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -46,11 +39,11 @@ TextureImporter:
     mipBias: 0
     wrapU: 1
     wrapV: 1
-    wrapW: 1
+    wrapW: 0
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -72,7 +65,7 @@ TextureImporter:
   ignorePngGamma: 0
   applyGammaDecoding: 0
   swizzle: 50462976
-  cookieLightType: 1
+  cookieLightType: 0
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
@@ -115,29 +108,7 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites:
-    - serializedVersion: 2
-      name: Apple_0
-      rect:
-        serializedVersion: 2
-        x: 1
-        y: 0
-        width: 255
-        height: 193
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 6a925a90fc6c4ba4cb167f2494da0587
-      internalID: 1276563220
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
+    sprites: []
     outline: []
     customData: 
     physicsShape: []
@@ -151,8 +122,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      Apple_0: 1276563220
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

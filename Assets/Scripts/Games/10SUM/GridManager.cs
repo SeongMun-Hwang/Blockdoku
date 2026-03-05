@@ -10,6 +10,7 @@ public class GridManager : MonoBehaviour, IPointerDownHandler, IDragHandler, IPo
     public GameObject cellPrefab; // Assign a UI Image prefab for the cell
     public RectTransform gridParent; // The RectTransform of the panel this script is attached to
     public Sprite appleSprite; // Assign the apple sprite
+    public Color highlightColor = new Color(92f / 255f, 92f / 255f, 92f / 255f); // Color when selected
 
     private int[,] grid;
     private GameObject[,] cellObjects;
@@ -198,7 +199,7 @@ public class GridManager : MonoBehaviour, IPointerDownHandler, IDragHandler, IPo
             Image img = cell.GetComponent<Image>();
             if (img != null)
             {
-                img.color = highlight ? new Color(92f / 255f, 92f / 255f, 92f / 255f) : Color.white;
+                img.color = highlight ? highlightColor : Color.white;
             }
         }
     }
