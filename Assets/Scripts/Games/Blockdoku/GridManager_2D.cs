@@ -314,7 +314,7 @@ public class GridManager_2D : MonoBehaviour
         HashSet<Cell_2D> cellsToClear = new HashSet<Cell_2D>();
         List<int> completedRows = new List<int>();
         List<int> completedCols = new List<int>();
-        int currentComboCount = 0;
+        int linesClearedCount = 0;
 
         // Check rows and columns
         for (int i = 0; i < GRID_SIZE; i++)
@@ -329,11 +329,13 @@ public class GridManager_2D : MonoBehaviour
             if (rowComplete)
             {
                 completedRows.Add(i);
+                linesClearedCount++;
                 for (int c = 0; c < GRID_SIZE; c++) cellsToClear.Add(grid[i, c]);
             }
             if (colComplete)
             {
                 completedCols.Add(i);
+                linesClearedCount++;
                 for (int r = 0; r < GRID_SIZE; r++) cellsToClear.Add(grid[r, i]);
             }
         }
@@ -353,8 +355,7 @@ public class GridManager_2D : MonoBehaviour
                 }
                 if (squareComplete)
                 {
-                    currentComboCount++;
-                    GameManager_2D.Instance.AddScore(9);
+                    linesClearedCount++;
                     for (int i = r; i < r + 3; i++)
                     {
                         for (int j = c; j < c + 3; j++)
@@ -366,17 +367,19 @@ public class GridManager_2D : MonoBehaviour
             }
         }
 
-        currentComboCount += completedRows.Count + completedCols.Count;
-        GameManager_2D.Instance.AddScore((completedRows.Count + completedCols.Count) * 9);
-
         if (cellsToClear.Count > 0)
         {
             StartCoroutine(SequentialClear(cellsToClear));
 
             // Update global combo in GameManager
-            GameManager_2D.Instance.combo += currentComboCount;
-            GameManager_2D.Instance.ShowComboEffect(GameManager_2D.Instance.combo);
-            if (AudioManager_2D.Instance != null) AudioManager_2D.Instance.PlayBlockDestroyAudio(GameManager_2D.Instance.combo);
+            // If multiple lines are cleared at once, combo increases by that amount
+            GameManager_2D.Instance.combo += linesClearedCount;
+            
+            // Add score once for all cleared lines (9 points per line/square)
+            GameManager_2D.Instance.AddScore(linesClearedCount * 9);      
+
+            if (AudioManager_2D.Instance != null) 
+                AudioManager_2D.Instance.PlayBlockDestroyAudio(GameManager_2D.Instance.combo);
         }
         else
         {

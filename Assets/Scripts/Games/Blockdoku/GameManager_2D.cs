@@ -100,21 +100,19 @@ public class GameManager_2D : MonoBehaviour
 
     public void AddScore(int amount)
     {
-        score += amount * (combo + 1); // 콤보 가중치 수정 (0콤보일 때도 점수 나게)
-        uiManager.UpdateScore(score);
-        if (score > bestScore)
+        int addedScore = amount * (combo + 1);
+        if (addedScore > 0)
         {
-            uiManager.UpdateBestScore(score);
+            score += addedScore;
+            uiManager.UpdateScore(score);
+            uiManager.ShowFloatingScore(addedScore, combo);
+            if (score > bestScore)
+            {
+                uiManager.UpdateBestScore(score);
+            }
         }
     }
 
-    public void ShowComboEffect(int comboCount)
-    {
-        if (comboCount > 1)
-        {
-            uiManager.ShowCombo($"{comboCount} COMBO!");
-        }
-    }
 
     public int GetCombo()
     {

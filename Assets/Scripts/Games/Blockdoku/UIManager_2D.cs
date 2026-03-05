@@ -9,7 +9,7 @@ public class UIManager_2D : MonoBehaviour
     [Header("Top UI")]
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI bestScoreText;
-    public TextMeshProUGUI comboText;
+    public FloatingScore floatingScore; // New field for floating score
 
     [Header("Panels")]
     public GameObject gameOverPanel;
@@ -42,7 +42,6 @@ public class UIManager_2D : MonoBehaviour
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (gameResetPanel != null) gameResetPanel.SetActive(false);
         if (settingPanel != null) settingPanel.SetActive(false);
-        if (comboText != null) comboText.gameObject.SetActive(false);
 
         // Assign button listeners
         if (restartButton != null)
@@ -80,29 +79,12 @@ public class UIManager_2D : MonoBehaviour
         if (bestScoreText != null) bestScoreText.text = $"{bestScore}";
     }
 
-    public void ShowCombo(string comboMsg)
+    public void ShowFloatingScore(int score, int combo)
     {
-        if (comboText != null)
+        if (floatingScore != null && score != 0)
         {
-            StopAllCoroutines();
-            StartCoroutine(ShowComboCoroutine(comboMsg));
+            floatingScore.Show(score, combo);
         }
-    }
-
-    private IEnumerator ShowComboCoroutine(string msg)
-    {
-        comboText.text = msg;
-        comboText.gameObject.SetActive(true);
-        Color textColor = comboText.color;
-        
-        // Simple fade out
-        for (float f = 1f; f >= 0; f -= Time.deltaTime)
-        {
-            textColor.a = f;
-            comboText.color = textColor;
-            yield return null;
-        }
-        comboText.gameObject.SetActive(false);
     }
 
     public void ShowGameOverPanel(bool show, int finalScore = 0, int bestScore = 0)
