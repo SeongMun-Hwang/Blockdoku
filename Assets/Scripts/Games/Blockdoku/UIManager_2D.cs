@@ -20,6 +20,7 @@ public class UIManager_2D : MonoBehaviour
     public Button restartButton;
     public Button titleButton;
     public Button settingsButton;
+    public Button ResetPanelYesButton;
     
     [Header("Setting Icons")]
     public Image sfxMuteButtonIcon;
@@ -46,7 +47,7 @@ public class UIManager_2D : MonoBehaviour
         // Assign button listeners
         if (restartButton != null)
         {
-            restartButton.onClick.AddListener(() => UI_Functions.Instance.TriggerGameRestart());
+            restartButton.onClick.AddListener(ShowResetPanel);
         }
         if (titleButton != null)
         {
@@ -55,6 +56,10 @@ public class UIManager_2D : MonoBehaviour
         if (settingsButton != null)
         {
             settingsButton.onClick.AddListener(ToggleSettingPanel);
+        }
+        if(ResetPanelYesButton != null)
+        {
+            ResetPanelYesButton.onClick.AddListener(()=>UI_Functions.Instance.TriggerGameRestart());
         }
 
         isVibrationMuted = PlayerPrefs.GetInt("VibrationMuted", 0) == 1;
@@ -162,9 +167,9 @@ public class UIManager_2D : MonoBehaviour
     }
 
     // --- Reset Confirmation Logic ---
-    public void ShowResetPanel(bool show)
+    public void ShowResetPanel()
     {
-        if (gameResetPanel != null) gameResetPanel.SetActive(show);
+        if (gameResetPanel != null) gameResetPanel.SetActive(!gameResetPanel.activeSelf);
     }
 
     public void ResetPanelYes()
