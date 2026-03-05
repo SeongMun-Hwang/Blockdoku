@@ -110,6 +110,10 @@ public class GameManager_2D : MonoBehaviour
             {
                 uiManager.UpdateBestScore(score);
             }
+
+            // Trigger effects: Vibration and Grid Shake
+            uiManager.Vibrate();
+            gridManager.ShakeGrid(combo);
         }
     }
 

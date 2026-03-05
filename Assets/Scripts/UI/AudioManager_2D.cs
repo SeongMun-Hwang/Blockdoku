@@ -74,11 +74,10 @@ public class AudioManager_2D : MonoBehaviour
     public void PlayBlockDestroyAudio(int combo)
     {
         if (sfxMute) return;
-        
-        // Match the 3D version's combo pitch logic
-        sfxSource.pitch = 1f + (combo * 0.1f);
-        sfxSource.PlayOneShot(blockEraseClip);
-        sfxSource.pitch = 1f; // Reset pitch for next sound
+
+        sfxSource.pitch = 1f + ((combo-1) * 0.1f);
+        sfxSource.clip = blockEraseClip;
+        sfxSource.Play();
     }
 
     public void ToggleSfxMute()

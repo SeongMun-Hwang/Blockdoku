@@ -18,6 +18,12 @@ public class GridManager_2D : MonoBehaviour
     public float clearBlinkInterval = 0.3f; // Interval for clear prediction blinking
     public float clearAnimationSequentialDelay = 0.05f; // Delay between sequential cell clears
 
+    [Header("Shake Effect")]
+    [Range(0f, 1f)] public float shakeDuration = 0.15f;
+    [Range(0f, 100f)] public float shakeMagnitude = 10f;
+    private Vector3 originalGridPos;
+    private Coroutine shakeCoroutine;
+
     // New: Sprites for cell visuals
     public Sprite defaultEmptyCellSprite;
     public Sprite defaultOccupiedCellSprite;
@@ -48,6 +54,36 @@ public class GridManager_2D : MonoBehaviour
         {
             Debug.LogError("GridManager_2D: GridLayoutGroup not found on gridParent!");
         }
+
+        originalGridPos = gridParent.localPosition;
+    }
+
+    public void ShakeGrid(int combo)
+    {
+        if (shakeCoroutine != null) StopCoroutine(shakeCoroutine);
+        
+        // Dynamic magnitude: Add (combo * 0.1 + 1) to base magnitude
+        float dynamicMagnitude = shakeMagnitude + (combo * 0.1f + 1f);
+        shakeCoroutine = StartCoroutine(ShakeCoroutine(dynamicMagnitude));
+    }
+
+    private IEnumerator ShakeCoroutine(float magnitude)
+    {
+        float elapsed = 0f;
+
+        while (elapsed < shakeDuration)
+        {
+            float x = Random.Range(-1f, 1f) * magnitude;
+            float y = Random.Range(-1f, 1f) * magnitude;
+
+            gridParent.localPosition = originalGridPos + new Vector3(x, y, 0);
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        gridParent.localPosition = originalGridPos;
+        shakeCoroutine = null;
     }
 
     public Color subgridBorderColor = Color.black;
