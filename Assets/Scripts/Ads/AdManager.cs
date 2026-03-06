@@ -62,7 +62,8 @@ public class AdManager : MonoBehaviour
                 shouldShowAd = true;
                 break;
             case MinigameType.TenSum:
-                // 10SUM: Show ad every 2nd time (including restarts)
+            case MinigameType.MineSweeper:
+                // 10SUM & MineSweeper: Show ad every 2nd time (including restarts)
                 if (_playCounts[gameType] >= 2)
                 {
                     shouldShowAd = true;

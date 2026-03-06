@@ -16,6 +16,10 @@ public class TitleManager : MonoBehaviour
     {
         SceneManager.LoadScene("10SUM");
     }
+    public void MineSweeperBtnOnclicked()
+    {
+        SceneManager.LoadScene("MineSweeper");
+    }
     public void QuitBtnOnClicked()
     {
 #if UNITY_EDITOR

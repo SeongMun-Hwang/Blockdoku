@@ -1921,51 +1921,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 255052051}
   m_CullTransparentMesh: 1
---- !u!1 &287917501
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 287917503}
-  - component: {fileID: 287917502}
-  m_Layer: 0
-  m_Name: AdManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &287917502
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 287917501}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a6ad3a2ebcfd2944a918d86a1be35289, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _adUnitId: ca-app-pub-6320794629071327/8837498210
---- !u!4 &287917503
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 287917501}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 540, y: 960, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &304122357
 GameObject:
   m_ObjectHideFlags: 0
@@ -6222,9 +6177,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1274586992}
+      - m_Target: {fileID: 1140484820}
         m_TargetAssemblyTypeName: UI_Functions, Assembly-CSharp
-        m_MethodName: TriggerGameRestart
+        m_MethodName: 
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -7215,6 +7170,7 @@ MonoBehaviour:
   restartButton: {fileID: 1675690334}
   titleButton: {fileID: 1758648723}
   settingsButton: {fileID: 149677620}
+  GameOverPanelYesButton: {fileID: 2037564547}
   ResetPanelYesButton: {fileID: 495860073}
   sfxMuteButtonIcon: {fileID: 1904686720}
   bgmMuteButtonIcon: {fileID: 1736336453}
@@ -8954,50 +8910,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1272873339}
   m_CullTransparentMesh: 1
---- !u!1 &1274586991
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1274586993}
-  - component: {fileID: 1274586992}
-  m_Layer: 0
-  m_Name: UI_Functions
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1274586992
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1274586991}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41423c31a46c7084e86a3d51ef1dd263, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!4 &1274586993
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1274586991}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 799.3307, y: 1364.004, z: 142.23091}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1286322589
 GameObject:
   m_ObjectHideFlags: 0
@@ -11367,9 +11279,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1758648721}
         m_TargetAssemblyTypeName: UICanvas, Assembly-CSharp
-        m_MethodName: BackBtnOnClicked
+        m_MethodName: 
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -13965,9 +13877,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1274586992}
+      - m_Target: {fileID: 1140484820}
         m_TargetAssemblyTypeName: UI_Functions, Assembly-CSharp
-        m_MethodName: BacktoTitleOnClicked
+        m_MethodName: 
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -14895,5 +14807,3 @@ SceneRoots:
   - {fileID: 634728898}
   - {fileID: 636334694}
   - {fileID: 1229751205}
-  - {fileID: 1274586993}
-  - {fileID: 287917503}

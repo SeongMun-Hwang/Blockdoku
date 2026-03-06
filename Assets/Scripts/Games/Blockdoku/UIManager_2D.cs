@@ -20,7 +20,8 @@ public class UIManager_2D : MonoBehaviour
     public Button restartButton;
     public Button titleButton;
     public Button settingsButton;
-    public Button ResetPanelYesButton;
+    public Button GameOverPanelYesButton;
+    public Button ResetPanelYesButton;   
     
     [Header("Setting Icons")]
     public Image sfxMuteButtonIcon;
@@ -59,6 +60,10 @@ public class UIManager_2D : MonoBehaviour
         if(ResetPanelYesButton != null)
         {
             ResetPanelYesButton.onClick.AddListener(()=>UI_Functions.Instance.TriggerGameRestart());
+        }
+        if(GameOverPanelYesButton != null)
+        {
+            GameOverPanelYesButton.onClick.AddListener(()=>UI_Functions.Instance.TriggerGameRestart());
         }
 
         isVibrationMuted = PlayerPrefs.GetInt("VibrationMuted", 0) == 1;
