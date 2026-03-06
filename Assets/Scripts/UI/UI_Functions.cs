@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System;
+using UnityEngine.InputSystem;
 
 public class UI_Functions : MonoBehaviour
 {
@@ -23,7 +24,7 @@ public class UI_Functions : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             HandleBackInput();
         }
