@@ -10,6 +10,8 @@ public class MineSweeper_GridManager : MonoBehaviour
     public Sprite revealedSprite;
     public Sprite mineSprite;
     public Sprite flagSprite;
+    public Color cellHighlightColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+    public float longPressDuration = 0.5f;
 
     private int rows;
     private int cols;
@@ -55,7 +57,7 @@ public class MineSweeper_GridManager : MonoBehaviour
             {
                 GameObject cellGO = Instantiate(cellPrefab, gridParent);
                 MineSweeper_Cell cell = cellGO.GetComponent<MineSweeper_Cell>();
-                cell.Initialize(row, col, this, hiddenSprite, revealedSprite, mineSprite, flagSprite);
+                cell.Initialize(row, col, this, hiddenSprite, revealedSprite, mineSprite, flagSprite, cellHighlightColor, longPressDuration);
                 cells[row, col] = cell;
             }
         }
@@ -99,6 +101,64 @@ public class MineSweeper_GridManager : MonoBehaviour
     public void OnFlagToggled(bool isFlagged)
     {
         MineSweeper_GameManager.Instance.OnFlagToggled(isFlagged);
+    }
+
+    public void HighlightNeighbors(int row, int col, bool highlight)
+    {
+        for (int dr = -1; dr <= 1; dr++)
+        {
+            for (int dc = -1; dc <= 1; dc++)
+            {
+                if (dr == 0 && dc == 0) continue;
+                int nr = row + dr;
+                int nc = col + dc;
+                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols)
+                {
+                    cells[nr, nc].SetHighlight(highlight);
+                }
+            }
+        }
+    }
+
+    public void AttemptChord(int row, int col)
+    {
+        MineSweeper_Cell cell = cells[row, col];
+        if (!cell.IsRevealed || cell.AdjacentMines == 0) return;
+
+        int flagCount = 0;
+        for (int dr = -1; dr <= 1; dr++)
+        {
+            for (int dc = -1; dc <= 1; dc++)
+            {
+                if (dr == 0 && dc == 0) continue;
+                int nr = row + dr;
+                int nc = col + dc;
+                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && cells[nr, nc].IsFlagged)
+                {
+                    flagCount++;
+                }
+            }
+        }
+
+        if (flagCount == cell.AdjacentMines)
+        {
+            for (int dr = -1; dr <= 1; dr++)
+            {
+                for (int dc = -1; dc <= 1; dc++)
+                {
+                    if (dr == 0 && dc == 0) continue;
+                    int nr = row + dr;
+                    int nc = col + dc;
+                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols)
+                    {
+                        if (!cells[nr, nc].IsRevealed && !cells[nr, nc].IsFlagged)
+                        {
+                            RevealCell(nr, nc);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void GenerateMines(int startRow, int startCol)
