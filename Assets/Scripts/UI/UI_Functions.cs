@@ -21,6 +21,30 @@ public class UI_Functions : MonoBehaviour
         }
     }
 
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            HandleBackInput();
+        }
+    }
+
+    private void HandleBackInput()
+    {
+        string currentScene = SceneManager.GetActiveScene().name;
+
+        if (currentScene == "Title")
+        {
+            Debug.Log("Quitting application...");
+            Application.Quit();
+        }
+        else
+        {
+            Debug.Log("Returning to Title scene...");
+            BacktoTitleOnClicked();
+        }
+    }
+
     public void BacktoTitleOnClicked()
     {
         SceneManager.LoadScene("Title");
