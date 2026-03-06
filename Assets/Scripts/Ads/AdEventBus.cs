@@ -3,7 +3,8 @@ using System;
 public enum MinigameType
 {
     Blockdoku,
-    TenSum
+    TenSum,
+    MineSweeper
 }
 
 public static class AdEventBus

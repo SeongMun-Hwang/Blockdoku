@@ -1,11 +1,4 @@
-using UnityEngine;
-
-public class Cell : MonoBehaviour
+public class Cell : BaseCell
 {
-    public Vector2Int gridPosition;
-
-    public void Initialize(int row, int col)
-    {
-        gridPosition = new Vector2Int(col, row);
-    }
+    // gridPosition is now in BaseCell
 }

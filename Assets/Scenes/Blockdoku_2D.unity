@@ -5724,7 +5724,7 @@ MonoBehaviour:
   previewColor: {r: 0, g: 1, b: 0, a: 0.5}
   clearBlinkColor: {r: 1, g: 1, b: 1, a: 0.5019608}
   clearBlinkInterval: 0.75
-  clearAnimationSequentialDelay: 0.025
+  clearAnimationSequentialDelay: 0.015
   shakeDuration: 0.15
   shakeMagnitude: 3
   defaultEmptyCellSprite: {fileID: 21300000, guid: e7ab5b1953eb73c40bc6a41036365ca4, type: 3}

@@ -8,6 +8,7 @@ public static class SavePaths
     public static string SettingDataPath = Application.persistentDataPath + "/setting.json";
     public static string PersonalDataPath = Application.persistentDataPath + "/personal.json";
     public static string TenSumDataPath = Application.persistentDataPath + "/TenSum.json";
+    public static string MineSweeperDataPath = Application.persistentDataPath + "/MineSweeper.json";
 }
 
 [System.Serializable]
@@ -44,4 +45,11 @@ public class  PersonalData
 public class TenSumData
 {
     public int bestScore;
+}
+[System.Serializable]
+public class MineSweeperData
+{
+    public float bestTimeBeginner = float.MaxValue;
+    public float bestTimeIntermediate = float.MaxValue;
+    public float bestTimeAdvanced = float.MaxValue;
 }

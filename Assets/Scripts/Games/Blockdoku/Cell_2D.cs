@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Cell_2D : MonoBehaviour
+public class Cell_2D : BaseCell
 {
-    public Vector2Int gridPosition;
+    // public Vector2Int gridPosition; // Removed since it's in BaseCell
     public bool IsEmpty { get; private set; }
     public bool IsPreviewing { get; private set; }
     public Color BlockColor { get; private set; } // New: Stores the color of the block occupying this cell
@@ -34,7 +34,7 @@ public class Cell_2D : MonoBehaviour
 
     public void Initialize(int row, int col, bool isEmpty)
     {
-        gridPosition = new Vector2Int(col, row);
+        base.Initialize(row, col);
         IsEmpty = isEmpty;
         IsPreviewing = false;
         BlockColor = Color.clear; // Initialize with a transparent color
