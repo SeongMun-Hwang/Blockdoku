@@ -84,11 +84,11 @@ public class UIManager_2D : MonoBehaviour
         if (bestScoreText != null) bestScoreText.text = $"{bestScore}";
     }
 
-    public void ShowFloatingScore(int score, int combo)
+    public void ShowFloatingScore(int score, int combo, string specialMessage = "")
     {
         if (floatingScore != null && score != 0)
         {
-            floatingScore.Show(score, combo);
+            floatingScore.Show(score, combo, specialMessage);
         }
     }
 

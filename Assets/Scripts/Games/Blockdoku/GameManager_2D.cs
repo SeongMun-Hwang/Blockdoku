@@ -117,6 +117,21 @@ public class GameManager_2D : MonoBehaviour
         }
     }
 
+    public void AddSpecialScore(int amount, string message)
+    {
+        int addedScore = amount * (combo + 1);
+        if (addedScore > 0)
+        {
+            score += addedScore;
+            uiManager.UpdateScore(score);
+            uiManager.ShowFloatingScore(addedScore, combo, message);
+            if (score > bestScore)
+            {
+                uiManager.UpdateBestScore(score);
+            }
+        }
+    }
+
 
     public int GetCombo()
     {

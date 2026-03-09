@@ -351,6 +351,7 @@ public class GridManager_2D : MonoBehaviour
         List<int> completedRows = new List<int>();
         List<int> completedCols = new List<int>();
         int linesClearedCount = 0;
+        bool isFullClear = false;
 
         // Check rows and columns
         for (int i = 0; i < GRID_SIZE; i++)
@@ -405,14 +406,26 @@ public class GridManager_2D : MonoBehaviour
 
         if (cellsToClear.Count > 0)
         {
+            // Check for Full Clear (Entire grid cleared)
+            int totalOccupiedBeforeClear = 0;
+            for (int r = 0; r < GRID_SIZE; r++)
+                for (int c = 0; c < GRID_SIZE; c++)
+                    if (!grid[r, c].IsEmpty) totalOccupiedBeforeClear++;
+
+            isFullClear = totalOccupiedBeforeClear == cellsToClear.Count;
+
             StartCoroutine(SequentialClear(cellsToClear));
 
             // Update global combo in GameManager
-            // If multiple lines are cleared at once, combo increases by that amount
             GameManager_2D.Instance.combo += linesClearedCount;
             
             // Add score once for all cleared lines (9 points per line/square)
             GameManager_2D.Instance.AddScore(linesClearedCount * 9);      
+
+            if (isFullClear)
+            {
+                GameManager_2D.Instance.AddSpecialScore(100, "FULL CLEAR");
+            }
 
             if (AudioManager_2D.Instance != null) 
                 AudioManager_2D.Instance.PlayBlockDestroyAudio(GameManager_2D.Instance.combo);
@@ -422,7 +435,45 @@ public class GridManager_2D : MonoBehaviour
             GameManager_2D.Instance.combo = 0;
         }
 
+        // Symmetry Check (Skip if Full Clear occurred)
+        if (!isFullClear)
+        {
+            CheckSymmetry();
+        }
+
         return cellsToClear.Count;
+    }
+
+    private void CheckSymmetry()
+    {
+        bool hSym = true, vSym = true, d1Sym = true, d2Sym = true;
+        int occupiedCount = 0;
+
+        for (int r = 0; r < GRID_SIZE; r++)
+        {
+            for (int c = 0; c < GRID_SIZE; c++)
+            {
+                if (grid[r, c].IsEmpty) continue;
+                occupiedCount++;
+
+                // Horizontal Symmetry (r, c) == (r, 8-c)
+                if (grid[r, 8 - c].IsEmpty) hSym = false;
+                // Vertical Symmetry (r, c) == (8-r, c)
+                if (grid[8 - r, c].IsEmpty) vSym = false;
+                // Diagonal 1 (r, c) == (c, r)
+                if (grid[c, r].IsEmpty) d1Sym = false;
+                // Diagonal 2 (r, c) == (8-c, 8-r)
+                if (grid[8 - c, 8 - r].IsEmpty) d2Sym = false;
+            }
+        }
+
+        // Only reward symmetry if there are enough blocks to make it meaningful (e.g., > 5)
+        if (occupiedCount > 5)
+        {
+            if (hSym) GameManager_2D.Instance.AddSpecialScore(20, "H-SYMMETRY");
+            else if (vSym) GameManager_2D.Instance.AddSpecialScore(20, "V-SYMMETRY");
+            else if (d1Sym || d2Sym) GameManager_2D.Instance.AddSpecialScore(30, "DIAG-SYMMETRY");
+        }
     }
 
     private IEnumerator SequentialClear(HashSet<Cell_2D> cells)
