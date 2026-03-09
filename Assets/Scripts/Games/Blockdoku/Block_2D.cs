@@ -13,8 +13,12 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
     public Color blockColor; // New: Stores the color of this block
 
     [Header("Interaction")]
-    [SerializeField] private float dragMovementMultiplier = 1.5f; // Adjust this value to change movement sensitivity
+    [SerializeField] private float dragMovementMultiplier = 1.2f; 
+    [SerializeField] private float spawnScale = 0.5f;
+    [SerializeField] private float dragScale = 1.0f;
+    [SerializeField] private float dragYOffset = 150.0f; // Offset in pixels/units to move block above finger
 
+    private Vector2 originalScale;
     private Vector3 grabWorldSpaceOffset;
     private List<Vector2Int> shape;
     private RectTransform rectTransform;
@@ -37,6 +41,11 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         rectTransform = GetComponent<RectTransform>();
         blockData = data;
         blockColor = color; // Assign the color
+        
+        // Apply initial spawn scale
+        rectTransform.localScale = Vector3.one * spawnScale;
+        originalScale = Vector3.one * spawnScale;
+
         LoadShapeFromData();
         RotateShape(rotationCount);
         UpdateVisuals();
@@ -181,6 +190,12 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         transform.SetParent(canvas.transform);
         transform.SetAsLastSibling();
 
+        // Scale up for dragging
+        rectTransform.localScale = Vector3.one * dragScale;
+
+        // Apply initial Y offset to lift it above finger
+        rectTransform.anchoredPosition += new Vector2(0, dragYOffset);
+
         grabWorldSpaceOffset = Vector3.zero;
     }
 
@@ -191,7 +206,9 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
 
         if (GridManager_2D.Instance != null)
         {
-            Vector3 checkPosition = rectTransform.position + (Vector3)anchorOffsetPixels;
+            // Note: anchorOffsetPixels is local to the block, it scales with the block.
+            // When dragged, scale is 1.0, so it matches the grid.
+            Vector3 checkPosition = rectTransform.position + (Vector3)(anchorOffsetPixels * rectTransform.localScale.x);
             Vector2Int gridPosition = GridManager_2D.Instance.GetNearestValidPosition(checkPosition, shape);
             if (gridPosition != lastGridPosition)
             {
@@ -206,7 +223,7 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         if (GridManager_2D.Instance != null)
         {
             GridManager_2D.Instance.ClearPreview();
-            Vector3 checkPosition = rectTransform.position + (Vector3)anchorOffsetPixels;
+            Vector3 checkPosition = rectTransform.position + (Vector3)(anchorOffsetPixels * rectTransform.localScale.x);
             Vector2Int gridPosition = GridManager_2D.Instance.GetNearestValidPosition(checkPosition, shape);
 
             // If GetNearestValidPosition found a valid spot (it returns -1, -1 if not found)
@@ -221,8 +238,9 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
             }
             else
             {
-                // Return to original position if placement is invalid
+                // Return to original position and scale if placement is invalid
                 transform.SetParent(originalParent);
+                rectTransform.localScale = (Vector3)originalScale;
                 rectTransform.anchoredPosition = originalPosition;
             }
         }
@@ -230,6 +248,7 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         {
              // Fallback if GridManager is not found
             transform.SetParent(originalParent);
+            rectTransform.localScale = (Vector3)originalScale;
             rectTransform.anchoredPosition = originalPosition;
         }
     }
