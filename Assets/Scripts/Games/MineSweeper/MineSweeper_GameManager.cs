@@ -46,6 +46,7 @@ public class MineSweeper_GameManager : MonoBehaviour
 
     public void ShowDifficultySelection()
     {
+        LoadBestTimes();
         uiManager.ShowDifficultySelection(true);
         uiManager.ShowGameOverPanel(false);
     }
@@ -80,8 +81,6 @@ public class MineSweeper_GameManager : MonoBehaviour
         uiManager.UpdateTimer(timer);
         uiManager.ShowDifficultySelection(false);
         gridManager.InitializeGrid(rows, cols, mines);
-
-        LoadBestTimes();
     }
 
     public void OnGameStarted()
@@ -112,12 +111,20 @@ public class MineSweeper_GameManager : MonoBehaviour
 
     private void LoadBestTimes()
     {
+        MineSweeperData data = new MineSweeperData();
         if (File.Exists(SavePaths.MineSweeperDataPath))
         {
             string json = File.ReadAllText(SavePaths.MineSweeperDataPath);
-            MineSweeperData data = JsonUtility.FromJson<MineSweeperData>(json);
-            uiManager.UpdateBestTimes(data);
+            if (!string.IsNullOrEmpty(json))
+            {
+                MineSweeperData loadedData = JsonUtility.FromJson<MineSweeperData>(json);
+                if (loadedData != null)
+                {
+                    data = loadedData;
+                }
+            }
         }
+        uiManager.UpdateBestTimes(data);
     }
 
     private void SaveBestTime()

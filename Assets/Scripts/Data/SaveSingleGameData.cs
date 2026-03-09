@@ -3,12 +3,12 @@ using UnityEngine;
 
 public static class SavePaths
 {
-    public static readonly string BlockDataPath = Application.persistentDataPath + "/blockData.json";
-    public static string BoardDataPath = Application.persistentDataPath + "/save.json";
-    public static string SettingDataPath = Application.persistentDataPath + "/setting.json";
-    public static string PersonalDataPath = Application.persistentDataPath + "/personal.json";
-    public static string TenSumDataPath = Application.persistentDataPath + "/TenSum.json";
-    public static string MineSweeperDataPath = Application.persistentDataPath + "/MineSweeper.json";
+    public static string BlockDataPath => Application.persistentDataPath + "/blockData.json";
+    public static string BoardDataPath => Application.persistentDataPath + "/save.json";
+    public static string SettingDataPath => Application.persistentDataPath + "/setting.json";
+    public static string PersonalDataPath => Application.persistentDataPath + "/personal.json";
+    public static string TenSumDataPath => Application.persistentDataPath + "/TenSum.json";
+    public static string MineSweeperDataPath => Application.persistentDataPath + "/MineSweeper.json";
 }
 
 [System.Serializable]
