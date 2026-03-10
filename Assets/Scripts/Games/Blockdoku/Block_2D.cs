@@ -229,8 +229,8 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
             // If GetNearestValidPosition found a valid spot (it returns -1, -1 if not found)
             if (gridPosition.x != -1 && gridPosition.y != -1)
             {
-                BlockSpawner_2D.Instance.BlockPlaced(gameObject, gridPosition, shape, blockColor);
                 if (AudioManager_2D.Instance != null) AudioManager_2D.Instance.PlayBlockThudAudio();
+                BlockSpawner_2D.Instance.BlockPlaced(gameObject, gridPosition, shape, blockColor);
                 
                 // Hide or disable the block instead of immediate Destroy to avoid issues while the routine starts
                 gameObject.SetActive(false);
