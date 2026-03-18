@@ -63,7 +63,7 @@ public class UIManager_2D : MonoBehaviour
         }
         if(GameOverPanelYesButton != null)
         {
-            GameOverPanelYesButton.onClick.AddListener(()=>UI_Functions.Instance.TriggerGameRestart());
+            GameOverPanelYesButton.onClick.AddListener(()=>UI_Functions.Instance.BacktoTitleOnClicked());
         }
 
         isVibrationMuted = PlayerPrefs.GetInt("VibrationMuted", 0) == 1;
@@ -107,7 +107,6 @@ public class UIManager_2D : MonoBehaviour
                 
                 // Call external systems (Ads, Vibration)
                 Vibrate();
-                // AdManager.Instance.ShowInterstitialAd(); // Uncomment if AdManager is ready
             }
         }
     }

@@ -18,7 +18,7 @@ public class AdManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // 선택 사항: 씬 이동 간 유지
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -38,8 +38,12 @@ public class AdManager : MonoBehaviour
 
     public void Start()
     {
+        // 광고 SDK 이벤트를 유니티 메인 스레드에서 실행하도록 보장 (지연 감소 핵심)
+        MobileAds.RaiseAdEventsOnUnityMainThread = true;
+
         MobileAds.Initialize((InitializationStatus initStatus) =>
         {
+            // 초기화 후 첫 광고 로드
             LoadInterstitialAd();
         });
     }
@@ -58,16 +62,14 @@ public class AdManager : MonoBehaviour
         switch (gameType)
         {
             case MinigameType.Blockdoku:
-                // Blockdoku: Show ad every time game ends
                 shouldShowAd = true;
                 break;
             case MinigameType.TenSum:
             case MinigameType.MineSweeper:
-                // 10SUM & MineSweeper: Show ad every 2nd time (including restarts)
                 if (_playCounts[gameType] >= 2)
                 {
                     shouldShowAd = true;
-                    _playCounts[gameType] = 0; // Reset count
+                    _playCounts[gameType] = 0;
                 }
                 break;
         }
@@ -85,7 +87,6 @@ public class AdManager : MonoBehaviour
 
     public void LoadInterstitialAd()
     {
-        // Clean up the old ad before loading a new one.
         if (_interstitialAd != null)
         {
             _interstitialAd.Destroy();
@@ -93,57 +94,45 @@ public class AdManager : MonoBehaviour
         }
 
         Debug.Log("Loading the interstitial ad.");
-
-        // create our request used to load the ad.
         var adRequest = new AdRequest();
 
-        // send the request to load the ad.
         InterstitialAd.Load(_adUnitId, adRequest,
             (InterstitialAd ad, LoadAdError error) =>
             {
-                // if error is not null, the load request failed.
                 if (error != null || ad == null)
                 {
-                    Debug.LogError("interstitial ad failed to load an ad " +
-                                   "with error : " + error);
+                    Debug.LogError("Interstitial ad failed to load: " + error);
                     return;
                 }
 
-                Debug.Log("Interstitial ad loaded with response : "
-                          + ad.GetResponseInfo());
-
+                Debug.Log("Interstitial ad loaded.");
                 _interstitialAd = ad;
 
-                //광고가 닫혔을 때 다음 광고 로드
+                // 광고가 닫혔을 때
                 _interstitialAd.OnAdFullScreenContentClosed += () =>
                 {
-                    Debug.Log("Interstitial ad closed. Loading next ad...");
-                    
-                    Action callback = _onAdClosedCallback;
-                    _onAdClosedCallback = null;
-                    callback?.Invoke();
-
-                    LoadInterstitialAd(); // 다음 광고 미리 로드
+                    Debug.Log("Interstitial ad closed.");
+                    ExecuteOnAdClosed();
                 };
 
-                // (선택) 광고가 열렸을 때
-                _interstitialAd.OnAdFullScreenContentOpened += () =>
-                {
-                    Debug.Log("Interstitial ad opened.");
-                };
-
-                // (선택) 광고 표시 실패
+                // 광고 표시 실패 시
                 _interstitialAd.OnAdFullScreenContentFailed += (AdError err) =>
                 {
-                    Debug.LogError("Interstitial ad failed to show with error: " + err);
-                    
-                    Action callback = _onAdClosedCallback;
-                    _onAdClosedCallback = null;
-                    callback?.Invoke();
-                    
-                    LoadInterstitialAd(); // 실패해도 로드 시도
+                    Debug.LogError("Interstitial ad failed to show: " + err);
+                    ExecuteOnAdClosed();
                 };
             });
+    }
+
+    private void ExecuteOnAdClosed()
+    {
+        // 콜백 실행 (게임오버 패널 표시 등)
+        Action callback = _onAdClosedCallback;
+        _onAdClosedCallback = null;
+        callback?.Invoke();
+
+        // 다음 광고 미리 로드
+        LoadInterstitialAd();
     }
 
     public void ShowInterstitialAd()
@@ -156,10 +145,7 @@ public class AdManager : MonoBehaviour
         else
         {
             Debug.LogError("Interstitial ad is not ready yet.");
-            // 만약 광고를 보여주려 했는데 준비가 안된 경우라면 바로 콜백 실행
-            Action callback = _onAdClosedCallback;
-            _onAdClosedCallback = null;
-            callback?.Invoke();
+            ExecuteOnAdClosed();
         }
     }
 }

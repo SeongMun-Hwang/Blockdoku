@@ -150,9 +150,13 @@ public class GameManager_2D : MonoBehaviour
         Debug.Log("Game Over! Final Score: " + score);
         RemoveGameData(); // 게임 오버 시 세이브 데이터 삭제
 
+        // 1. 먼저 게임오버 패널을 즉시 표시
+        uiManager.ShowGameOverPanel(true, score, bestScore);
+
+        // 2. 그 다음 광고 실행 (콜백에서는 추가 작업 없음)
         AdEventBus.TriggerGamePlayEnded(MinigameType.Blockdoku, () =>
         {
-            uiManager.ShowGameOverPanel(true, score, bestScore);
+            Debug.Log("Ad finished after GameOver panel was already shown.");
         });
     }
 
