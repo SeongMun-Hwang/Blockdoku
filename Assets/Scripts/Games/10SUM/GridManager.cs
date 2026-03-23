@@ -238,10 +238,7 @@ public class GridManager : MonoBehaviour, IPointerDownHandler, IDragHandler, IPo
                     grid[row, col] = 0;
                     applesRemoved++;
 
-                    GameObject cellGO = cellObjects[row, col];
-                    cellGO.GetComponent<Image>().enabled = false;
-                    cellGO.GetComponentInChildren<TextMeshProUGUI>().enabled = false;
-                    cell.enabled = false;
+                    cell.PlayClearAnimation();
                 }
             }
             if (applesRemoved > 0)
