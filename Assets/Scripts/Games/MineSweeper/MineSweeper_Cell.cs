@@ -13,10 +13,10 @@ public class MineSweeper_Cell : BaseCell, IPointerDownHandler, IPointerUpHandler
 
     [SerializeField] private Image cellImage;
     [SerializeField] private Image flagImage; // Child object for flag
+    [SerializeField] private Image mineImage;
     [SerializeField] private TextMeshProUGUI mineText;
     [SerializeField] private Sprite hiddenSprite;
     [SerializeField] private Sprite revealedSprite;
-    [SerializeField] private Sprite mineSprite;
 
     private MineSweeper_GridManager gridManager;
     private Color highlightColor;
@@ -31,7 +31,6 @@ public class MineSweeper_Cell : BaseCell, IPointerDownHandler, IPointerUpHandler
         gridManager = manager;
         hiddenSprite = hidden;
         revealedSprite = revealed;
-        mineSprite = mine;
         highlightColor = hColor;
         longPressDuration = lpDuration;
 
@@ -148,16 +147,16 @@ public class MineSweeper_Cell : BaseCell, IPointerDownHandler, IPointerUpHandler
         IsFlagged = false;
 
         if (flagImage != null) flagImage.gameObject.SetActive(false);
-        cellImage.color = Color.white; 
+        cellImage.color = Color.white;
+        cellImage.sprite = revealedSprite;
 
         if (IsMine)
         {
-            cellImage.sprite = mineSprite;
+            mineImage.gameObject.SetActive(IsMine);
             mineText.text = "";
         }
         else
         {
-            cellImage.sprite = revealedSprite;
             if (AdjacentMines > 0)
             {
                 mineText.text = AdjacentMines.ToString();
