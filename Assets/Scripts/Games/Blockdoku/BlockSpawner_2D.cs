@@ -9,27 +9,43 @@ public class BlockSpawner_2D : MonoBehaviour
 {
     public static BlockSpawner_2D Instance { get; private set; }
 
+    [System.Serializable]
+    public struct HSVColor
+    {
+        [Range(0f, 1f)] public float h;
+        [Range(0f, 1f)] public float s;
+        [Range(0f, 1f)] public float v;
+        public Color color; // For visual preview in Inspector
+
+        public HSVColor(float h, float s, float v)
+        {
+            this.h = h;
+            this.s = s;
+            this.v = v;
+            this.color = Color.HSVToRGB(h, s, v);
+        }
+
+        public Color ToColor()
+        {
+            return Color.HSVToRGB(h, s, v);
+        }
+    }
+
     [Header("Spawning Configuration")]
     [SerializeField] private GameObject blockContainerPrefab; // The empty container prefab with Block_2D script
     [SerializeField] private List<BlockArray> blockArrays; // List of all possible block shapes
     [SerializeField] private List<Transform> spawnPositions;
 
-    // New: List of colors to use for blocks (Hue reference only)
-    private List<Color> availableHueColors = new List<Color>()
+    [Header("Color Configuration")]
+    [SerializeField] private List<HSVColor> availableColors = new List<HSVColor>()
     {
-        Color.red,
-        Color.green,
-        Color.blue,
-        Color.yellow,
-        Color.magenta,
-        Color.cyan,
-        new Color(1.0f, 0.64f, 0.0f), // Orange
+        new HSVColor(0.00f, 0.5f, 1.0f), // Soft Red
+        new HSVColor(0.33f, 0.5f, 1.0f), // Soft Green
+        new HSVColor(0.60f, 0.5f, 1.0f), // Soft Blue
+        new HSVColor(0.13f, 0.5f, 1.0f), // Soft Yellow
+        new HSVColor(0.80f, 0.5f, 1.0f), // Soft Magenta
+        new HSVColor(0.08f, 0.5f, 1.0f), // Soft Orange
     };
-
-    // New: Adjustable Saturation and Value for spawned blocks
-    // New: Adjustable Saturation and Value for spawned blocks
-    [Range(0f, 1f)] public float targetSaturation = 0.5f; // User requested fixed S=0.5
-    [Range(0f, 1f)] public float targetValue = 1.0f;     // User requested V=1.0
 
     private readonly List<GameObject> spawnedBlocks = new List<GameObject>();
 
@@ -105,20 +121,15 @@ public class BlockSpawner_2D : MonoBehaviour
 
             // Generate unique colors for the blocks based on HSV
             List<Color> chosenColors = new List<Color>();
-            List<Color> tempAvailableHueColors = new List<Color>(availableHueColors); // Copy to choose from
+            List<HSVColor> tempAvailableColors = new List<HSVColor>(availableColors); // Copy to choose from
 
-            for (int i = 0; i < spawnPositions.Count && tempAvailableHueColors.Count > 0; i++)
+            for (int i = 0; i < spawnPositions.Count && tempAvailableColors.Count > 0; i++)
             {
-                int colorIndex = Random.Range(0, tempAvailableHueColors.Count);
-                Color hueRefColor = tempAvailableHueColors[colorIndex];
-                
-                float h, s, v;
-                Color.RGBToHSV(hueRefColor, out h, out s, out v); // Get Hue from reference color
+                int colorIndex = Random.Range(0, tempAvailableColors.Count);
+                HSVColor hsvColor = tempAvailableColors[colorIndex];
 
-                // Apply target Saturation and Value
-                Color finalColor = Color.HSVToRGB(h, targetSaturation, targetValue);
-                chosenColors.Add(finalColor);
-                tempAvailableHueColors.RemoveAt(colorIndex); // Ensure unique hues
+                chosenColors.Add(hsvColor.ToColor());
+                tempAvailableColors.RemoveAt(colorIndex); // Ensure unique colors
             }
 
             // 1. Generate a set of 3 temporary blocks
@@ -184,11 +195,11 @@ public class BlockSpawner_2D : MonoBehaviour
     {
         // Actually place the block on the grid
         int clearCount = GridManager_2D.Instance.PlaceBlock(gridPosition, shape, blockColor);
-        
+
         if (clearCount > 0)
         {
             // Wait for sequential clear animations to finish
-            float waitTime = clearCount * GridManager_2D.Instance.clearAnimationSequentialDelay + 0.4f; 
+            float waitTime = clearCount * GridManager_2D.Instance.clearAnimationSequentialDelay + 0.4f;
             yield return new WaitForSeconds(waitTime);
         }
 
@@ -301,3 +312,53 @@ public class BlockSpawner_2D : MonoBehaviour
         }
     }
 }
+
+#if UNITY_EDITOR
+[UnityEditor.CustomPropertyDrawer(typeof(BlockSpawner_2D.HSVColor))]
+public class HSVColorDrawer : UnityEditor.PropertyDrawer
+{
+    public override void OnGUI(Rect position, UnityEditor.SerializedProperty property, GUIContent label)
+    {
+        UnityEditor.EditorGUI.BeginProperty(position, label, property);
+
+        position = UnityEditor.EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
+
+        float fieldWidth = position.width / 4f;
+        Rect hRect = new Rect(position.x, position.y, fieldWidth - 5, position.height);
+        Rect sRect = new Rect(position.x + fieldWidth, position.y, fieldWidth - 5, position.height);
+        Rect vRect = new Rect(position.x + fieldWidth * 2, position.y, fieldWidth - 5, position.height);
+        Rect colorRect = new Rect(position.x + fieldWidth * 3, position.y, fieldWidth, position.height);
+
+        var hProp = property.FindPropertyRelative("h");
+        var sProp = property.FindPropertyRelative("s");
+        var vProp = property.FindPropertyRelative("v");
+        var colorProp = property.FindPropertyRelative("color");
+
+        UnityEditor.EditorGUI.BeginChangeCheck();
+        float h = UnityEditor.EditorGUI.FloatField(hRect, hProp.floatValue);
+        float s = UnityEditor.EditorGUI.FloatField(sRect, sProp.floatValue);
+        float v = UnityEditor.EditorGUI.FloatField(vRect, vProp.floatValue);
+        if (UnityEditor.EditorGUI.EndChangeCheck())
+        {
+            hProp.floatValue = Mathf.Clamp01(h);
+            sProp.floatValue = Mathf.Clamp01(s);
+            vProp.floatValue = Mathf.Clamp01(v);
+            colorProp.colorValue = Color.HSVToRGB(hProp.floatValue, sProp.floatValue, vProp.floatValue);
+        }
+
+        UnityEditor.EditorGUI.BeginChangeCheck();
+        Color newColor = UnityEditor.EditorGUI.ColorField(colorRect, GUIContent.none, colorProp.colorValue, false, false, false);
+        if (UnityEditor.EditorGUI.EndChangeCheck())
+        {
+            colorProp.colorValue = newColor;
+            float newH, newS, newV;
+            Color.RGBToHSV(newColor, out newH, out newS, out newV);
+            hProp.floatValue = newH;
+            sProp.floatValue = newS;
+            vProp.floatValue = newV;
+        }
+
+        UnityEditor.EditorGUI.EndProperty();
+    }
+}
+#endif

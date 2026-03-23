@@ -2034,6 +2034,7 @@ GameObject:
   - component: {fileID: 359016418}
   - component: {fileID: 359016420}
   - component: {fileID: 359016419}
+  - component: {fileID: 359016421}
   m_Layer: 5
   m_Name: RestGamePanel
   m_TagString: Untagged
@@ -2099,6 +2100,28 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 359016417}
   m_CullTransparentMesh: 1
+--- !u!95 &359016421
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 359016417}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: f43cfc0272a3b41cbab0283f404ae52b, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &364621078
 GameObject:
   m_ObjectHideFlags: 0
@@ -5661,8 +5684,31 @@ MonoBehaviour:
   - {fileID: 1962458852}
   - {fileID: 642146203}
   - {fileID: 2054474428}
-  targetSaturation: 0.85
-  targetValue: 1
+  availableColors:
+  - h: 0
+    s: 0.7
+    v: 1
+    color: {r: 1, g: 0.3, b: 0.3, a: 1}
+  - h: 0.33
+    s: 0.6
+    v: 1
+    color: {r: 0.41199997, g: 1, b: 0.39999998, a: 1}
+  - h: 0.6
+    s: 0.75
+    v: 1
+    color: {r: 0.5, g: 0.6999999, b: 1, a: 1}
+  - h: 0.15831932
+    s: 1
+    v: 1
+    color: {r: 1, g: 0.94991595, b: 0, a: 1}
+  - h: 0.8342059
+    s: 0.6367925
+    v: 1
+    color: {r: 1, g: 0.36320752, b: 0.99666595, a: 1}
+  - h: 0.0800525
+    s: 0.7971698
+    v: 1
+    color: {r: 1, g: 0.5857228, b: 0.2028302, a: 1}
 --- !u!114 &868880332
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13036,6 +13082,7 @@ GameObject:
   - component: {fileID: 1949958141}
   - component: {fileID: 1949958144}
   - component: {fileID: 1949958143}
+  - component: {fileID: 1949958145}
   m_Layer: 5
   m_Name: GameOverPanel
   m_TagString: Untagged
@@ -13101,6 +13148,28 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1949958140}
   m_CullTransparentMesh: 1
+--- !u!95 &1949958145
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1949958140}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: f43cfc0272a3b41cbab0283f404ae52b, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &1955660750
 GameObject:
   m_ObjectHideFlags: 0
@@ -14127,6 +14196,7 @@ GameObject:
   - component: {fileID: 2065568977}
   - component: {fileID: 2065568976}
   - component: {fileID: 2065568975}
+  - component: {fileID: 2065568978}
   m_Layer: 5
   m_Name: Panel
   m_TagString: Untagged
@@ -14237,6 +14307,28 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2065568973}
   m_CullTransparentMesh: 1
+--- !u!95 &2065568978
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2065568973}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: f43cfc0272a3b41cbab0283f404ae52b, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &2079850212
 GameObject:
   m_ObjectHideFlags: 0
