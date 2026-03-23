@@ -20,6 +20,10 @@ public class TitleManager : MonoBehaviour
     {
         SceneManager.LoadScene("MineSweeper");
     }
+    public void TwoZeroFourEight()
+    {
+        SceneManager.LoadScene("2048");
+    }
     public void QuitBtnOnClicked()
     {
 #if UNITY_EDITOR
