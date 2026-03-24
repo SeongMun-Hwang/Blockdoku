@@ -14,6 +14,8 @@ namespace Games._2048
             if (tile != null)
             {
                 tile.cell = this;
+                tile.transform.SetParent(this.transform);
+                // DOTween 이동 전/후에 위치를 맞추기 위해 localPosition 초기화는 상황에 맞게 조절
             }
         }
 

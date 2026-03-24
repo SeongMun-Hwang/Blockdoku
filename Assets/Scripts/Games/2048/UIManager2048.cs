@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 namespace Games._2048
 {
@@ -11,9 +12,11 @@ namespace Games._2048
         [SerializeField] private TextMeshProUGUI scoreText;
         [SerializeField] private TextMeshProUGUI highScoreText;
         [SerializeField] private GameObject gameOverPanel;
-        [SerializeField] private Button restartButton;
         [SerializeField] private Button backToTitleButton;
 
+        [InspectorName("GameOverPanel")]
+        [SerializeField] private Button backToTitlePanelbutton;
+        [SerializeField] private Button restartGameButton;
         void Awake()
         {
             if (Instance == null) Instance = this;
@@ -25,12 +28,18 @@ namespace Games._2048
             GameManager2048.Instance.OnScoreChanged += UpdateScoreUI;
             GameManager2048.Instance.OnGameOver += ShowGameOverUI;
 
-            restartButton.onClick.AddListener(OnRestartClicked);
             if (backToTitleButton != null)
             {
                 backToTitleButton.onClick.AddListener(OnBackToTitleClicked);
             }
-
+            if (backToTitlePanelbutton != null)
+            {
+                backToTitlePanelbutton.onClick.AddListener(OnBackToTitleClicked);
+            }
+            if (restartGameButton != null)
+            {
+                restartGameButton.onClick.AddListener(RestartGame);
+            }
             UpdateHighScoreUI();
             gameOverPanel.SetActive(false);
         }
@@ -59,13 +68,10 @@ namespace Games._2048
             gameOverPanel.SetActive(true);
             UpdateHighScoreUI();
         }
-
-        private void OnRestartClicked()
+        private void RestartGame()
         {
-            gameOverPanel.SetActive(false);
-            GameManager2048.Instance.StartNewGame();
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
-
         private void OnBackToTitleClicked()
         {
             if (UI_Functions.Instance != null)

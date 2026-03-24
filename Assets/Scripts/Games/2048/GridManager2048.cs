@@ -1,6 +1,8 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.UI;
 
 namespace Games._2048
 {
@@ -15,15 +17,28 @@ namespace Games._2048
 
         private Cell2048[,] cells;
         private List<Tile2048> tiles = new List<Tile2048>();
+        private GridLayoutGroup gridLayout;
 
         void Awake()
         {
             if (Instance == null) Instance = this;
             else Destroy(gameObject);
+
+            gridLayout = GetComponent<GridLayoutGroup>();
+            if (gridParent == null) gridParent = GetComponent<RectTransform>();
         }
 
         public void InitializeGrid()
         {
+            if (gridLayout != null)
+            {
+                gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+                gridLayout.constraintCount = size;
+
+                float calculatedSize = 250f * (4f / size);
+                gridLayout.cellSize = new Vector2(calculatedSize, calculatedSize);
+            }
+
             foreach (Transform child in gridParent)
             {
                 Destroy(child.gameObject);
@@ -43,6 +58,16 @@ namespace Games._2048
                 }
             }
 
+            LayoutRebuilder.ForceRebuildLayoutImmediate(gridParent);
+
+            // 🔥 레이아웃 적용 후 타일 생성
+            StartCoroutine(SpawnAfterLayout());
+        }
+
+        private IEnumerator SpawnAfterLayout()
+        {
+            yield return null;
+
             SpawnTile();
             SpawnTile();
         }
@@ -50,6 +75,7 @@ namespace Games._2048
         public void SpawnTile()
         {
             List<Cell2048> emptyCells = new List<Cell2048>();
+
             foreach (var cell in cells)
             {
                 if (!cell.IsOccupied) emptyCells.Add(cell);
@@ -58,13 +84,17 @@ namespace Games._2048
             if (emptyCells.Count > 0)
             {
                 Cell2048 randomCell = emptyCells[Random.Range(0, emptyCells.Count)];
-                GameObject tileGO = Instantiate(tilePrefab, gridParent);
-                tileGO.transform.position = randomCell.transform.position;
+
+                // 🔥 먼저 생성 → 초기화 → 부모 설정
+                GameObject tileGO = Instantiate(tilePrefab, randomCell.transform);
                 Tile2048 tile = tileGO.GetComponent<Tile2048>();
-                
+
                 int value = Random.value < 0.9f ? 2 : 4;
                 tile.Initialize(value);
+
+                tile.transform.localPosition = Vector3.zero;
                 tile.PlaySpawnAnimation();
+
                 randomCell.SetTile(tile);
                 tiles.Add(tile);
             }
@@ -73,14 +103,13 @@ namespace Games._2048
         public bool Move(MoveDirection direction)
         {
             bool moved = false;
-            
-            // Reset merged flags
+
             foreach (var cell in cells)
             {
-                if (cell.currentTile != null) cell.currentTile.mergedThisTurn = false;
+                if (cell.currentTile != null)
+                    cell.currentTile.mergedThisTurn = false;
             }
 
-            // Define traversal order based on direction
             int[] rows = Enumerable.Range(0, size).ToArray();
             int[] cols = Enumerable.Range(0, size).ToArray();
 
@@ -98,21 +127,22 @@ namespace Games._2048
                     if (targetCell != null)
                     {
                         Tile2048 currentTile = currentCell.currentTile;
-                        if (targetCell.IsOccupied && targetCell.currentTile.Value == currentTile.Value && !targetCell.currentTile.mergedThisTurn)
+
+                        if (targetCell.IsOccupied &&
+                            targetCell.currentTile.Value == currentTile.Value &&
+                            !targetCell.currentTile.mergedThisTurn)
                         {
-                            // Merge
                             currentTile.MergeInto(targetCell);
                             tiles.Remove(currentTile);
                             moved = true;
-                            
+
                             GameManager2048.Instance.AddScore(targetCell.currentTile.Value * 2);
-                            
+
                             if (AudioManager_2D.Instance != null)
                                 AudioManager_2D.Instance.PlayBlockThudAudio();
                         }
                         else if (!targetCell.IsOccupied)
                         {
-                            // Move
                             currentTile.MoveTo(targetCell);
                             moved = true;
                         }
@@ -130,6 +160,7 @@ namespace Games._2048
             int c = startCell.gridPosition.x;
 
             int dr = 0, dc = 0;
+
             switch (direction)
             {
                 case MoveDirection.Up: dr = -1; break;
@@ -144,19 +175,21 @@ namespace Games._2048
             while (nr >= 0 && nr < size && nc >= 0 && nc < size)
             {
                 Cell2048 nextCell = cells[nr, nc];
+
                 if (!nextCell.IsOccupied)
                 {
                     furthestEmptyCell = nextCell;
                 }
                 else
                 {
-                    // If occupied, return this cell as a potential merge target
-                    if (nextCell.currentTile.Value == startCell.currentTile.Value && !nextCell.currentTile.mergedThisTurn)
+                    if (nextCell.currentTile.Value == startCell.currentTile.Value &&
+                        !nextCell.currentTile.mergedThisTurn)
                     {
                         return nextCell;
                     }
                     break;
                 }
+
                 nr += dr;
                 nc += dc;
             }
@@ -173,7 +206,6 @@ namespace Games._2048
                 int r = cell.gridPosition.y;
                 int c = cell.gridPosition.x;
 
-                // Check adjacent cells for merges
                 int[] dr = { -1, 1, 0, 0 };
                 int[] dc = { 0, 0, -1, 1 };
 
@@ -184,7 +216,9 @@ namespace Games._2048
 
                     if (nr >= 0 && nr < size && nc >= 0 && nc < size)
                     {
-                        if (cells[nr, nc].currentTile.Value == cell.currentTile.Value)
+                        var neighbor = cells[nr, nc];
+                        if (!neighbor.IsOccupied ||
+                            neighbor.currentTile.Value == cell.currentTile.Value)
                             return true;
                     }
                 }

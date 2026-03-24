@@ -32,12 +32,7 @@ namespace Games._2048
             backgroundImage.color = GetColor(Value);
             
             // Adjust text color based on value (dark for low values, light for high)
-            valueText.color = Value <= 4 ? new Color32(119, 110, 101, 255) : Color.white;
-            
-            // Adjust font size for larger numbers
-            if (Value >= 1000) valueText.fontSize = 35;
-            else if (Value >= 100) valueText.fontSize = 45;
-            else valueText.fontSize = 55;
+            valueText.color = Value <= 4 ? new Color32(119, 110, 101, 255) : Color.white;     
         }
 
         public void MoveTo(Cell2048 targetCell)
@@ -77,18 +72,18 @@ namespace Games._2048
         {
             switch (value)
             {
-                case 2: return new Color32(238, 228, 218, 255);
-                case 4: return new Color32(237, 224, 200, 255);
-                case 8: return new Color32(242, 177, 121, 255);
-                case 16: return new Color32(245, 149, 99, 255);
-                case 32: return new Color32(246, 124, 95, 255);
-                case 64: return new Color32(246, 94, 59, 255);
-                case 128: return new Color32(237, 207, 114, 255);
-                case 256: return new Color32(237, 204, 97, 255);
-                case 512: return new Color32(237, 200, 80, 255);
-                case 1024: return new Color32(237, 197, 63, 255);
-                case 2048: return new Color32(237, 194, 46, 255);
-                default: return new Color32(60, 58, 50, 255);
+                case 2: return new Color32(230, 240, 250, 255);   // 매우 연한 하늘색
+                case 4: return new Color32(210, 230, 245, 255);
+                case 8: return new Color32(180, 215, 240, 255);
+                case 16: return new Color32(150, 200, 235, 255);
+                case 32: return new Color32(120, 180, 230, 255);
+                case 64: return new Color32(90, 160, 220, 255);
+                case 128: return new Color32(70, 140, 210, 255);
+                case 256: return new Color32(50, 120, 200, 255);
+                case 512: return new Color32(40, 100, 185, 255);
+                case 1024: return new Color32(30, 80, 170, 255);
+                case 2048: return new Color32(20, 60, 150, 255);  // 가장 진한 하늘색
+                default: return new Color32(50, 60, 70, 255);     // 어두운 블루그레이
             }
         }
     }
