@@ -14,9 +14,9 @@ namespace Games._2048
         [SerializeField] private GameObject gameOverPanel;
         [SerializeField] private Button backToTitleButton;
 
-        [InspectorName("GameOverPanel")]
         [SerializeField] private Button backToTitlePanelbutton;
         [SerializeField] private Button restartGameButton;
+        [SerializeField] private TextMeshProUGUI finalScoreTmp;
         void Awake()
         {
             if (Instance == null) Instance = this;
@@ -67,6 +67,10 @@ namespace Games._2048
         {
             gameOverPanel.SetActive(true);
             UpdateHighScoreUI();
+            if (finalScoreTmp != null)
+            {
+                finalScoreTmp.text = GameManager2048.Instance.Score.ToString();
+            }
         }
         private void RestartGame()
         {

@@ -33,7 +33,16 @@ namespace Games._2048
         void Start()
         {
             LoadHighScore();
-            StartNewGame();
+            
+            bool hasSave = System.IO.File.Exists(SavePaths._2048DataPath);
+            if (hasSave)
+            {
+                StartLoadedGame();
+            }
+            else
+            {
+                StartNewGame();
+            }
         }
 
         public void StartNewGame()
@@ -41,7 +50,20 @@ namespace Games._2048
             Score = 0;
             IsGameOver = false;
             OnScoreChanged?.Invoke(Score);
-            GridManager2048.Instance.InitializeGrid();
+            GridManager2048.Instance.InitializeGrid(false);
+        }
+
+        public void StartLoadedGame()
+        {
+            IsGameOver = false;
+            // GridManager2048.InitializeGrid(true) will call SetScore via LoadBoard
+            GridManager2048.Instance.InitializeGrid(true);
+        }
+
+        public void SetScore(int score)
+        {
+            Score = score;
+            OnScoreChanged?.Invoke(Score);
         }
 
         private void HandleMove(MoveDirection direction)
@@ -51,6 +73,7 @@ namespace Games._2048
             if (GridManager2048.Instance.Move(direction))
             {
                 GridManager2048.Instance.SpawnTile();
+                GridManager2048.Instance.SaveBoard();
                 
                 if (!GridManager2048.Instance.CanMove())
                 {
@@ -74,8 +97,14 @@ namespace Games._2048
         private void GameOver()
         {
             IsGameOver = true;
+            GridManager2048.Instance.ClearSave();
+            
             OnGameOver?.Invoke();
-            Debug.Log("Game Over!");
+            Debug.Log("Game Over Panel Activated");
+
+            AdEventBus.TriggerGamePlayEnded(MinigameType._2048, () => {
+                Debug.Log("Game Over Ad sequence finished");
+            });
         }
 
         private void SaveHighScore()

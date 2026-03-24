@@ -9,6 +9,14 @@ public static class SavePaths
     public static string PersonalDataPath => Application.persistentDataPath + "/personal.json";
     public static string TenSumDataPath => Application.persistentDataPath + "/TenSum.json";
     public static string MineSweeperDataPath => Application.persistentDataPath + "/MineSweeper.json";
+    public static string _2048DataPath => Application.persistentDataPath + "/2048.json";
+}
+
+[System.Serializable]
+public class SaveData2048
+{
+    public int[] values;
+    public int score;
 }
 
 [System.Serializable]

@@ -25,6 +25,9 @@ public class MineSweeper_UIManager : MonoBehaviour
     public Button restartButton;
     public Button titleButton;
 
+    [Header("Basic UI")]
+    [SerializeField] private Button backToTitle;
+
     void Awake()
     {
         beginnerButton.onClick.AddListener(() => MineSweeper_GameManager.Instance.StartGame(MineSweeperDifficulty.Beginner));
@@ -33,6 +36,7 @@ public class MineSweeper_UIManager : MonoBehaviour
 
         restartButton.onClick.AddListener(() => MineSweeper_GameManager.Instance.RestartGame());
         titleButton.onClick.AddListener(() => MineSweeper_GameManager.Instance.GoToTitle());
+        backToTitle.onClick.AddListener(() => MineSweeper_GameManager.Instance.GoToTitle());
     }
 
     public void UpdateTimer(float time)

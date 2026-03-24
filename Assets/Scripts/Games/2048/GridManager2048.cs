@@ -28,7 +28,7 @@ namespace Games._2048
             if (gridParent == null) gridParent = GetComponent<RectTransform>();
         }
 
-        public void InitializeGrid()
+        public void InitializeGrid(bool isLoad = false)
         {
             if (gridLayout != null)
             {
@@ -60,8 +60,15 @@ namespace Games._2048
 
             LayoutRebuilder.ForceRebuildLayoutImmediate(gridParent);
 
-            // 🔥 레이아웃 적용 후 타일 생성
-            StartCoroutine(SpawnAfterLayout());
+            if (isLoad)
+            {
+                LoadBoard();
+            }
+            else
+            {
+                // 🔥 레이아웃 적용 후 타일 생성
+                StartCoroutine(SpawnAfterLayout());
+            }
         }
 
         private IEnumerator SpawnAfterLayout()
@@ -70,6 +77,72 @@ namespace Games._2048
 
             SpawnTile();
             SpawnTile();
+            SaveBoard();
+        }
+
+        public void SaveBoard()
+        {
+            SaveData2048 data = new SaveData2048();
+            data.score = GameManager2048.Instance.Score;
+            data.values = new int[size * size];
+
+            for (int r = 0; r < size; r++)
+            {
+                for (int c = 0; c < size; c++)
+                {
+                    if (cells[r, c].IsOccupied)
+                    {
+                        data.values[r * size + c] = cells[r, c].currentTile.Value;
+                    }
+                    else
+                    {
+                        data.values[r * size + c] = 0;
+                    }
+                }
+            }
+
+            string json = JsonUtility.ToJson(data);
+            System.IO.File.WriteAllText(SavePaths._2048DataPath, json);
+        }
+
+        public void LoadBoard()
+        {
+            if (System.IO.File.Exists(SavePaths._2048DataPath))
+            {
+                string json = System.IO.File.ReadAllText(SavePaths._2048DataPath);
+                SaveData2048 data = JsonUtility.FromJson<SaveData2048>(json);
+
+                GameManager2048.Instance.SetScore(data.score);
+
+                for (int i = 0; i < data.values.Length; i++)
+                {
+                    if (data.values[i] > 0)
+                    {
+                        int r = i / size;
+                        int c = i % size;
+                        SpawnTileAt(r, c, data.values[i]);
+                    }
+                }
+            }
+        }
+
+        public void ClearSave()
+        {
+            if (System.IO.File.Exists(SavePaths._2048DataPath))
+            {
+                System.IO.File.Delete(SavePaths._2048DataPath);
+            }
+        }
+
+        private void SpawnTileAt(int r, int c, int value)
+        {
+            Cell2048 targetCell = cells[r, c];
+            GameObject tileGO = Instantiate(tilePrefab, targetCell.transform);
+            Tile2048 tile = tileGO.GetComponent<Tile2048>();
+            tile.Initialize(value);
+            tile.transform.localPosition = Vector3.zero;
+            targetCell.SetTile(tile);
+            tiles.Add(tile);
         }
 
         public void SpawnTile()

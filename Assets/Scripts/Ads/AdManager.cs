@@ -1,12 +1,16 @@
 using GoogleMobileAds.Api;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class AdManager : MonoBehaviour
 {
     [SerializeField] private string _adUnitId;
+    [SerializeField] private string _bannerAdUnitId;
     private InterstitialAd _interstitialAd;
+    private BannerView _bannerView;
 
     public static AdManager Instance { get; private set; }
 
@@ -29,23 +33,111 @@ public class AdManager : MonoBehaviour
     private void OnEnable()
     {
         AdEventBus.OnGamePlayEnded += HandleGamePlayEnded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     private void OnDisable()
     {
         AdEventBus.OnGamePlayEnded -= HandleGamePlayEnded;
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        StartCoroutine(RecreateBannerCoroutine());
+    }
+    private IEnumerator RecreateBannerCoroutine()
+    {
+        yield return null; // UI Layout 기다림
+
+        RecreateBanner();
+    }
+    private void RecreateBanner()
+    {
+        if (_bannerView != null)
+        {
+            _bannerView.Destroy();
+            _bannerView = null;
+        }
+
+        Debug.Log("Recreating banner...");
+
+        AdSize adaptiveSize = AdSize.GetPortraitAnchoredAdaptiveBannerAdSizeWithWidth(AdSize.FullWidth);
+        _bannerView = new BannerView(_bannerAdUnitId, adaptiveSize, AdPosition.Bottom);
+
+        var adRequest = new AdRequest();
+        _bannerView.LoadAd(adRequest);
+    }
+    private IEnumerator ReShowBannerCoroutine()
+    {
+        // UI 레이아웃이 확정될 때까지 한 프레임 대기
+        yield return null;
+
+        if (_bannerView != null)
+        {
+            Debug.Log("Re-showing banner after scene load with delay");
+            _bannerView.Hide();
+            _bannerView.Show();
+        }
     }
 
     public void Start()
     {
-        // 광고 SDK 이벤트를 유니티 메인 스레드에서 실행하도록 보장 (지연 감소 핵심)
         MobileAds.RaiseAdEventsOnUnityMainThread = true;
 
         MobileAds.Initialize((InitializationStatus initStatus) =>
         {
-            // 초기화 후 첫 광고 로드
             LoadInterstitialAd();
+            LoadBannerAd(); // ✅ 여기서는 “생성만”
         });
+    }
+
+    public void LoadBannerAd()
+    {
+        RecreateBanner();
+    }
+
+    public void SetBannerPosition(RectTransform placeholder)
+    {
+        if (_bannerView == null || placeholder == null) return;
+
+        Vector3[] corners = new Vector3[4];
+        placeholder.GetWorldCorners(corners);
+
+        float screenHeight = Screen.height;
+        Vector2 screenPos = corners[1];
+
+        int x = Mathf.RoundToInt(screenPos.x);
+        int y = Mathf.RoundToInt(screenHeight - screenPos.y);
+
+        _bannerView.SetPosition(x, y);
+    }
+
+    public void HideBanner()
+    {
+        if (_bannerView != null)
+        {
+            _bannerView.Hide();
+            Debug.Log("Banner ad hidden.");
+        }
+    }
+
+    public void ShowBanner()
+    {
+        if (_bannerView != null)
+        {
+            _bannerView.Show();
+            Debug.Log("Banner ad shown.");
+        }
+    }
+
+    // 좌표 변환을 돕는 유틸리티 클래스 (내부 정의 혹은 외부 사용 가능)
+    private static class RuntimeCanvasUtils
+    {
+        public static Vector2 WorldToScreenPoint(Vector3 worldPoint)
+        {
+            return worldPoint; // WorldCorners는 이미 스크린 좌표(Overlay 기준)와 일치함
+        }
     }
 
     private void HandleGamePlayEnded(MinigameType gameType, Action onComplete)
@@ -62,6 +154,7 @@ public class AdManager : MonoBehaviour
         switch (gameType)
         {
             case MinigameType.Blockdoku:
+            case MinigameType._2048:
                 shouldShowAd = true;
                 break;
             case MinigameType.TenSum:

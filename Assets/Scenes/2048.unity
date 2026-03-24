@@ -1338,6 +1338,7 @@ MonoBehaviour:
   backToTitleButton: {fileID: 1041905255}
   backToTitlePanelbutton: {fileID: 1287406003}
   restartGameButton: {fileID: 550295489}
+  finalScoreTmp: {fileID: 1727898138}
 --- !u!1 &1018127925
 GameObject:
   m_ObjectHideFlags: 0
@@ -2827,8 +2828,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4279900723
-  m_fontColor: {r: 0.2, g: 0.1, b: 0.1, a: 1}
+    rgba: 4281874488
+  m_fontColor: {r: 0.21960784, g: 0.21960784, b: 0.21960784, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
