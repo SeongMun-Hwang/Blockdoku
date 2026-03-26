@@ -499,10 +499,19 @@ public class GridManager_2D : MonoBehaviour
                 break;
         }
 
-        foreach (var cell in sortedCells)
+        float startTime = Time.time;
+        for (int i = 0; i < sortedCells.Count; i++)
         {
-            cell.TriggerClearAnimation();
-            yield return new WaitForSeconds(clearAnimationSequentialDelay);
+            sortedCells[i].TriggerClearAnimation();
+            
+            if (clearAnimationSequentialDelay > 0)
+            {
+                float targetTime = startTime + (i + 1) * clearAnimationSequentialDelay;
+                while (Time.time < targetTime)
+                {
+                    yield return null;
+                }
+            }
         }
     }
     
