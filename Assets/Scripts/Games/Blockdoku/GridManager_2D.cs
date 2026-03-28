@@ -603,13 +603,7 @@ public class GridManager_2D : MonoBehaviour
         int c = Mathf.RoundToInt(normX);
         int r = Mathf.RoundToInt(normY);
 
-        // Ensure calculated indices are within grid bounds
-        if (r < 0 || r >= GRID_SIZE || c < 0 || c >= GRID_SIZE)
-        {
-            return new Vector2Int(-1, -1); // Return invalid position if out of bounds
-        }
-
-        return new Vector2Int(c, r); // Return as (column, row)
+        return new Vector2Int(c, r); // Return raw (column, row), caller handles bounds
     }
 
     /// <summary>
@@ -630,6 +624,17 @@ public class GridManager_2D : MonoBehaviour
         Vector2Int nearestPos = new Vector2Int(-1, -1);
         float minDistance = float.MaxValue;
 
+        // Get cell pitch for distance threshold calculation
+        Vector2 cellPitchDesignTime = GetCellPitch();
+        Canvas parentCanvas = gridParent.GetComponentInParent<Canvas>();
+        float canvasScaleFactor = (parentCanvas != null) ? parentCanvas.scaleFactor : 1.0f;
+        Vector2 cellPitchWorld = cellPitchDesignTime * canvasScaleFactor;
+        
+        // Snapping threshold: only snap if within 1.5x the cell size
+        float snapThreshold = cellPitchWorld.x * 1.5f;
+
+        Vector2 gridOriginWorldPos = grid[0, 0].transform.position;
+
         for (int dr = -1; dr <= 1; dr++)
         {
             for (int dc = -1; dc <= 1; dc++)
@@ -639,11 +644,11 @@ public class GridManager_2D : MonoBehaviour
                 Vector2Int candidate = new Vector2Int(basePos.x + dc, basePos.y + dr);
                 if (IsValidPlacement(candidate, blockShape))
                 {
-                    // Calculate distance to the candidate cell's world position
-                    Vector2 candidateWorldPos = grid[candidate.y, candidate.x].transform.position;
+                    // Calculate world position of the candidate cell (even if anchor is out of bounds)
+                    Vector2 candidateWorldPos = gridOriginWorldPos + new Vector2(candidate.x * cellPitchWorld.x, -candidate.y * cellPitchWorld.y);
                     float dist = Vector2.Distance(worldPosition, candidateWorldPos);
 
-                    if (dist < minDistance)
+                    if (dist < minDistance && dist < snapThreshold)
                     {
                         minDistance = dist;
                         nearestPos = candidate;

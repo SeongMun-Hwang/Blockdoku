@@ -181,6 +181,8 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         originalParent = transform.parent;
         canvas = GetComponentInParent<Canvas>();
         
+        lastGridPosition = new Vector2Int(-1, -1); // Initialize lastGridPosition
+
         if (GridManager_2D.Instance != null)
         {
             GridManager_2D.Instance.ClearPreview();
