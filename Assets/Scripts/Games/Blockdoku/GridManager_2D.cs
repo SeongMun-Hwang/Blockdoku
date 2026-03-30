@@ -4,6 +4,7 @@ using System.Collections; // Added for Coroutines
 using System.Linq; // Added for HashSet.ToList()
 using UnityEngine.UI; // Added for GridLayoutGroup
 using System.IO;
+using DG.Tweening;
 
 using static SavePaths;
 
@@ -17,6 +18,12 @@ public class GridManager_2D : MonoBehaviour
     public Color clearBlinkColor = Color.cyan; // Cyan, for cells that will be cleared
     public float clearBlinkInterval = 0.3f; // Interval for clear prediction blinking
     public float clearAnimationSequentialDelay = 0.05f; // Delay between sequential cell clears
+
+    [Header("Symmetry Effect")]
+    public GameObject symmetryEffectPrefab; // Light sphere prefab
+    public RectTransform symmetryEffectContainer; // Parent container for effects
+    public float symmetryEffectDuration = 0.8f; // Duration for the lines to move
+    public float ghostStepDistance = 6f;
 
     [Header("Shake Effect")]
     [Range(0f, 1f)] public float shakeDuration = 0.15f;
@@ -61,7 +68,7 @@ public class GridManager_2D : MonoBehaviour
     public void ShakeGrid(int combo)
     {
         if (shakeCoroutine != null) StopCoroutine(shakeCoroutine);
-        
+
         // Dynamic magnitude: Add (combo * 0.1 + 1) to base magnitude
         float dynamicMagnitude = shakeMagnitude + (combo * 0.1f + 1f);
         shakeCoroutine = StartCoroutine(ShakeCoroutine(dynamicMagnitude));
@@ -200,7 +207,7 @@ public class GridManager_2D : MonoBehaviour
 
         return clearCount;
     }
-    
+
     public void ShowPreview(Vector2Int gridPosition, List<Vector2Int> blockShape)
     {
         ClearPreview(); // Clear previous block placement preview AND stop previous clear prediction blink
@@ -314,7 +321,7 @@ public class GridManager_2D : MonoBehaviour
         // Add cells from completed rows and columns
         foreach (var row in completedRows)
             for (int c = 0; c < GRID_SIZE; c++) completedPositions.Add(new Vector2Int(c, row));
-        
+
         foreach (var col in completedCols)
             for (int r = 0; r < GRID_SIZE; r++) completedPositions.Add(new Vector2Int(col, r));
 
@@ -374,7 +381,7 @@ public class GridManager_2D : MonoBehaviour
                 for (int i = r; i < r + 3; i++)
                     for (int j = c; j < c + 3; j++)
                         if (!occupiedState[i, j]) squareComplete = false;
-                
+
                 if (squareComplete) count++;
             }
         }
@@ -390,11 +397,11 @@ public class GridManager_2D : MonoBehaviour
                 currentGridOccupied[r, c] = !grid[r, c].IsEmpty;
 
         HashSet<Vector2Int> completedPositions = GetCompletedCellPositions(currentGridOccupied);
-        
+
         if (completedPositions.Count == 0)
         {
             GameManager_2D.Instance.combo = 0;
-            CheckSymmetry(); 
+            CheckSymmetry();
             return 0;
         }
 
@@ -417,12 +424,12 @@ public class GridManager_2D : MonoBehaviour
 
         // Update global combo and score
         GameManager_2D.Instance.combo += linesClearedCount;
-        GameManager_2D.Instance.AddScore(linesClearedCount * 9);      
+        GameManager_2D.Instance.AddScore(linesClearedCount * 9);
 
         if (isFullClear)
             GameManager_2D.Instance.AddSpecialScore(100, "FULL CLEAR");
 
-        if (AudioManager_2D.Instance != null) 
+        if (AudioManager_2D.Instance != null)
             AudioManager_2D.Instance.PlayBlockDestroyAudio(GameManager_2D.Instance.combo);
 
         // Symmetry Check (Skip if Full Clear occurred)
@@ -454,12 +461,200 @@ public class GridManager_2D : MonoBehaviour
             }
         }
 
-        // Only reward symmetry if there are enough blocks to make it meaningful (e.g., > 5)
-        if (occupiedCount > 5)
+        // Reward symmetry based on the number of blocks currently on the board
+        if (occupiedCount > 0)
         {
-            if (hSym) GameManager_2D.Instance.AddSpecialScore(20, "H-SYMMETRY");
-            else if (vSym) GameManager_2D.Instance.AddSpecialScore(20, "V-SYMMETRY");
-            else if (d1Sym || d2Sym) GameManager_2D.Instance.AddSpecialScore(30, "DIAG-SYMMETRY");
+            if (hSym) 
+            {
+                GameManager_2D.Instance.combo++;
+                int bonus = 20 + (occupiedCount * 2);
+                GameManager_2D.Instance.AddSpecialScore(bonus, "H-SYMMETRY");
+                PlaySymmetryAnimation("H");
+            }
+            else if (vSym) 
+            {
+                GameManager_2D.Instance.combo++;
+                int bonus = 20 + (occupiedCount * 2);
+                GameManager_2D.Instance.AddSpecialScore(bonus, "V-SYMMETRY");
+                PlaySymmetryAnimation("V");
+            }
+            else if (d1Sym || d2Sym) 
+            {
+                GameManager_2D.Instance.combo++;
+                int bonus = 30 + (occupiedCount * 3);
+                GameManager_2D.Instance.AddSpecialScore(bonus, "DIAG-SYMMETRY");
+                PlaySymmetryAnimation(d1Sym ? "D1" : "D2");
+            }
+        }
+    }
+
+    public void PlaySymmetryAnimation(string type)
+    {
+        if (symmetryEffectPrefab == null || symmetryEffectContainer == null) return;
+
+        // 1. Get 2 random active colors from the board (Always returns requested count)
+        var colors = GetRandomActiveColors(2);
+        
+        // 2. Decide direction randomly
+        bool isReverse = Random.value > 0.5f;
+
+        // 3. Get the paths based on symmetry type and direction
+        Vector3[] path1, path2;
+        GetSymmetryPaths(type, isReverse, out path1, out path2);
+
+        // 4. Launch two effects in opposite directions with distinct colors
+        LaunchSymmetryEffect(path1, colors[0]);
+        LaunchSymmetryEffect(path2, colors[1]);
+    }
+
+    private void LaunchSymmetryEffect(Vector3[] path, Color color)
+    {
+        GameObject effectGO = Instantiate(symmetryEffectPrefab, symmetryEffectContainer);
+        RectTransform rt = effectGO.GetComponent<RectTransform>();
+        Image img = effectGO.GetComponent<Image>();
+
+        if (img != null) img.color = color;
+        rt.localPosition = path[0];
+
+        // Calculate total distance to normalize speed across segments
+        float totalDistance = 0f;
+        for (int i = 0; i < path.Length - 1; i++)
+        {
+            totalDistance += Vector3.Distance(path[i], path[i + 1]);
+        }
+
+        Sequence seq = DOTween.Sequence();
+        Vector2 lastGhostPos = path[0];
+
+        for (int i = 0; i < path.Length - 1; i++)
+        {
+            Vector3 start = path[i];
+            Vector3 end = path[i + 1];
+            float segmentDist = Vector3.Distance(start, end);
+            float segmentDuration = (segmentDist / totalDistance) * symmetryEffectDuration;
+
+            // Add move for each segment to ensure corner points are hit exactly
+            seq.Append(rt.DOLocalMove(end, segmentDuration).SetEase(Ease.Linear).OnUpdate(() => {
+                Vector2 currentPos = rt.localPosition;
+                float distanceMoved = Vector2.Distance(currentPos, lastGhostPos);
+
+                if (distanceMoved >= ghostStepDistance)
+                {
+                    int segments = Mathf.FloorToInt(distanceMoved / ghostStepDistance);
+                    for (int j = 1; j <= segments; j++)
+                    {
+                        Vector2 intermediatePos = Vector2.Lerp(lastGhostPos, currentPos, (float)j / segments);
+                        CreateTrailGhost(intermediatePos, color);
+                    }
+                    lastGhostPos = currentPos;
+                }
+            }));
+        }
+
+        // Apply overall ease to the whole sequence and cleanup
+        seq.SetEase(Ease.OutQuad).OnComplete(() => {
+            rt.DOScale(0f, 0.2f).OnComplete(() => Destroy(effectGO));
+        });
+    }
+
+    private void CreateTrailGhost(Vector2 pos, Color color)
+    {
+        // Use the same prefab for ghosts but make them smaller and fade out
+        GameObject ghostGO = Instantiate(symmetryEffectPrefab, symmetryEffectContainer);
+        RectTransform rt = ghostGO.GetComponent<RectTransform>();
+        Image img = ghostGO.GetComponent<Image>();
+
+        rt.localPosition = pos;
+        if (img != null) img.color = color;
+
+        // Animate the ghost to shrink and fade out quickly
+        img.DOFade(0f, 0.4f);
+        rt.DOScale(0f, 0.4f).SetEase(Ease.InQuad).OnComplete(() => Destroy(ghostGO));
+    }
+
+    private List<Color> GetRandomActiveColors(int count)
+    {
+        var activeColors = grid.Cast<Cell_2D>()
+            .Where(c => !c.IsEmpty)
+            .Select(c => c.BlockColor)
+            .Distinct()
+            .ToList();
+
+        List<Color> result = new List<Color>();
+        
+        // If board is empty, use White as fallback
+        if (activeColors.Count == 0)
+        {
+            for (int i = 0; i < count; i++) result.Add(Color.white);
+            return result;
+        }
+        
+        // Pick random colors from the board, allowing duplicates if not enough distinct colors
+        for (int i = 0; i < count; i++)
+        {
+            result.Add(activeColors[Random.Range(0, activeColors.Count)]);
+        }
+        return result;
+    }
+
+    private void GetSymmetryPaths(string type, bool isReverse, out Vector3[] p1, out Vector3[] p2)
+    {
+        // Use the container's size to define bounds
+        float w = symmetryEffectContainer.rect.width / 2f;
+        float h = symmetryEffectContainer.rect.height / 2f;
+
+        // Key Points
+        Vector3 TL = new Vector3(-w, h),  TR = new Vector3(w, h),
+                BL = new Vector3(-w, -h), BR = new Vector3(w, -h),
+                TC = new Vector3(0, h),   BC = new Vector3(0, -h),
+                LC = new Vector3(-w, 0),  RC = new Vector3(w, 0);
+
+        if (!isReverse)
+        {
+            switch (type)
+            {
+                case "H": // TC to BC (Top to Bottom)
+                    p1 = new Vector3[] { TC, TR, BR, BC };
+                    p2 = new Vector3[] { TC, TL, BL, BC };
+                    break;
+                case "V": // LC to RC (Left to Right)
+                    p1 = new Vector3[] { LC, TL, TR, RC };
+                    p2 = new Vector3[] { LC, BL, BR, RC };
+                    break;
+                case "D1": // TL to BR (TopLeft to BottomRight)
+                    p1 = new Vector3[] { TL, TR, BR };
+                    p2 = new Vector3[] { TL, BL, BR };
+                    break;
+                case "D2": // TR to BL (TopRight to BottomLeft)
+                default:
+                    p1 = new Vector3[] { TR, TL, BL };
+                    p2 = new Vector3[] { TR, BR, BL };
+                    break;
+            }
+        }
+        else
+        {
+            // Reverse directions
+            switch (type)
+            {
+                case "H": // BC to TC (Bottom to Top)
+                    p1 = new Vector3[] { BC, BR, TR, TC };
+                    p2 = new Vector3[] { BC, BL, TL, TC };
+                    break;
+                case "V": // RC to LC (Right to Left)
+                    p1 = new Vector3[] { RC, TR, TL, LC };
+                    p2 = new Vector3[] { RC, BR, BL, LC };
+                    break;
+                case "D1": // BR to TL (BottomRight to TopLeft)
+                    p1 = new Vector3[] { BR, TR, TL };
+                    p2 = new Vector3[] { BR, BL, TL };
+                    break;
+                case "D2": // BL to TR (BottomLeft to TopRight)
+                default:
+                    p1 = new Vector3[] { BL, TL, TR };
+                    p2 = new Vector3[] { BL, BR, TR };
+                    break;
+            }
         }
     }
 
@@ -490,7 +685,7 @@ public class GridManager_2D : MonoBehaviour
         for (int i = 0; i < sortedCells.Count; i++)
         {
             sortedCells[i].TriggerClearAnimation();
-            
+
             if (clearAnimationSequentialDelay > 0)
             {
                 float targetTime = startTime + (i + 1) * clearAnimationSequentialDelay;
@@ -501,7 +696,7 @@ public class GridManager_2D : MonoBehaviour
             }
         }
     }
-    
+
     public Vector2 GetCellPitch()
     {
         if (gridLayoutGroup != null)
@@ -521,7 +716,7 @@ public class GridManager_2D : MonoBehaviour
         }
         // Fallback to a default size if GridLayoutGroup is not found
         Debug.LogWarning("GridManager_2D: GridLayoutGroup is null, returning default cell size of 50x50.");
-        return Vector2.one * 50f; 
+        return Vector2.one * 50f;
     }
 
     // Coroutine for blinking cells that will be cleared
@@ -534,7 +729,7 @@ public class GridManager_2D : MonoBehaviour
             if (!previewCells.Contains(cell))
             {
                 // Store the current visual color of the cell
-                storedOriginalClearPredictColors[cell] = cell.cellImage.color; 
+                storedOriginalClearPredictColors[cell] = cell.cellImage.color;
             }
         }
 
@@ -566,7 +761,7 @@ public class GridManager_2D : MonoBehaviour
 
         // Convert world position to gridParent's local space
         Vector3 localPos = gridParent.InverseTransformPoint(worldPosition);
-        
+
         // Get the local position of the center of the first cell (0,0)
         Vector3 originLocalPos = gridParent.InverseTransformPoint(grid[0, 0].transform.position);
 
@@ -595,7 +790,7 @@ public class GridManager_2D : MonoBehaviour
     public Vector2Int GetNearestValidPosition(Vector2 worldPosition, List<Vector2Int> blockShape)
     {
         Vector2Int basePos = GetGridPosition(worldPosition);
-        
+
         // If the base position is already valid, return it immediately
         if (IsValidPlacement(basePos, blockShape))
         {
@@ -609,7 +804,7 @@ public class GridManager_2D : MonoBehaviour
         // Get cell pitch and lossy scale for accurate world-space threshold
         Vector2 cellPitch = GetCellPitch();
         float cellWidthWorld = cellPitch.x * gridParent.lossyScale.x;
-        
+
         // Snapping threshold: only snap if within 1.5x the cell size
         float snapThreshold = cellWidthWorld * 1.5f;
 

@@ -106,10 +106,6 @@ public class GameManager_2D : MonoBehaviour
             score += addedScore;
             uiManager.UpdateScore(score);
             uiManager.ShowFloatingScore(addedScore, combo);
-            if (score > bestScore)
-            {
-                uiManager.UpdateBestScore(score);
-            }
 
             // Trigger effects: Vibration and Grid Shake
             uiManager.Vibrate();
@@ -125,10 +121,6 @@ public class GameManager_2D : MonoBehaviour
             score += addedScore;
             uiManager.UpdateScore(score);
             uiManager.ShowFloatingScore(addedScore, combo, message);
-            if (score > bestScore)
-            {
-                uiManager.UpdateBestScore(score);
-            }
         }
     }
 

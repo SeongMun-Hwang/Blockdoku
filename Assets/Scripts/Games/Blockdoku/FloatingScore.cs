@@ -30,23 +30,32 @@ public class FloatingScore : MonoBehaviour
 
     public void Show(int score, int combo, string specialMessage = "")
     {
-        string msg = "";
+        // 1. If there's a special message (Symmetry, Full Clear, etc.), enqueue it first
         if (!string.IsNullOrEmpty(specialMessage))
         {
-            msg = $"{specialMessage}!\n+{score}";
+            messageQueue.Enqueue($"{specialMessage}!");
+        }
+
+        // 2. Enqueue the score and combo message
+        string msg = "";
+        if (combo > 0)
+        {
+            msg = $"COMBO x{combo + 1}\n+{score}";
         }
         else
         {
-            msg = combo > 0 ? $"{combo} combo!\n+{score}" : $"+{score}";
+            msg = $"+{score}";
         }
-        
         messageQueue.Enqueue(msg);
         
         if (!isShowing)
         {
-            // 코루틴을 시작하기 전에 반드시 오브젝트를 활성화해야 합니다.
+            // Activate the object before starting the process
             gameObject.SetActive(true);
-            StartCoroutine(ProcessQueue());
+            if (gameObject.activeInHierarchy) // Safety check for Coroutines
+            {
+                StartCoroutine(ProcessQueue());
+            }
         }
     }
 
