@@ -173,40 +173,26 @@ public class GameManager_2D : MonoBehaviour
 
     public void CheckGameOver()
     {
-        List<GameObject> remainingBlocks = BlockSpawner_2D.Instance.GetSpawnedBlocks();
+        List<GameObject> remainingBlocks = blockSpawner.GetSpawnedBlocks();
         if (remainingBlocks.Count == 0) return;
 
         bool canPlaceAnyBlock = false;
         foreach (GameObject blockGO in remainingBlocks)
         {
             Block_2D block = blockGO.GetComponent<Block_2D>();
-            if (CanBlockBePlaced(block))
+            if (gridManager.IsValidPlacementForAll(block.GetShape()))
             {
                 canPlaceAnyBlock = true;
-                break; // Found a placeable block, no need to check others
+                break;
             }
         }
 
-        if (!canPlaceAnyBlock)
-        {
-            EndGame();
-        }
+        if (!canPlaceAnyBlock) EndGame();
     }
 
     public bool CanBlockBePlaced(Block_2D block)
     {
-        List<Vector2Int> shape = block.GetShape();
-        for (int r = 0; r < 9; r++)
-        {
-            for (int c = 0; c < 9; c++)
-            {
-                if (gridManager.IsValidPlacement(new Vector2Int(c, r), shape))
-                {
-                    return true; // Found a valid placement for this block
-                }
-            }
-        }
-        return false; // This block cannot be placed anywhere
+        return gridManager.IsValidPlacementForAll(block.GetShape());
     }
 
     public void SaveGameData()

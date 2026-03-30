@@ -146,6 +146,19 @@ public class GridManager_2D : MonoBehaviour
     }
 
 
+    public bool IsValidPlacementForAll(List<Vector2Int> blockShape)
+    {
+        for (int r = 0; r < GRID_SIZE; r++)
+        {
+            for (int c = 0; c < GRID_SIZE; c++)
+            {
+                if (IsValidPlacement(new Vector2Int(c, r), blockShape))
+                    return true;
+            }
+        }
+        return false;
+    }
+
     public bool IsValidPlacement(Vector2Int gridPosition, List<Vector2Int> blockShape)
     {
         foreach (var pos in blockShape)

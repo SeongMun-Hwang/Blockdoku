@@ -84,15 +84,131 @@ public class BlockSpawner_2D : MonoBehaviour
         new HSVColor(0.08f, 0.5f, 1.0f), // Soft Orange
     };
 
-    private readonly List<GameObject> spawnedBlocks = new List<GameObject>();
+    private List<BlockArray> _cachedAllPossibleBlocks;
+    private List<BlockArray> AllPossibleBlocks
+    {
+        get
+        {
+            if (_cachedAllPossibleBlocks == null)
+            {
+                _cachedAllPossibleBlocks = blockGroups
+                    .SelectMany(g => (g.variants ?? new List<BlockArray>()).Concat(new[] { g.mainBlock }))
+                    .Where(b => b != null)
+                    .Distinct()
+                    .ToList();
+            }
+            return _cachedAllPossibleBlocks;
+        }
+    }
+
+    void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+    }
+
+    public void SpawnBlocks()
+    {
+        // 1. Clear existing blocks
+        ClearSpawnedBlocks();
+
+        if (blockGroups.Count == 0 || spawnPositions.Count == 0)
+        {
+            Debug.LogError("BlockSpawner_2D: Configuration missing.");
+            return;
+        }
+
+        // 2. Determine a valid set of blocks (without instantiation)
+        var validBlockSet = FindValidBlockSet();
+
+        // 3. Instantiate and setup the valid blocks
+        for (int i = 0; i < validBlockSet.Count; i++)
+        {
+            var data = validBlockSet[i];
+            Transform spawnPos = spawnPositions[i];
+            
+            GameObject blockGO = Instantiate(blockContainerPrefab, spawnPos.position, Quaternion.identity, spawnPos);
+            Block_2D blockScript = blockGO.GetComponent<Block_2D>();
+            blockScript.Initialize(data.blockArray, data.rotation, data.color);
+            
+            spawnedBlocks.Add(blockGO);
+        }
+
+        if (GameManager_2D.Instance != null)
+            GameManager_2D.Instance.SaveGameData();
+    }
+
+    private struct PendingBlockData
+    {
+        public BlockArray blockArray;
+        public int rotation;
+        public Color color;
+    }
+
+    private List<PendingBlockData> FindValidBlockSet()
+    {
+        List<PendingBlockData> pendingSet = new List<PendingBlockData>();
+        bool isPlaceableSetFound = false;
+        int maxAttempts = 100; // Safety break
+
+        while (!isPlaceableSetFound && maxAttempts-- > 0)
+        {
+            pendingSet.Clear();
+            
+            // Pick unique groups
+            var selectedGroupIndexes = Enumerable.Range(0, blockGroups.Count)
+                .OrderBy(x => Random.value)
+                .Take(spawnPositions.Count)
+                .ToList();
+
+            // Prepare colors
+            var chosenColors = availableColors
+                .OrderBy(x => Random.value)
+                .Take(spawnPositions.Count)
+                .Select(hsv => hsv.ToColor())
+                .ToList();
+
+            for (int i = 0; i < selectedGroupIndexes.Count; i++)
+            {
+                BlockArray actualBlock = blockGroups[selectedGroupIndexes[i]].GetRandomBlock();
+                if (actualBlock == null) continue;
+
+                pendingSet.Add(new PendingBlockData 
+                { 
+                    blockArray = actualBlock, 
+                    rotation = Random.Range(0, 4), 
+                    color = chosenColors[i] 
+                });
+            }
+
+            // Validation check (without instantiation)
+            foreach (var pending in pendingSet)
+            {
+                List<Vector2Int> shape = pending.blockArray.GetShape(pending.rotation);
+                if (GameManager_2D.Instance.gridManager.IsValidPlacementForAll(shape)) // Optimized check
+                {
+                    isPlaceableSetFound = true;
+                    break;
+                }
+            }
+        }
+        return pendingSet;
+    }
+
+    private void ClearSpawnedBlocks()
+    {
+        foreach (GameObject block in spawnedBlocks)
+            if (block != null) Destroy(block);
+        spawnedBlocks.Clear();
+    }
 
     [System.Serializable]
     public class BlockSaveData_2D
     {
-        public int blockArrayIndex; // Index in the flattened list of all possible blocks
+        public int blockArrayIndex;
         public int spawnIndex;
         public int rotationStep;
-        public SerializableColor blockColor; // New: To save block color
+        public SerializableColor blockColor;
     }
 
     [System.Serializable]
@@ -101,149 +217,7 @@ public class BlockSpawner_2D : MonoBehaviour
         public List<BlockSaveData_2D> blocks;
     }
 
-    void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-
-    /// <summary>
-    /// Flattens the blockGroups into a single list of unique BlockArrays for indexing during save/load.
-    /// </summary>
-    private List<BlockArray> GetAllPossibleBlocks()
-    {
-        HashSet<BlockArray> allBlocks = new HashSet<BlockArray>();
-        foreach (var group in blockGroups)
-        {
-            if (group.mainBlock != null) allBlocks.Add(group.mainBlock);
-            if (group.variants != null)
-            {
-                foreach (var variant in group.variants)
-                {
-                    if (variant != null) allBlocks.Add(variant);
-                }
-            }
-        }
-        return allBlocks.ToList();
-    }
-
-    public void SpawnBlocks()
-    {
-        // Clear any existing blocks first
-        foreach (GameObject block in spawnedBlocks)
-        {
-            if (block != null)
-            {
-                Destroy(block);
-            }
-        }
-        spawnedBlocks.Clear();
-
-        if (blockGroups.Count == 0 || spawnPositions.Count == 0)
-        {
-            Debug.LogError("BlockSpawner_2D: Block Groups or Spawn Positions are not set.");
-            return;
-        }
-
-        List<Block_2D> potentialBlocks = new List<Block_2D>();
-        bool isPlaceableSetFound = false;
-
-        while (!isPlaceableSetFound)
-        {
-            // Clear potential blocks from previous loop
-            foreach (var block in potentialBlocks)
-            {
-                if (block != null) Destroy(block.gameObject);
-            }
-            potentialBlocks.Clear();
-
-            // Generate unique colors for the blocks based on HSV
-            List<Color> chosenColors = new List<Color>();
-            List<HSVColor> tempAvailableColors = new List<HSVColor>(availableColors); // Copy to choose from
-
-            for (int i = 0; i < spawnPositions.Count && tempAvailableColors.Count > 0; i++)
-            {
-                int colorIndex = Random.Range(0, tempAvailableColors.Count);
-                HSVColor hsvColor = tempAvailableColors[colorIndex];
-
-                chosenColors.Add(hsvColor.ToColor());
-                tempAvailableColors.RemoveAt(colorIndex); // Ensure unique colors
-            }
-
-            // 1. Generate a set of 3 temporary blocks
-            // Pick UNIQUE root group indexes (ensuring variety across groups)
-            HashSet<int> selectedGroupIndexes = new HashSet<int>();
-            
-            // We assume blockGroups.Count >= spawnPositions.Count as per user instruction
-            while (selectedGroupIndexes.Count < spawnPositions.Count)
-            {
-                selectedGroupIndexes.Add(Random.Range(0, blockGroups.Count));
-            }
-
-            List<int> rootGroupIndexes = selectedGroupIndexes.ToList();
-
-            int colorCounter = 0;
-            foreach (int groupIndex in rootGroupIndexes)
-            {
-                // Instantiate the container, but keep it inactive and out of sight
-                GameObject blockGO = Instantiate(blockContainerPrefab, new Vector3(-1000, -1000, 0), Quaternion.identity);
-                blockGO.SetActive(false); // Keep it inactive for now
-                Block_2D blockScript = blockGO.GetComponent<Block_2D>();
-
-                int randomRot = Random.Range(0, 4);
-                
-                // PICK RANDOM BLOCK FROM SELECTED GROUP
-                BlockArray actualBlock = blockGroups[groupIndex].GetRandomBlock();
-
-                if (actualBlock == null)
-                {
-                    Debug.LogWarning($"BlockSpawner_2D: Selected group {groupIndex} returned a null block. Skipping.");
-                    Destroy(blockGO);
-                    continue;
-                }
-
-                // Pass the chosen color to the block's Initialize method
-                blockScript.Initialize(actualBlock, randomRot, chosenColors[colorCounter]);
-                potentialBlocks.Add(blockScript);
-                colorCounter++;
-            }
-
-            // 2. Check if any block in the set is placeable
-            foreach (var block in potentialBlocks)
-            {
-                if (GameManager_2D.Instance.CanBlockBePlaced(block))
-                {
-                    isPlaceableSetFound = true;
-                    break; // Found a placeable block, so this set is valid
-                }
-            }
-        }
-
-        // 3. Once a valid set is found, spawn them properly
-        for (int i = 0; i < potentialBlocks.Count; i++)
-        {
-            Block_2D blockScript = potentialBlocks[i];
-            Transform spawnPos = spawnPositions[i];
-
-            blockScript.transform.SetParent(spawnPos, false);
-            blockScript.transform.position = spawnPos.position;
-            blockScript.gameObject.SetActive(true);
-            spawnedBlocks.Add(blockScript.gameObject);
-        }
-
-
-        // Save game state after new blocks are spawned
-        if (GameManager_2D.Instance != null)
-        {
-            GameManager_2D.Instance.SaveGameData();
-        }
-    }
+    private readonly List<GameObject> spawnedBlocks = new List<GameObject>();
 
     public void BlockPlaced(GameObject blockGO, Vector2Int gridPosition, List<Vector2Int> shape, Color blockColor)
     {
@@ -292,88 +266,48 @@ public class BlockSpawner_2D : MonoBehaviour
         BlockSaveDatas_2D blockSaveDatas = new BlockSaveDatas_2D();
         blockSaveDatas.blocks = new List<BlockSaveData_2D>();
 
-        List<BlockArray> allPossibleBlocks = GetAllPossibleBlocks();
-
-        foreach (GameObject go in spawnedBlocks)
+        for (int i = 0; i < spawnedBlocks.Count; i++)
         {
+            GameObject go = spawnedBlocks[i];
             Block_2D block = go.GetComponent<Block_2D>();
-            if (block == null)
-            {
-                Debug.LogWarning($"BlockSpawner_2D: GameObject {go.name} in spawnedBlocks is missing Block_2D component. Skipping save.");
-                continue;
-            }
+            if (block == null) continue;
             
-            int blockArrayIndex = allPossibleBlocks.IndexOf(block.BlockData);
+            int blockArrayIndex = AllPossibleBlocks.IndexOf(block.BlockData);
             int spawnIndex = spawnPositions.IndexOf(go.transform.parent);
-            int rotationStep = block.CurrentRotationStep;
-            SerializableColor blockColor = block.blockColor; // Get the block's color
-
+            
             blockSaveDatas.blocks.Add(new BlockSaveData_2D
             {
                 blockArrayIndex = blockArrayIndex,
                 spawnIndex = spawnIndex,
-                rotationStep = rotationStep,
-                blockColor = blockColor // Save the block's color
+                rotationStep = block.CurrentRotationStep,
+                blockColor = block.blockColor
             });
         }
         string json = JsonUtility.ToJson(blockSaveDatas);
         File.WriteAllText(BlockDataPath, json);
-        Debug.Log("2D Block data saved to " + BlockDataPath);
     }
 
     public void LoadBlockData_2D()
     {
-        // Clear any existing blocks first
-        foreach (GameObject block in spawnedBlocks)
-        {
-            if (block != null)
-            {
-                Destroy(block);
-            }
-        }
-        spawnedBlocks.Clear();
+        ClearSpawnedBlocks();
 
         if (File.Exists(BlockDataPath))
         {
             string json = File.ReadAllText(BlockDataPath);
             BlockSaveDatas_2D blockSaveDatas = JsonUtility.FromJson<BlockSaveDatas_2D>(json);
 
-            List<BlockArray> allPossibleBlocks = GetAllPossibleBlocks();
-
             foreach (BlockSaveData_2D data in blockSaveDatas.blocks)
             {
-                if (data.blockArrayIndex < 0 || data.blockArrayIndex >= allPossibleBlocks.Count)
-                {
-                    Debug.LogWarning($"BlockSpawner_2D: Block array index {data.blockArrayIndex} is out of bounds in the flattened list. Skipping block.");
-                    continue;
-                }
-                BlockArray blockArray = allPossibleBlocks[data.blockArrayIndex];
+                if (data.blockArrayIndex < 0 || data.blockArrayIndex >= AllPossibleBlocks.Count) continue;
+                if (data.spawnIndex < 0 || data.spawnIndex >= spawnPositions.Count) continue;
 
-                if (data.spawnIndex < 0 || data.spawnIndex >= spawnPositions.Count)
-                {
-                    Debug.LogWarning($"BlockSpawner_2D: Spawn index {data.spawnIndex} is out of bounds. Skipping block.");
-                    continue;
-                }
                 Transform spawnPos = spawnPositions[data.spawnIndex];
-
                 GameObject blockGO = Instantiate(blockContainerPrefab, spawnPos.position, Quaternion.identity, spawnPos);
                 Block_2D blockScript = blockGO.GetComponent<Block_2D>();
-                if (blockScript != null)
-                {
-                    // Pass the loaded color to the block's Initialize method
-                    blockScript.Initialize(blockArray, data.rotationStep, data.blockColor);
-                }
-                else
-                {
-                    Debug.LogWarning($"BlockSpawner_2D: BlockGO {blockGO.name} is missing Block_2D component after instantiation. Skipping initialization.");
-                }
+                blockScript.Initialize(AllPossibleBlocks[data.blockArrayIndex], data.rotationStep, data.blockColor);
+                
                 spawnedBlocks.Add(blockGO);
             }
-            Debug.Log("2D Block data loaded from " + BlockDataPath);
-        }
-        else
-        {
-            Debug.Log("2D Block save file not found at " + BlockDataPath);
         }
     }
 }

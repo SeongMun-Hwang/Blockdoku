@@ -40,52 +40,16 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
     {
         rectTransform = GetComponent<RectTransform>();
         blockData = data;
-        blockColor = color; // Assign the color
+        blockColor = color; 
+        currentRotationStep = rotationCount;
         
         // Apply initial spawn scale
         rectTransform.localScale = Vector3.one * spawnScale;
         originalScale = Vector3.one * spawnScale;
 
-        LoadShapeFromData();
-        RotateShape(rotationCount);
+        shape = blockData.GetShape(rotationCount);
         UpdateVisuals();
-        SetColor(blockColor); // Apply the color to the visuals
-    }
-
-    /// <summary>
-    /// Parses the BlockArray data into a local 'shape' list.
-    /// </summary>
-    private void LoadShapeFromData()
-    {
-        shape = new List<Vector2Int>();
-        if (blockData == null) return;
-
-        for (int r = 0; r < blockData.shapeRows.Count; r++)
-        {
-            string row = blockData.shapeRows[r];
-            for (int c = 0; c < row.Length; c++)
-            {
-                if (row[c] == '1')
-                {
-                    // Invert 'r' to treat top-left as (0,0) in a standard Cartesian coordinate system for easier rotation
-                    shape.Add(new Vector2Int(c, -r));
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Rotates the local shape data N times.
-    /// This does NOT modify the source BlockArray asset.
-    /// </summary>
-    private void RotateShape(int n)
-    {
-        currentRotationStep = n; // Store the rotation step
-        for (int i = 0; i < n; i++)
-        {
-            // 90-degree clockwise rotation matrix: (x, y) -> (y, -x)
-            shape = shape.Select(p => new Vector2Int(p.y, -p.x)).ToList();
-        }
+        SetColor(blockColor);
     }
 
 
