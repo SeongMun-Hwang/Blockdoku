@@ -564,27 +564,22 @@ public class GridManager_2D : MonoBehaviour
             return new Vector2Int(-1, -1);
         }
 
-        // World position of the center of the grid's top-left cell (grid[0,0])
-        Vector2 gridOriginWorldPos = grid[0, 0].transform.position;
+        // Convert world position to gridParent's local space
+        Vector3 localPos = gridParent.InverseTransformPoint(worldPosition);
+        
+        // Get the local position of the center of the first cell (0,0)
+        Vector3 originLocalPos = gridParent.InverseTransformPoint(grid[0, 0].transform.position);
 
-        // Calculate the offset of the worldPosition (block's anchor) from the grid's top-left cell center
-        Vector2 offsetWorld = worldPosition - gridOriginWorldPos;
+        // Calculate the offset in local space
+        Vector2 offsetLocal = (Vector2)(localPos - originLocalPos);
 
         // Get cell dimensions (pitch includes cell size + spacing)
-        Vector2 cellPitchDesignTime = GetCellPitch();
+        Vector2 cellPitch = GetCellPitch();
 
-        // Get the actual runtime scale factor from the Canvas
-        Canvas parentCanvas = gridParent.GetComponentInParent<Canvas>();
-        float canvasScaleFactor = (parentCanvas != null) ? parentCanvas.scaleFactor : 1.0f;
-
-        // Convert cellPitch to world space pixels by applying the canvas scale factor
-        Vector2 cellPitchWorld = cellPitchDesignTime * canvasScaleFactor;
-
-        // To make snapping "looser", we can adjust the rounding threshold.
-        // A lower threshold makes the block snap to the nearest cell more easily.
-
-        float normX = offsetWorld.x / cellPitchWorld.x;
-        float normY = -offsetWorld.y / cellPitchWorld.y;
+        // In local UI space, X is right, Y is up. 
+        // Rows increase downwards, so we negate the Y offset.
+        float normX = offsetLocal.x / cellPitch.x;
+        float normY = -offsetLocal.y / cellPitch.y;
 
         // Use standard rounding to find the nearest cell index
         int c = Mathf.RoundToInt(normX);
@@ -611,16 +606,12 @@ public class GridManager_2D : MonoBehaviour
         Vector2Int nearestPos = new Vector2Int(-1, -1);
         float minDistance = float.MaxValue;
 
-        // Get cell pitch for distance threshold calculation
-        Vector2 cellPitchDesignTime = GetCellPitch();
-        Canvas parentCanvas = gridParent.GetComponentInParent<Canvas>();
-        float canvasScaleFactor = (parentCanvas != null) ? parentCanvas.scaleFactor : 1.0f;
-        Vector2 cellPitchWorld = cellPitchDesignTime * canvasScaleFactor;
+        // Get cell pitch and lossy scale for accurate world-space threshold
+        Vector2 cellPitch = GetCellPitch();
+        float cellWidthWorld = cellPitch.x * gridParent.lossyScale.x;
         
         // Snapping threshold: only snap if within 1.5x the cell size
-        float snapThreshold = cellPitchWorld.x * 1.5f;
-
-        Vector2 gridOriginWorldPos = grid[0, 0].transform.position;
+        float snapThreshold = cellWidthWorld * 1.5f;
 
         for (int dr = -1; dr <= 1; dr++)
         {
@@ -629,16 +620,19 @@ public class GridManager_2D : MonoBehaviour
                 if (dr == 0 && dc == 0) continue; // Already checked basePos
 
                 Vector2Int candidate = new Vector2Int(basePos.x + dc, basePos.y + dr);
-                if (IsValidPlacement(candidate, blockShape))
+                if (candidate.x >= 0 && candidate.x < GRID_SIZE && candidate.y >= 0 && candidate.y < GRID_SIZE)
                 {
-                    // Calculate world position of the candidate cell (even if anchor is out of bounds)
-                    Vector2 candidateWorldPos = gridOriginWorldPos + new Vector2(candidate.x * cellPitchWorld.x, -candidate.y * cellPitchWorld.y);
-                    float dist = Vector2.Distance(worldPosition, candidateWorldPos);
-
-                    if (dist < minDistance && dist < snapThreshold)
+                    if (IsValidPlacement(candidate, blockShape))
                     {
-                        minDistance = dist;
-                        nearestPos = candidate;
+                        // Use the actual cell's world position for distance check
+                        Vector2 candidateWorldPos = grid[candidate.y, candidate.x].transform.position;
+                        float dist = Vector2.Distance(worldPosition, candidateWorldPos);
+
+                        if (dist < minDistance && dist < snapThreshold)
+                        {
+                            minDistance = dist;
+                            nearestPos = candidate;
+                        }
                     }
                 }
             }

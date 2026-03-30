@@ -172,9 +172,7 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
 
         if (GridManager_2D.Instance != null)
         {
-            // Note: anchorOffsetPixels is local to the block, it scales with the block.
-            // When dragged, scale is 1.0, so it matches the grid.
-            Vector3 checkPosition = rectTransform.position + (Vector3)(anchorOffsetPixels * rectTransform.localScale.x);
+            Vector3 checkPosition = rectTransform.TransformPoint(anchorOffsetPixels);
             Vector2Int gridPosition = GridManager_2D.Instance.GetNearestValidPosition(checkPosition, shape);
             if (gridPosition != lastGridPosition)
             {
@@ -189,7 +187,7 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         if (GridManager_2D.Instance != null)
         {
             GridManager_2D.Instance.ClearPreview();
-            Vector3 checkPosition = rectTransform.position + (Vector3)(anchorOffsetPixels * rectTransform.localScale.x);
+            Vector3 checkPosition = rectTransform.TransformPoint(anchorOffsetPixels);
             Vector2Int gridPosition = GridManager_2D.Instance.GetNearestValidPosition(checkPosition, shape);
 
             // If GetNearestValidPosition found a valid spot (it returns -1, -1 if not found)
