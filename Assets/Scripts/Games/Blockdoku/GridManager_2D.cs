@@ -102,9 +102,7 @@ public class GridManager_2D : MonoBehaviour
     {
         // Clear existing grid cells if any
         foreach (Transform child in gridParent)
-        {
             Destroy(child.gameObject);
-        }
 
         for (int r = 0; r < GRID_SIZE; r++)
         {
@@ -113,37 +111,38 @@ public class GridManager_2D : MonoBehaviour
                 GameObject cellGO = Instantiate(cellPrefab, gridParent);
                 cellGO.name = $"Cell_{r}_{c}";
                 grid[r, c] = cellGO.AddComponent<Cell_2D>();
-                grid[r, c].Initialize(r, c, true); // true for isEmtpy, Cell_2D now initializes BlockColor to clear
+                grid[r, c].Initialize(r, c, true);
 
-                // Add borders for the 3x3 grid visualization
-                if (r % 3 == 2 && r < GRID_SIZE - 1)
-                {
-                    GameObject borderGO = new GameObject("HorizontalBorder");
-                    borderGO.transform.SetParent(cellGO.transform, false);
-                    Image borderImage = borderGO.AddComponent<Image>();
-                    borderImage.color = subgridBorderColor;
-                    RectTransform rt = borderGO.GetComponent<RectTransform>();
-                    rt.anchorMin = new Vector2(0, 0);
-                    rt.anchorMax = new Vector2(1, 0);
-                    rt.pivot = new Vector2(0.5f, 0);
-                    rt.anchoredPosition = Vector2.zero;
-                    rt.sizeDelta = new Vector2(0, subgridBorderWidth);
-                }
-                if (c % 3 == 2 && c < GRID_SIZE - 1)
-                {
-                    GameObject borderGO = new GameObject("VerticalBorder");
-                    borderGO.transform.SetParent(cellGO.transform, false);
-                    Image borderImage = borderGO.AddComponent<Image>();
-                    borderImage.color = subgridBorderColor;
-                    RectTransform rt = borderGO.GetComponent<RectTransform>();
-                    rt.anchorMin = new Vector2(1, 0);
-                    rt.anchorMax = new Vector2(1, 1);
-                    rt.pivot = new Vector2(1, 0.5f);
-                    rt.anchoredPosition = Vector2.zero;
-                    rt.sizeDelta = new Vector2(subgridBorderWidth, 0);
-                }
+                CreateSubgridBorders(cellGO, r, c);
             }
         }
+    }
+
+    private void CreateSubgridBorders(GameObject cellGO, int r, int c)
+    {
+        // Add borders for the 3x3 grid visualization
+        if (r % 3 == 2 && r < GRID_SIZE - 1)
+        {
+            CreateBorder(cellGO.transform, "HorizontalBorder", new Vector2(0, 0), new Vector2(1, 0), new Vector2(0.5f, 0), new Vector2(0, subgridBorderWidth));
+        }
+        if (c % 3 == 2 && c < GRID_SIZE - 1)
+        {
+            CreateBorder(cellGO.transform, "VerticalBorder", new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 0.5f), new Vector2(subgridBorderWidth, 0));
+        }
+    }
+
+    private void CreateBorder(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot, Vector2 sizeDelta)
+    {
+        GameObject borderGO = new GameObject(name);
+        borderGO.transform.SetParent(parent, false);
+        Image borderImage = borderGO.AddComponent<Image>();
+        borderImage.color = subgridBorderColor;
+        RectTransform rt = borderGO.GetComponent<RectTransform>();
+        rt.anchorMin = anchorMin;
+        rt.anchorMax = anchorMax;
+        rt.pivot = pivot;
+        rt.anchoredPosition = Vector2.zero;
+        rt.sizeDelta = sizeDelta;
     }
 
 
@@ -257,101 +256,11 @@ public class GridManager_2D : MonoBehaviour
     }
 
 
-    private HashSet<Cell_2D> GetPotentialClearedCells(Vector2Int gridPosition, List<Vector2Int> blockShape)
+    private HashSet<Vector2Int> GetCompletedCellPositions(bool[,] occupiedState)
     {
-        HashSet<Cell_2D> potentialClearedCells = new HashSet<Cell_2D>();
-
-        // Create a temporary grid state
-        bool[,] tempGridOccupied = new bool[GRID_SIZE, GRID_SIZE];
-        for (int r = 0; r < GRID_SIZE; r++)
-        {
-            for (int c = 0; c < GRID_SIZE; c++)
-            {
-                tempGridOccupied[r, c] = !grid[r, c].IsEmpty;
-            }
-        }
-
-        // Simulate placing the block
-        foreach (var pos in blockShape)
-        {
-            int r = gridPosition.y - pos.y;
-            int c = gridPosition.x + pos.x;
-            if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE)
-            {
-                tempGridOccupied[r, c] = true;
-            }
-        }
-
-        // Check for completed rows, columns, and squares on the temporary grid
-        List<int> tempCompletedRows = new List<int>();
-        List<int> tempCompletedCols = new List<int>();
-
-        for (int i = 0; i < GRID_SIZE; i++)
-        {
-            bool rowComplete = true;
-            bool colComplete = true;
-            for (int j = 0; j < GRID_SIZE; j++)
-            {
-                if (!tempGridOccupied[i, j]) rowComplete = false;
-                if (!tempGridOccupied[j, i]) colComplete = false;
-            }
-            if (rowComplete) tempCompletedRows.Add(i);
-            if (colComplete) tempCompletedCols.Add(i);
-        }
-
-        for (int r = 0; r < GRID_SIZE; r += 3)
-        {
-            for (int c = 0; c < GRID_SIZE; c += 3)
-            {
-                bool squareComplete = true;
-                for (int i = r; i < r + 3; i++)
-                {
-                    for (int j = c; j < c + 3; j++)
-                    {
-                        if (!tempGridOccupied[i, j]) squareComplete = false;
-                    }
-                }
-                if (squareComplete)
-                {
-                    // Add cells of the completed square to the set
-                    for (int i = r; i < r + 3; i++)
-                    {
-                        for (int j = c; j < c + 3; j++)
-                        {
-                            potentialClearedCells.Add(grid[i, j]);
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Add cells from completed rows and columns to the set
-        foreach (var row in tempCompletedRows)
-        {
-            for (int c = 0; c < GRID_SIZE; c++)
-            {
-                potentialClearedCells.Add(grid[row, c]);
-            }
-        }
-        foreach (var col in tempCompletedCols)
-        {
-            for (int r = 0; r < GRID_SIZE; r++)
-            {
-                potentialClearedCells.Add(grid[r, col]);
-            }
-        }
-
-        return potentialClearedCells;
-    }
-
-
-    public int CheckForCompletedLines()
-    {
-        HashSet<Cell_2D> cellsToClear = new HashSet<Cell_2D>();
+        HashSet<Vector2Int> completedPositions = new HashSet<Vector2Int>();
         List<int> completedRows = new List<int>();
         List<int> completedCols = new List<int>();
-        int linesClearedCount = 0;
-        bool isFullClear = false;
 
         // Check rows and columns
         for (int i = 0; i < GRID_SIZE; i++)
@@ -360,21 +269,11 @@ public class GridManager_2D : MonoBehaviour
             bool colComplete = true;
             for (int j = 0; j < GRID_SIZE; j++)
             {
-                if (grid[i, j].IsEmpty) rowComplete = false;
-                if (grid[j, i].IsEmpty) colComplete = false;
+                if (!occupiedState[i, j]) rowComplete = false;
+                if (!occupiedState[j, i]) colComplete = false;
             }
-            if (rowComplete)
-            {
-                completedRows.Add(i);
-                linesClearedCount++;
-                for (int c = 0; c < GRID_SIZE; c++) cellsToClear.Add(grid[i, c]);
-            }
-            if (colComplete)
-            {
-                completedCols.Add(i);
-                linesClearedCount++;
-                for (int r = 0; r < GRID_SIZE; r++) cellsToClear.Add(grid[r, i]);
-            }
+            if (rowComplete) completedRows.Add(i);
+            if (colComplete) completedCols.Add(i);
         }
 
         // Check 3x3 squares
@@ -387,59 +286,134 @@ public class GridManager_2D : MonoBehaviour
                 {
                     for (int j = c; j < c + 3; j++)
                     {
-                        if (grid[i, j].IsEmpty) squareComplete = false;
+                        if (!occupiedState[i, j]) squareComplete = false;
                     }
                 }
                 if (squareComplete)
                 {
-                    linesClearedCount++;
                     for (int i = r; i < r + 3; i++)
-                    {
                         for (int j = c; j < c + 3; j++)
-                        {
-                            cellsToClear.Add(grid[i, j]);
-                        }
-                    }
+                            completedPositions.Add(new Vector2Int(j, i));
                 }
             }
         }
 
-        if (cellsToClear.Count > 0)
+        // Add cells from completed rows and columns
+        foreach (var row in completedRows)
+            for (int c = 0; c < GRID_SIZE; c++) completedPositions.Add(new Vector2Int(c, row));
+        
+        foreach (var col in completedCols)
+            for (int r = 0; r < GRID_SIZE; r++) completedPositions.Add(new Vector2Int(col, r));
+
+        return completedPositions;
+    }
+
+    private HashSet<Cell_2D> GetPotentialClearedCells(Vector2Int gridPosition, List<Vector2Int> blockShape)
+    {
+        bool[,] tempGridOccupied = new bool[GRID_SIZE, GRID_SIZE];
+        for (int r = 0; r < GRID_SIZE; r++)
+            for (int c = 0; c < GRID_SIZE; c++)
+                tempGridOccupied[r, c] = !grid[r, c].IsEmpty;
+
+        foreach (var pos in blockShape)
         {
-            // Check for Full Clear (Entire grid cleared)
-            int totalOccupiedBeforeClear = 0;
-            for (int r = 0; r < GRID_SIZE; r++)
-                for (int c = 0; c < GRID_SIZE; c++)
-                    if (!grid[r, c].IsEmpty) totalOccupiedBeforeClear++;
-
-            isFullClear = totalOccupiedBeforeClear == cellsToClear.Count;
-
-            StartCoroutine(SequentialClear(cellsToClear));
-
-            // Update global combo in GameManager
-            GameManager_2D.Instance.combo += linesClearedCount;
-            
-            // Add score once for all cleared lines (9 points per line/square)
-            GameManager_2D.Instance.AddScore(linesClearedCount * 9);      
-
-            if (isFullClear)
-            {
-                GameManager_2D.Instance.AddSpecialScore(100, "FULL CLEAR");
-            }
-
-            if (AudioManager_2D.Instance != null) 
-                AudioManager_2D.Instance.PlayBlockDestroyAudio(GameManager_2D.Instance.combo);
+            int r = gridPosition.y - pos.y;
+            int c = gridPosition.x + pos.x;
+            if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE)
+                tempGridOccupied[r, c] = true;
         }
-        else
+
+        HashSet<Vector2Int> completedPositions = GetCompletedCellPositions(tempGridOccupied);
+        HashSet<Cell_2D> potentialClearedCells = new HashSet<Cell_2D>();
+        foreach (var pos in completedPositions)
+        {
+            potentialClearedCells.Add(grid[pos.y, pos.x]);
+        }
+
+        return potentialClearedCells;
+    }
+
+
+    private int CalculateLinesClearedCount(bool[,] occupiedState)
+    {
+        int count = 0;
+
+        // Check rows and columns
+        for (int i = 0; i < GRID_SIZE; i++)
+        {
+            bool rowComplete = true;
+            bool colComplete = true;
+            for (int j = 0; j < GRID_SIZE; j++)
+            {
+                if (!occupiedState[i, j]) rowComplete = false;
+                if (!occupiedState[j, i]) colComplete = false;
+            }
+            if (rowComplete) count++;
+            if (colComplete) count++;
+        }
+
+        // Check 3x3 squares
+        for (int r = 0; r < GRID_SIZE; r += 3)
+        {
+            for (int c = 0; c < GRID_SIZE; c += 3)
+            {
+                bool squareComplete = true;
+                for (int i = r; i < r + 3; i++)
+                    for (int j = c; j < c + 3; j++)
+                        if (!occupiedState[i, j]) squareComplete = false;
+                
+                if (squareComplete) count++;
+            }
+        }
+
+        return count;
+    }
+
+    public int CheckForCompletedLines()
+    {
+        bool[,] currentGridOccupied = new bool[GRID_SIZE, GRID_SIZE];
+        for (int r = 0; r < GRID_SIZE; r++)
+            for (int c = 0; c < GRID_SIZE; c++)
+                currentGridOccupied[r, c] = !grid[r, c].IsEmpty;
+
+        HashSet<Vector2Int> completedPositions = GetCompletedCellPositions(currentGridOccupied);
+        
+        if (completedPositions.Count == 0)
         {
             GameManager_2D.Instance.combo = 0;
+            CheckSymmetry(); 
+            return 0;
         }
 
+        HashSet<Cell_2D> cellsToClear = new HashSet<Cell_2D>();
+        foreach (var pos in completedPositions)
+            cellsToClear.Add(grid[pos.y, pos.x]);
+
+        int linesClearedCount = CalculateLinesClearedCount(currentGridOccupied);
+        bool isFullClear = false;
+
+        // Check for Full Clear (Entire grid cleared)
+        int totalOccupiedBeforeClear = 0;
+        for (int r = 0; r < GRID_SIZE; r++)
+            for (int c = 0; c < GRID_SIZE; c++)
+                if (!grid[r, c].IsEmpty) totalOccupiedBeforeClear++;
+
+        isFullClear = totalOccupiedBeforeClear == cellsToClear.Count;
+
+        StartCoroutine(SequentialClear(cellsToClear));
+
+        // Update global combo and score
+        GameManager_2D.Instance.combo += linesClearedCount;
+        GameManager_2D.Instance.AddScore(linesClearedCount * 9);      
+
+        if (isFullClear)
+            GameManager_2D.Instance.AddSpecialScore(100, "FULL CLEAR");
+
+        if (AudioManager_2D.Instance != null) 
+            AudioManager_2D.Instance.PlayBlockDestroyAudio(GameManager_2D.Instance.combo);
+
         // Symmetry Check (Skip if Full Clear occurred)
-        if (!isFullClear)
-        {
-            CheckSymmetry();
-        }
+        if (!isFullClear) CheckSymmetry();
 
         return cellsToClear.Count;
     }
