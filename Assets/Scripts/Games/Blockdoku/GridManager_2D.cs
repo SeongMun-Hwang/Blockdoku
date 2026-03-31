@@ -409,6 +409,9 @@ public class GridManager_2D : MonoBehaviour
         foreach (var pos in completedPositions)
             cellsToClear.Add(grid[pos.y, pos.x]);
 
+        // Capture colors for animation BEFORE they are cleared
+        List<Color> clearColors = cellsToClear.Select(c => c.BlockColor).Distinct().ToList();
+
         int linesClearedCount = CalculateLinesClearedCount(currentGridOccupied);
         bool isFullClear = false;
 
@@ -427,7 +430,10 @@ public class GridManager_2D : MonoBehaviour
         GameManager_2D.Instance.AddScore(linesClearedCount * 9);
 
         if (isFullClear)
+        {
             GameManager_2D.Instance.AddSpecialScore(100, "FULL CLEAR");
+            PlayFullClearAnimation(clearColors);
+        }
 
         if (AudioManager_2D.Instance != null)
             AudioManager_2D.Instance.PlayBlockDestroyAudio(GameManager_2D.Instance.combo);
@@ -483,9 +489,72 @@ public class GridManager_2D : MonoBehaviour
         }
     }
 
+    public void PlayFullClearAnimation(List<Color> sourceColors = null)
+    {
+        if (symmetryEffectPrefab == null || symmetryEffectContainer == null) return;
+
+        // Add Haptic Feedback and Shake
+        if (GameManager_2D.Instance != null)
+        {
+            if (GameManager_2D.Instance.uiManager != null) GameManager_2D.Instance.uiManager.Vibrate();
+            ShakeGrid(GameManager_2D.Instance.combo + 10); // Extra strong shake for Full Clear
+        }
+
+        // 1. Pick 2 colors
+        List<Color> colors = GetRandomActiveColors(2);
+        if (sourceColors != null && sourceColors.Count > 0)
+        {
+            colors[0] = sourceColors[Random.Range(0, sourceColors.Count)];
+            colors[1] = sourceColors[Random.Range(0, sourceColors.Count)];
+        }
+
+        // 2. Define 8 perimeter points
+        float w = symmetryEffectContainer.rect.width / 2f;
+        float h = symmetryEffectContainer.rect.height / 2f;
+        Vector3[] points = new Vector3[] {
+            new Vector3(-w, h),  // 0: TL
+            new Vector3(0, h),   // 1: TC
+            new Vector3(w, h),   // 2: TR
+            new Vector3(w, 0),   // 3: RC
+            new Vector3(w, -h),  // 4: BR
+            new Vector3(0, -h),  // 5: BC
+            new Vector3(-w, -h), // 6: BL
+            new Vector3(-w, 0)   // 7: LC
+        };
+
+        // 3. Randomly choose a starting pair (corners or centers)
+        int startIndex1 = Random.Range(0, 8);
+        int startIndex2 = (startIndex1 + 4) % 8; // Symmetrical counterpart
+
+        bool isCW = Random.value > 0.5f;
+
+        // 4. Construct full-loop paths
+        Vector3[] path1 = new Vector3[9];
+        Vector3[] path2 = new Vector3[9];
+
+        for (int i = 0; i <= 8; i++)
+        {
+            int idx1 = isCW ? (startIndex1 + i) % 8 : (startIndex1 - i + 8) % 8;
+            int idx2 = isCW ? (startIndex2 + i) % 8 : (startIndex2 - i + 8) % 8;
+            path1[i] = points[idx1];
+            path2[i] = points[idx2];
+        }
+
+        float fullLoopDuration = symmetryEffectDuration * 2.5f;
+
+        LaunchSymmetryEffect(path1, colors[0], fullLoopDuration, true);
+        LaunchSymmetryEffect(path2, colors[1], fullLoopDuration, true);
+    }
+
     public void PlaySymmetryAnimation(string type)
     {
         if (symmetryEffectPrefab == null || symmetryEffectContainer == null) return;
+
+        // Add Haptic Feedback
+        if (GameManager_2D.Instance != null && GameManager_2D.Instance.uiManager != null)
+        {
+            GameManager_2D.Instance.uiManager.Vibrate();
+        }
 
         // 1. Get 2 random active colors from the board (Always returns requested count)
         var colors = GetRandomActiveColors(2);
@@ -502,7 +571,7 @@ public class GridManager_2D : MonoBehaviour
         LaunchSymmetryEffect(path2, colors[1]);
     }
 
-    private void LaunchSymmetryEffect(Vector3[] path, Color color)
+    private void LaunchSymmetryEffect(Vector3[] path, Color color, float? overrideDuration = null, bool isBlinking = false)
     {
         GameObject effectGO = Instantiate(symmetryEffectPrefab, symmetryEffectContainer);
         RectTransform rt = effectGO.GetComponent<RectTransform>();
@@ -518,6 +587,7 @@ public class GridManager_2D : MonoBehaviour
             totalDistance += Vector3.Distance(path[i], path[i + 1]);
         }
 
+        float duration = overrideDuration ?? symmetryEffectDuration;
         Sequence seq = DOTween.Sequence();
         Vector2 lastGhostPos = path[0];
 
@@ -526,7 +596,7 @@ public class GridManager_2D : MonoBehaviour
             Vector3 start = path[i];
             Vector3 end = path[i + 1];
             float segmentDist = Vector3.Distance(start, end);
-            float segmentDuration = (segmentDist / totalDistance) * symmetryEffectDuration;
+            float segmentDuration = (segmentDist / totalDistance) * duration;
 
             // Add move for each segment to ensure corner points are hit exactly
             seq.Append(rt.DOLocalMove(end, segmentDuration).SetEase(Ease.Linear).OnUpdate(() => {

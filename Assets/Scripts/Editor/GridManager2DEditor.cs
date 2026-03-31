@@ -37,6 +37,14 @@ public class GridManager2DEditor : Editor
             manager.PlaySymmetryAnimation("D2");
         }
 
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Full Clear Effect Debug Tool", EditorStyles.boldLabel);
+        
+        if (GUILayout.Button("Test Full Clear Effect"))
+        {
+            manager.PlayFullClearAnimation();
+        }
+
         if (!Application.isPlaying)
         {
             EditorGUILayout.HelpBox("Symmetry effects can only be tested during Play Mode.", MessageType.Info);
