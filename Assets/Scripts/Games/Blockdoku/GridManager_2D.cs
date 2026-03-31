@@ -70,7 +70,7 @@ public class GridManager_2D : MonoBehaviour
         if (shakeCoroutine != null) StopCoroutine(shakeCoroutine);
 
         // Dynamic magnitude: Add (combo * 0.1 + 1) to base magnitude
-        float dynamicMagnitude = shakeMagnitude + (combo * 0.1f + 1f);
+        float dynamicMagnitude = shakeMagnitude + (combo * 0.5f);
         shakeCoroutine = StartCoroutine(ShakeCoroutine(dynamicMagnitude));
     }
 
@@ -497,7 +497,7 @@ public class GridManager_2D : MonoBehaviour
         if (GameManager_2D.Instance != null)
         {
             if (GameManager_2D.Instance.uiManager != null) GameManager_2D.Instance.uiManager.Vibrate();
-            ShakeGrid(GameManager_2D.Instance.combo + 10); // Extra strong shake for Full Clear
+            ShakeGrid(GameManager_2D.Instance.combo + 5); // Extra strong shake for Full Clear
         }
 
         // 1. Pick 2 colors
