@@ -464,24 +464,19 @@ public class GridManager_2D : MonoBehaviour
         // Reward symmetry based on the number of blocks currently on the board
         if (occupiedCount > 0)
         {
+            int bonus = 30 + (occupiedCount * 3);
             if (hSym) 
             {
-                GameManager_2D.Instance.combo++;
-                int bonus = 20 + (occupiedCount * 2);
                 GameManager_2D.Instance.AddSpecialScore(bonus, "H-SYMMETRY");
                 PlaySymmetryAnimation("H");
             }
             else if (vSym) 
             {
-                GameManager_2D.Instance.combo++;
-                int bonus = 20 + (occupiedCount * 2);
                 GameManager_2D.Instance.AddSpecialScore(bonus, "V-SYMMETRY");
                 PlaySymmetryAnimation("V");
             }
             else if (d1Sym || d2Sym) 
             {
-                GameManager_2D.Instance.combo++;
-                int bonus = 30 + (occupiedCount * 3);
                 GameManager_2D.Instance.AddSpecialScore(bonus, "DIAG-SYMMETRY");
                 PlaySymmetryAnimation(d1Sym ? "D1" : "D2");
             }
