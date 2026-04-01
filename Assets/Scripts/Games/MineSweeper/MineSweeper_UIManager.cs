@@ -36,6 +36,15 @@ public class MineSweeper_UIManager : MonoBehaviour
     public Sprite vibrationOn, vibrationOff;
     private bool isVibrationMuted = false;
 
+    [Header("Camera Control UI")]
+    public MineSweeper_CameraController cameraController;
+    public Button zoomInButton;
+    public Button zoomOutButton;
+    public Button resetCameraButton;
+    public Vector2 joystickInput; // Assign from an external joystick script or update in Update()
+
+    private int zoomDir = 0; // 1 for zoom in, -1 for zoom out, 0 for none
+
     void Awake()
     {
         beginnerButton.onClick.AddListener(() => MineSweeper_GameManager.Instance.StartGame(MineSweeperDifficulty.Beginner));
@@ -49,6 +58,9 @@ public class MineSweeper_UIManager : MonoBehaviour
         if (settingsButton != null) settingsButton.onClick.AddListener(() => ShowSettingsPanel(true));
         if (closeSettingsButton != null) closeSettingsButton.onClick.AddListener(() => ShowSettingsPanel(false));
 
+        // Camera Control listeners (keep onClick for single clicks if desired, or remove if only holding is needed)
+        if (resetCameraButton != null) resetCameraButton.onClick.AddListener(() => cameraController.ResetCamera());
+
         // Load shared vibration setting
         isVibrationMuted = PlayerPrefs.GetInt("VibrationMuted", 0) == 1;
         UpdateSettingIcons();
@@ -56,6 +68,28 @@ public class MineSweeper_UIManager : MonoBehaviour
         // Ensure settings panel is hidden at start
         if (settingsPanel != null) settingsPanel.SetActive(false);
     }
+
+    void Update()
+    {
+        if (cameraController == null) return;
+
+        // Handle Joystick-based movement
+        if (joystickInput != Vector2.zero)
+        {
+            cameraController.Move(joystickInput);
+        }
+
+        // Handle Continuous Zoom
+        if (zoomDir != 0)
+        {
+            cameraController.ContinuousZoom(zoomDir);
+        }
+    }
+
+    // --- UI Event Callbacks for Continuous Zoom ---
+    public void OnZoomInDown() { zoomDir = 1; }
+    public void OnZoomOutDown() { zoomDir = -1; }
+    public void OnZoomPointerUp() { zoomDir = 0; }
 
     public void ShowSettingsPanel(bool show)
     {
