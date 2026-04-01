@@ -100,7 +100,7 @@ public class GameManager_2D : MonoBehaviour
 
     public void AddScore(int amount)
     {
-        int addedScore = amount * (combo + 1);
+        int addedScore = amount * Mathf.Max(1, combo);
         if (addedScore > 0)
         {
             score += addedScore;
@@ -115,7 +115,7 @@ public class GameManager_2D : MonoBehaviour
 
     public void AddSpecialScore(int amount, string message)
     {
-        int addedScore = amount * (combo + 1);
+        int addedScore = amount * Mathf.Max(1, combo);
         if (addedScore > 0)
         {
             score += addedScore;

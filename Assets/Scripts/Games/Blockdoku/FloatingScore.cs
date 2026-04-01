@@ -30,17 +30,17 @@ public class FloatingScore : MonoBehaviour
 
     public void Show(int score, int combo, string specialMessage = "")
     {
-        // 1. If there's a special message (Symmetry, Full Clear, etc.), enqueue it first
+        // 1. If there's a special message (Symmetry, Full Clear, etc.), show it first
         if (!string.IsNullOrEmpty(specialMessage))
         {
             messageQueue.Enqueue($"{specialMessage}!");
         }
 
-        // 2. Enqueue the score and combo message
+        // 2. Then show the score and combo message
         string msg = "";
-        if (combo > 0)
+        if (combo > 1)
         {
-            msg = $"COMBO x{combo + 1}\n+{score}";
+            msg = $"COMBO x{combo}\n+{score}";
         }
         else
         {

@@ -400,8 +400,11 @@ public class GridManager_2D : MonoBehaviour
 
         if (completedPositions.Count == 0)
         {
-            GameManager_2D.Instance.combo = 0;
-            CheckSymmetry();
+            // If no lines were cleared, check if symmetry was achieved to maintain/increase combo
+            if (!CheckSymmetry())
+            {
+                GameManager_2D.Instance.combo = 0;
+            }
             return 0;
         }
 
@@ -427,24 +430,29 @@ public class GridManager_2D : MonoBehaviour
 
         // Update global combo and score
         GameManager_2D.Instance.combo += linesClearedCount;
-        GameManager_2D.Instance.AddScore(linesClearedCount * 9);
 
         if (isFullClear)
         {
+            GameManager_2D.Instance.combo++; // Extra combo for Full Clear
             GameManager_2D.Instance.AddSpecialScore(100, "FULL CLEAR");
             PlayFullClearAnimation(clearColors);
         }
+
+        GameManager_2D.Instance.AddScore(linesClearedCount * 9);
 
         if (AudioManager_2D.Instance != null)
             AudioManager_2D.Instance.PlayBlockDestroyAudio(GameManager_2D.Instance.combo);
 
         // Symmetry Check (Skip if Full Clear occurred)
-        if (!isFullClear) CheckSymmetry();
+        if (!isFullClear)
+        {
+            CheckSymmetry();
+        }
 
         return cellsToClear.Count;
     }
 
-    private void CheckSymmetry()
+    private bool CheckSymmetry()
     {
         bool hSym = true, vSym = true, d1Sym = true, d2Sym = true;
         int occupiedCount = 0;
@@ -467,9 +475,14 @@ public class GridManager_2D : MonoBehaviour
             }
         }
 
+        bool symmetryAchieved = hSym || vSym || d1Sym || d2Sym;
+
         // Reward symmetry based on the number of blocks currently on the board
-        if (occupiedCount > 0)
+        if (occupiedCount > 0 && symmetryAchieved)
         {
+            // Increase combo BEFORE adding special score so it reflects in UI
+            GameManager_2D.Instance.combo++;
+
             int bonus = 30 + (occupiedCount * 3);
             if (hSym) 
             {
@@ -487,6 +500,7 @@ public class GridManager_2D : MonoBehaviour
                 PlaySymmetryAnimation(d1Sym ? "D1" : "D2");
             }
         }
+        return symmetryAchieved;
     }
 
     public void PlayFullClearAnimation(List<Color> sourceColors = null)
