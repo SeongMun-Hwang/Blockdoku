@@ -103,10 +103,11 @@ public class MineSweeper_GameManager : MonoBehaviour
             SaveBestTime();
         }
 
-        AdEventBus.TriggerGamePlayEnded(MinigameType.MineSweeper, () =>
-        {
-            uiManager.ShowGameOverPanel(true, win, timer, GetBestTimeForCurrentDifficulty());
-        });
+        // Show game over panel immediately so user doesn't wait for ad
+        uiManager.ShowGameOverPanel(true, win, timer, GetBestTimeForCurrentDifficulty());
+
+        // Trigger ad in the background (will cover the UI when ready)
+        AdEventBus.TriggerGamePlayEnded(MinigameType.MineSweeper, null);
     }
 
     private void LoadBestTimes()
@@ -175,10 +176,8 @@ public class MineSweeper_GameManager : MonoBehaviour
 
     public void RestartGame()
     {
-        AdEventBus.TriggerGamePlayEnded(MinigameType.MineSweeper, () =>
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        });
+        // Removed Ad trigger from restart to avoid double triggering and delays
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void GoToTitle()

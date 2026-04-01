@@ -56,7 +56,8 @@ public class MineSweeper_CameraController : MonoBehaviour, IDragHandler, IScroll
 
     public void Move(Vector2 direction)
     {
-        panOffset += direction * moveSpeed * Time.deltaTime;
+        // Invert direction: Move board opposite to joystick push (Camera feel)
+        panOffset -= direction * moveSpeed * Time.deltaTime;
         ClampPosition();
         UpdateTransform();
     }
