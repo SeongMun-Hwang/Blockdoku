@@ -200,7 +200,10 @@ public class MineSweeper_Cell : BaseCell, IPointerDownHandler, IPointerUpHandler
     private void Vibrate()
     {
         #if UNITY_ANDROID || UNITY_IOS
-        Handheld.Vibrate();
+        if (PlayerPrefs.GetInt("VibrationMuted", 0) == 0)
+        {
+            Handheld.Vibrate();
+        }
         #endif
     }
 

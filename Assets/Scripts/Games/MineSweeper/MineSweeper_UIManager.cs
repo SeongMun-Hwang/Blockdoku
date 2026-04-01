@@ -28,6 +28,14 @@ public class MineSweeper_UIManager : MonoBehaviour
     [Header("Basic UI")]
     [SerializeField] private Button backToTitle;
 
+    [Header("Settings UI")]
+    public GameObject settingsPanel;
+    public Button settingsButton;
+    public Button closeSettingsButton;
+    public Image vibrationMuteButtonIcon;
+    public Sprite vibrationOn, vibrationOff;
+    private bool isVibrationMuted = false;
+
     void Awake()
     {
         beginnerButton.onClick.AddListener(() => MineSweeper_GameManager.Instance.StartGame(MineSweeperDifficulty.Beginner));
@@ -37,6 +45,40 @@ public class MineSweeper_UIManager : MonoBehaviour
         restartButton.onClick.AddListener(() => MineSweeper_GameManager.Instance.RestartGame());
         titleButton.onClick.AddListener(() => MineSweeper_GameManager.Instance.GoToTitle());
         backToTitle.onClick.AddListener(() => MineSweeper_GameManager.Instance.GoToTitle());
+
+        if (settingsButton != null) settingsButton.onClick.AddListener(() => ShowSettingsPanel(true));
+        if (closeSettingsButton != null) closeSettingsButton.onClick.AddListener(() => ShowSettingsPanel(false));
+
+        // Load shared vibration setting
+        isVibrationMuted = PlayerPrefs.GetInt("VibrationMuted", 0) == 1;
+        UpdateSettingIcons();
+
+        // Ensure settings panel is hidden at start
+        if (settingsPanel != null) settingsPanel.SetActive(false);
+    }
+
+    public void ShowSettingsPanel(bool show)
+    {
+        if (settingsPanel != null)
+        {
+            settingsPanel.SetActive(show);
+        }
+    }
+
+    public void VibrationMuteBtnOnClicked()
+    {
+        isVibrationMuted = !isVibrationMuted;
+        PlayerPrefs.SetInt("VibrationMuted", isVibrationMuted ? 1 : 0);
+        PlayerPrefs.Save();
+        UpdateSettingIcons();
+    }
+
+    private void UpdateSettingIcons()
+    {
+        if (vibrationMuteButtonIcon != null)
+        {
+            vibrationMuteButtonIcon.sprite = isVibrationMuted ? vibrationOff : vibrationOn;
+        }
     }
 
     public void UpdateTimer(float time)
@@ -46,7 +88,7 @@ public class MineSweeper_UIManager : MonoBehaviour
 
     public void UpdateMineCount(int count)
     {
-        mineCountText.text = count.ToString();
+        mineCountText.text = "Left : " + count.ToString();
     }
 
     public void ShowDifficultySelection(bool show)
