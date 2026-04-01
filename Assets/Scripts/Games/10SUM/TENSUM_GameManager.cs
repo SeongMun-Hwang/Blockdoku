@@ -86,10 +86,11 @@ public class TENSUM_GameManager : MonoBehaviour
 
         SaveScore();
 
-        AdEventBus.TriggerGamePlayEnded(MinigameType.TenSum, () =>
-        {
-            uiManager.ShowGameOverPanel(true, score, currentBestScore);
-        });
+        // Show game over panel immediately
+        uiManager.ShowGameOverPanel(true, score, currentBestScore);
+
+        // Trigger ad in the background
+        AdEventBus.TriggerGamePlayEnded(MinigameType.TenSum, null);
     }
 
     private void SaveScore()
@@ -115,10 +116,8 @@ public class TENSUM_GameManager : MonoBehaviour
 
     public void RestartGame()
     {
-        AdEventBus.TriggerGamePlayEnded(MinigameType.TenSum, () =>
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        });
+        // Removed Ad trigger from restart to avoid double triggering and delays
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void GoToTitle()
