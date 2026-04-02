@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 
 public class AdManager : MonoBehaviour
 {
+    [SerializeField] private bool _enableAds = true;
     [SerializeField] private string _adUnitId;
     [SerializeField] private string _bannerAdUnitId;
     private InterstitialAd _interstitialAd;
@@ -60,6 +61,8 @@ public class AdManager : MonoBehaviour
             _bannerView = null;
         }
 
+        if (!_enableAds) return;
+
         Debug.Log("Recreating banner...");
 
         AdSize adaptiveSize = AdSize.GetPortraitAnchoredAdaptiveBannerAdSizeWithWidth(AdSize.FullWidth);
@@ -73,7 +76,7 @@ public class AdManager : MonoBehaviour
         // UI 레이아웃이 확정될 때까지 한 프레임 대기
         yield return null;
 
-        if (_bannerView != null)
+        if (_bannerView != null && _enableAds)
         {
             Debug.Log("Re-showing banner after scene load with delay");
             _bannerView.Hide();
@@ -83,6 +86,8 @@ public class AdManager : MonoBehaviour
 
     public void Start()
     {
+        if (!_enableAds) return;
+
         MobileAds.RaiseAdEventsOnUnityMainThread = true;
 
         MobileAds.Initialize((InitializationStatus initStatus) =>
@@ -99,7 +104,7 @@ public class AdManager : MonoBehaviour
 
     public void SetBannerPosition(RectTransform placeholder)
     {
-        if (_bannerView == null || placeholder == null) return;
+        if (_bannerView == null || placeholder == null || !_enableAds) return;
 
         Vector3[] corners = new Vector3[4];
         placeholder.GetWorldCorners(corners);
@@ -124,7 +129,7 @@ public class AdManager : MonoBehaviour
 
     public void ShowBanner()
     {
-        if (_bannerView != null)
+        if (_bannerView != null && _enableAds)
         {
             _bannerView.Show();
             Debug.Log("Banner ad shown.");
@@ -167,7 +172,7 @@ public class AdManager : MonoBehaviour
                 break;
         }
 
-        if (shouldShowAd && _interstitialAd != null && _interstitialAd.CanShowAd())
+        if (_enableAds && shouldShowAd && _interstitialAd != null && _interstitialAd.CanShowAd())
         {
             _onAdClosedCallback = onComplete;
             ShowInterstitialAd();
@@ -185,6 +190,8 @@ public class AdManager : MonoBehaviour
             _interstitialAd.Destroy();
             _interstitialAd = null;
         }
+
+        if (!_enableAds) return;
 
         Debug.Log("Loading the interstitial ad.");
         var adRequest = new AdRequest();
