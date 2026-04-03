@@ -93,8 +93,6 @@ public class SettingsManager : MonoBehaviour
         if (!settings.vibrationMute && settings.vibrationValue > 0)
         {
 #if UNITY_ANDROID || UNITY_IOS
-            // Basic Unity vibration doesn't support intensity, 
-            // but we can use the value for future custom haptic implementations.
             Handheld.Vibrate();
 #endif
         }
