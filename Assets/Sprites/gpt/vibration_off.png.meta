@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: bbb8b6ea567905344992910e8ba47721
+guid: 6c3e92b2cde20014ebf7dbf1bdb17506
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -107,19 +107,6 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: WebGL
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
     buildTarget: iOS
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -136,13 +123,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: UnMute_0
+      name: vibration_mute_0
       rect:
         serializedVersion: 2
-        x: 129
-        y: 211
-        width: 600
-        height: 600
+        x: 37
+        y: 39
+        width: 387
+        height: 394
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -151,8 +138,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 6e508735b23fe0f4b8ed64ba6c741702
-      internalID: 1660306564
+      spriteID: f2c6d77693e865042a2c56ece8deb96d
+      internalID: -754187394
       vertices: []
       indices: 
       edges: []
@@ -162,7 +149,7 @@ TextureImporter:
     physicsShape: []
     bones: []
     spriteID: 5e97eb03825dee720800000000000000
-    internalID: 1537655665
+    internalID: 0
     vertices: []
     indices: 
     edges: []
@@ -171,7 +158,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      UnMute_0: 1660306564
+      vibration_mute_0: -754187394
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

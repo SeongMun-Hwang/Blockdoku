@@ -32,9 +32,6 @@ public class MineSweeper_UIManager : MonoBehaviour
     public GameObject settingsPanel;
     public Button settingsButton;
     public Button closeSettingsButton;
-    public Image vibrationMuteButtonIcon;
-    public Sprite vibrationOn, vibrationOff;
-    private bool isVibrationMuted = false;
 
     [Header("Camera Control UI")]
     public MineSweeper_CameraController cameraController;
@@ -60,10 +57,6 @@ public class MineSweeper_UIManager : MonoBehaviour
 
         // Camera Control listeners (keep onClick for single clicks if desired, or remove if only holding is needed)
         if (resetCameraButton != null) resetCameraButton.onClick.AddListener(() => cameraController.ResetCamera());
-
-        // Load shared vibration setting
-        isVibrationMuted = PlayerPrefs.GetInt("VibrationMuted", 0) == 1;
-        UpdateSettingIcons();
 
         // Ensure settings panel is hidden at start
         if (settingsPanel != null) settingsPanel.SetActive(false);
@@ -96,22 +89,6 @@ public class MineSweeper_UIManager : MonoBehaviour
         if (settingsPanel != null)
         {
             settingsPanel.SetActive(show);
-        }
-    }
-
-    public void VibrationMuteBtnOnClicked()
-    {
-        isVibrationMuted = !isVibrationMuted;
-        PlayerPrefs.SetInt("VibrationMuted", isVibrationMuted ? 1 : 0);
-        PlayerPrefs.Save();
-        UpdateSettingIcons();
-    }
-
-    private void UpdateSettingIcons()
-    {
-        if (vibrationMuteButtonIcon != null)
-        {
-            vibrationMuteButtonIcon.sprite = isVibrationMuted ? vibrationOff : vibrationOn;
         }
     }
 

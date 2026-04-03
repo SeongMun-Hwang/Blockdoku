@@ -43,6 +43,10 @@ public class  AudioData
 {
     public bool bgmMute;
     public bool sfxMute;
+    public bool vibrationMute;
+    public float bgmVolume = 1f;
+    public float sfxVolume = 1f;
+    public float vibrationValue = 1f;
 }
 [System.Serializable]
 public class  PersonalData

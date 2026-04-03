@@ -191,7 +191,6 @@ public class GameManager_2D : MonoBehaviour
     {
         gridManager.SaveBoardData_2D(score, combo);
         blockSpawner.SaveBlockData_2D();
-        audioManager.SaveAudioData_2D();
         Debug.Log("2D Game data saved!");
     }
 
@@ -203,7 +202,6 @@ public class GameManager_2D : MonoBehaviour
         uiManager.UpdateScore(score); 
         uiManager.UpdateBestScore(bestScore);
         blockSpawner.LoadBlockData_2D();
-        audioManager.LoadAudioData_2D();
         Debug.Log("2D Game data loaded!");
     }
 

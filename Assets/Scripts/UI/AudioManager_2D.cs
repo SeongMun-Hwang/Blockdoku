@@ -1,7 +1,4 @@
-using System.IO;
 using UnityEngine;
-
-using static SavePaths;
 
 public class AudioManager_2D : MonoBehaviour
 {
@@ -16,15 +13,11 @@ public class AudioManager_2D : MonoBehaviour
     [SerializeField] private AudioClip blockThudClip;
     [SerializeField] private AudioClip errorClip;
 
-    public bool bgmMute { get; set; }
-    public bool sfxMute { get; set; }
-
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            LoadAudioData_2D();
         }
         else
         {
@@ -43,12 +36,24 @@ public class AudioManager_2D : MonoBehaviour
 
     private void Start()
     {
-        ApplyMuteSettings();
+        ApplySettings();
+        if (SettingsManager.Instance != null)
+        {
+            SettingsManager.Instance.OnSettingsChanged += ApplySettings;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (SettingsManager.Instance != null)
+        {
+            SettingsManager.Instance.OnSettingsChanged -= ApplySettings;
+        }
     }
 
     public void PlayBgm()
     {
-        if (!bgmMute && !bgmSource.isPlaying)
+        if (!SettingsManager.Instance.BgmMute && !bgmSource.isPlaying)
         {
             bgmSource.Play();
         }
@@ -61,78 +66,41 @@ public class AudioManager_2D : MonoBehaviour
 
     public void PlayBlockThudAudio()
     {
-        if (sfxMute) return;
+        if (SettingsManager.Instance.SfxMute) return;
         sfxSource.PlayOneShot(blockThudClip);
     }
 
     public void PlayErrorAudio()
     {
-        if (sfxMute) return;
+        if (SettingsManager.Instance.SfxMute) return;
         sfxSource.PlayOneShot(errorClip);
     }
 
     public void PlayBlockDestroyAudio(int combo)
     {
-        if (sfxMute) return;
+        if (SettingsManager.Instance.SfxMute) return;
 
         sfxSource.pitch = 1f + ((combo-1) * 0.1f);
         sfxSource.clip = blockEraseClip;
         sfxSource.Play();
     }
 
-    public void ToggleSfxMute()
+    public void ApplySettings()
     {
-        sfxMute = !sfxMute;
-        ApplyMuteSettings();
-        SaveAudioData_2D();
-    }
+        if (SettingsManager.Instance == null) return;
 
-    public void ToggleBgmMute()
-    {
-        bgmMute = !bgmMute;
-        ApplyMuteSettings();
-        SaveAudioData_2D();
-    }
-
-    public void ApplyMuteSettings()
-    {
         if (bgmSource != null)
         {
-            bgmSource.mute = bgmMute;
-            if (bgmMute) bgmSource.Stop();
+            bgmSource.mute = SettingsManager.Instance.BgmMute;
+            bgmSource.volume = SettingsManager.Instance.BgmVolume;
+            if (SettingsManager.Instance.BgmMute) bgmSource.Stop();
             else if (!bgmSource.isPlaying) bgmSource.Play();
         }
-    }
 
-    public void SaveAudioData_2D()
-    {
-        AudioData audioData = new AudioData
+        if (sfxSource != null)
         {
-            bgmMute = bgmMute,
-            sfxMute = sfxMute
-        };
-
-        string json = JsonUtility.ToJson(audioData);
-        string path = SettingDataPath;
-        File.WriteAllText(path, json);
-        Debug.Log("2D Audio data saved to " + path);
-    }
-
-    public void LoadAudioData_2D()
-    {
-        if (File.Exists(SettingDataPath))
-        {
-            string json = File.ReadAllText(SettingDataPath);
-            AudioData audioData = JsonUtility.FromJson<AudioData>(json);
-            bgmMute = audioData.bgmMute;
-            sfxMute = audioData.sfxMute;
-            Debug.Log("2D Audio data loaded from " + SettingDataPath);
-        }
-        else
-        {
-            Debug.Log("2D Audio data file not found at " + SettingDataPath);
-            bgmMute = false;
-            sfxMute = false;
+            sfxSource.mute = SettingsManager.Instance.SfxMute;
+            sfxSource.volume = SettingsManager.Instance.SfxVolume;
         }
     }
 }

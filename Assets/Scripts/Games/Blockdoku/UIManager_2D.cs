@@ -22,20 +22,10 @@ public class UIManager_2D : MonoBehaviour
     public Button settingsButton;
     public Button GameOverPanelYesButton;
     public Button ResetPanelYesButton;   
-    
-    [Header("Setting Icons")]
-    public Image sfxMuteButtonIcon;
-    public Image bgmMuteButtonIcon;
-    public Image vibrationMuteButtonIcon;
-    public Sprite sfxOn, sfxOff;
-    public Sprite bgmOn, bgmOff;
-    public Sprite vibrationOn, vibrationOff;
 
     [Header("Game Over UI")]
     public TextMeshProUGUI finalScoreText;
     public GameObject newBestObj;
-
-    private bool isVibrationMuted = false;
 
     void Awake()
     {
@@ -65,13 +55,6 @@ public class UIManager_2D : MonoBehaviour
         {
             GameOverPanelYesButton.onClick.AddListener(()=>UI_Functions.Instance.BacktoTitleOnClicked());
         }
-
-        isVibrationMuted = PlayerPrefs.GetInt("VibrationMuted", 0) == 1;
-    }
-
-    void Start()
-    {
-        UpdateSettingIcons();
     }
 
     public void UpdateScore(int score)
@@ -105,7 +88,6 @@ public class UIManager_2D : MonoBehaviour
                     if (finalScore > bestScore) newBestObj.SetActive(true);
                 }
                 
-                // Call external systems (Ads, Vibration)
                 Vibrate();
             }
         }
@@ -117,38 +99,11 @@ public class UIManager_2D : MonoBehaviour
         if (settingPanel != null) settingPanel.SetActive(!settingPanel.activeSelf);
     }
 
-    public void SfxMuteBtnOnClicked()
-    {
-        AudioManager_2D.Instance.ToggleSfxMute();
-        UpdateSettingIcons();
-    }
-
-    public void BgmMuteBtnOnClicked()
-    {
-        AudioManager_2D.Instance.ToggleBgmMute();
-        UpdateSettingIcons();
-    }
-
-    public void VibrationMuteBtnOnClicked()
-    {
-        isVibrationMuted = !isVibrationMuted;
-        PlayerPrefs.SetInt("VibrationMuted", isVibrationMuted ? 1 : 0);
-        PlayerPrefs.Save();
-        UpdateSettingIcons();
-    }
-
-    private void UpdateSettingIcons()
-    {
-        if (sfxMuteButtonIcon != null) sfxMuteButtonIcon.sprite = AudioManager_2D.Instance.sfxMute ? sfxOff : sfxOn;
-        if (bgmMuteButtonIcon != null) bgmMuteButtonIcon.sprite = AudioManager_2D.Instance.bgmMute ? bgmOff : bgmOn;
-        if (vibrationMuteButtonIcon != null) vibrationMuteButtonIcon.sprite = isVibrationMuted ? vibrationOff : vibrationOn;
-    }
-
     public void Vibrate()
     {
-        if (!isVibrationMuted)
+        if (SettingsManager.Instance != null)
         {
-            Handheld.Vibrate();
+            SettingsManager.Instance.Vibrate();
         }
     }
 
@@ -164,4 +119,3 @@ public class UIManager_2D : MonoBehaviour
         UI_Functions.Instance.TriggerGameRestart();
     }
 }
-
