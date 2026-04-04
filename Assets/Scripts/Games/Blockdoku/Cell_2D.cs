@@ -6,6 +6,7 @@ public class Cell_2D : BaseCell
     // public Vector2Int gridPosition; // Removed since it's in BaseCell
     public bool IsEmpty { get; private set; }
     public bool IsPreviewing { get; private set; }
+    public bool IsClearing { get; private set; }
     public Color BlockColor { get; private set; } // New: Stores the color of the block occupying this cell
 
     public Image cellImage;
@@ -22,6 +23,7 @@ public class Cell_2D : BaseCell
 
     public void TriggerClearAnimation()
     {
+        IsClearing = true;
         if (animator != null)
         {
             animator.SetTrigger("Clear");
@@ -37,6 +39,7 @@ public class Cell_2D : BaseCell
         base.Initialize(row, col);
         IsEmpty = isEmpty;
         IsPreviewing = false;
+        IsClearing = false;
         BlockColor = Color.clear; // Initialize with a transparent color
 
         if (IsEmpty) SetEmpty(); else SetOccupied(BlockColor); // Initialize visuals based on IsEmpty, pass stored color
@@ -44,8 +47,15 @@ public class Cell_2D : BaseCell
 
     public void SetOccupied(Color color)
     {
+        IsClearing = false;
         IsEmpty = false;
         BlockColor = color; // Store the color
+
+        if (animator != null)
+        {
+            animator.Play("New State", 0, 0f); // Reset to idle state
+        }
+
         if (cellImage != null && GridManager_2D.Instance != null)
         {
             cellImage.sprite = GridManager_2D.Instance.defaultOccupiedCellSprite;
@@ -56,8 +66,23 @@ public class Cell_2D : BaseCell
 
     public void SetEmpty()
     {
+        // If we are not clearing but SetEmpty is called (e.g. from an old animation event),
+        // and the cell is currently occupied, we should skip it.
+        if (!IsClearing && !IsEmpty)
+        {
+            return;
+        }
+
+        IsClearing = false;
         IsEmpty = true;
         BlockColor = Color.clear; // Reset color when empty
+
+        if (animator != null)
+        {
+            // Only play idle if we are not already in it or to ensure reset
+            // animator.Play("New State", 0, 0f); 
+        }
+
         if (cellImage != null && GridManager_2D.Instance != null)
         {
             cellImage.sprite = GridManager_2D.Instance.defaultEmptyCellSprite;
