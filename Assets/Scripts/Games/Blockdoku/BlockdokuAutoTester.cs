@@ -1,0 +1,274 @@
+using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine.SceneManagement;
+using System.IO;
+
+public class BlockdokuAutoTester : MonoBehaviour
+{
+    public static BlockdokuAutoTester Instance { get; private set; }
+
+    [Header("Test Settings")]
+    public int targetRuns = 100;
+    public float moveDelay = 0.05f; 
+    public bool useSmartAI = true; 
+
+    [Header("Current Status")]
+    public bool isTesting = false;
+    public int currentRun = 0;
+    public int lastScore = 0;
+    public List<int> scoreHistory = new List<int>();
+    public float averageScore = 0;
+
+    private Coroutine testCoroutine;
+
+    void Awake()
+    {
+        // Keep running even if Unity window loses focus
+        Application.runInBackground = true;
+
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+    }
+
+    public void StartTest()
+    {
+        if (isTesting) return;
+        isTesting = true;
+        currentRun = 0;
+        scoreHistory.Clear();
+        averageScore = 0;
+        if (AdManager.Instance != null) AdManager.Instance.EnableAds = false;
+        testCoroutine = StartCoroutine(AutoPlayRoutine());
+    }
+
+    public void StopTest()
+    {
+        isTesting = false;
+        if (testCoroutine != null)
+        {
+            StopCoroutine(testCoroutine);
+            testCoroutine = null;
+        }
+        if (AdManager.Instance != null) AdManager.Instance.EnableAds = true;
+    }
+
+    public void ExportToCSV()
+    {
+        string fileName = "TestingResults.csv";
+        string path = Path.Combine(Application.dataPath, "../" + fileName);
+
+        bool fileExists = File.Exists(path);
+
+        // Open in 'append' mode (true)
+        using (StreamWriter sw = new StreamWriter(path, true))
+        {
+            // Add a header and timestamp for each new export session
+            sw.WriteLine("");
+            sw.WriteLine($"--- Test Session Started at: {System.DateTime.Now:yyyy-MM-dd HH:mm:ss} ---");
+            
+            if (!fileExists)
+            {
+                sw.WriteLine("Run,Score");
+            }
+
+            for (int i = 0; i < scoreHistory.Count; i++)
+            {
+                sw.WriteLine($"{i + 1},{scoreHistory[i]}");
+            }
+            
+            sw.WriteLine($"SESSION AVERAGE,{averageScore:F1}");
+            sw.WriteLine($"SESSION RUNS,{scoreHistory.Count}");
+            sw.WriteLine("------------------------------------------");
+        }
+
+        Debug.Log($"<color=green><b>Test results appended successfully to:</b></color> {path}");
+    }
+
+    private IEnumerator AutoPlayRoutine()
+    {
+        while (currentRun < targetRuns && isTesting)
+        {
+            if (BlockSpawner_2D.Instance == null || GridManager_2D.Instance == null)
+            {
+                yield return new WaitForSeconds(0.5f);
+                continue;
+            }
+
+            var spawnedBlocks = BlockSpawner_2D.Instance.GetSpawnedBlocks();
+            if (spawnedBlocks == null || spawnedBlocks.Count == 0)
+            {
+                yield return new WaitForSeconds(0.5f);
+                continue;
+            }
+
+            GameObject selectedBlockGO = null;
+            MoveSelection bestSelection = new MoveSelection { isValid = false, score = float.MinValue };
+
+            foreach (var blockGO in spawnedBlocks)
+            {
+                if (blockGO == null || !blockGO.activeInHierarchy) continue;
+                
+                Block_2D block = blockGO.GetComponent<Block_2D>();
+                var move = EvaluateBestMove(block);
+
+                if (move.isValid && move.score > bestSelection.score)
+                {
+                    bestSelection = move;
+                    selectedBlockGO = blockGO;
+                }
+            }
+
+            if (bestSelection.isValid && selectedBlockGO != null)
+            {
+                Block_2D blockScript = selectedBlockGO.GetComponent<Block_2D>();
+                BlockSpawner_2D.Instance.BlockPlaced(selectedBlockGO, bestSelection.pos, blockScript.GetShape(), blockScript.blockColor);
+                Destroy(selectedBlockGO);
+                yield return new WaitForSeconds(moveDelay);
+            }
+            else
+            {
+                OnGameOver();
+                if (currentRun < targetRuns && isTesting)
+                {
+                    yield return new WaitForSeconds(1.0f);
+                    RestartGame();
+                    yield return new WaitForSeconds(1.5f);
+                }
+            }
+            yield return null;
+        }
+        
+        if (currentRun >= targetRuns)
+        {
+            ExportToCSV();
+            Debug.Log("<color=cyan><b>Target Runs completed! Auto-exported results to CSV.</b></color>");
+        }
+
+        isTesting = false;
+        testCoroutine = null;
+        Debug.Log("Auto Test Finished.");
+    }
+
+    private struct MoveSelection
+    {
+        public bool isValid;
+        public Vector2Int pos;
+        public float score;
+    }
+
+    private MoveSelection EvaluateBestMove(Block_2D block)
+    {
+        List<MoveSelection> options = new List<MoveSelection>();
+        var shape = block.GetShape();
+
+        for (int r = 0; r < 9; r++)
+        {
+            for (int c = 0; c < 9; c++)
+            {
+                Vector2Int pos = new Vector2Int(c, r);
+                if (GridManager_2D.Instance.IsValidPlacement(pos, shape))
+                {
+                    float score = CalculateHeuristicScore(pos, shape);
+                    options.Add(new MoveSelection { isValid = true, pos = pos, score = score });
+                }
+            }
+        }
+
+        if (options.Count == 0) return new MoveSelection { isValid = false };
+
+        float maxScore = options.Max(o => o.score);
+        var bestOptions = options.Where(o => Mathf.Approximately(o.score, maxScore)).ToList();
+        return bestOptions[Random.Range(0, bestOptions.Count)];
+    }
+
+    private float CalculateHeuristicScore(Vector2Int pos, List<Vector2Int> shape)
+    {
+        float score = 0;
+
+        // 1. Clears (High Priority)
+        int clearCells = GridManager_2D.Instance.GetPotentialClearedCells(pos, shape).Count;
+        score += clearCells * 200f;
+
+        // 2. Edge/Corner Bonus (Keep center open)
+        float distFromCenter = Vector2.Distance(new Vector2(pos.x, pos.y), new Vector2(4, 4));
+        score += distFromCenter * 20f;
+
+        // 3. Simple Neighbor Heuristic (Count adjacent cells already occupied)
+        // We look for existing neighbors around the landing spots
+        foreach (var offset in shape)
+        {
+            int r = pos.y - offset.y;
+            int c = pos.x + offset.x;
+            if (r == 0 || r == 8 || c == 0 || c == 8) score += 10f; // Edge bonus per cell
+        }
+        
+        return score;
+    }
+
+    private void OnGameOver()
+    {
+        if (GameManager_2D.Instance != null)
+        {
+            int finalScore = GameManager_2D.Instance.GetScore();
+            scoreHistory.Add(finalScore);
+            lastScore = finalScore;
+            currentRun++;
+            averageScore = (float)scoreHistory.Average();
+            Debug.Log($"Run {currentRun} Finished. Score: {finalScore} | Avg: {averageScore:F1}");
+        }
+    }
+
+    private void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+}
+
+#if UNITY_EDITOR
+[UnityEditor.CustomEditor(typeof(BlockdokuAutoTester))]
+public class BlockdokuAutoTesterEditor : UnityEditor.Editor
+{
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+
+        BlockdokuAutoTester tester = (BlockdokuAutoTester)target;
+
+        GUILayout.Space(15);
+        GUILayout.Label("Simulation Controls", UnityEditor.EditorStyles.boldLabel);
+        
+        GUI.backgroundColor = tester.isTesting ? Color.red : Color.green;
+        string startBtnLabel = tester.isTesting ? "Testing in Progress..." : "Start Auto Test";
+        
+        if (GUILayout.Button(startBtnLabel, GUILayout.Height(40)))
+        {
+            if (!tester.isTesting) tester.StartTest();
+            else tester.StopTest();
+        }
+
+        GUI.backgroundColor = Color.white;
+        GUILayout.Space(10);
+
+        if (GUILayout.Button("Export Results to CSV (Excel)", GUILayout.Height(30)))
+        {
+            tester.ExportToCSV();
+        }
+
+        if (tester.isTesting)
+        {
+            UnityEditor.EditorApplication.QueuePlayerLoopUpdate();
+            UnityEditor.SceneView.RepaintAll();
+        }
+    }
+}
+#endif

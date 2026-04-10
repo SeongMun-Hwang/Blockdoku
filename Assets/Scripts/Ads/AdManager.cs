@@ -8,6 +8,16 @@ using UnityEngine.SceneManagement;
 public class AdManager : MonoBehaviour
 {
     [SerializeField] private bool _enableAds = true;
+    public bool EnableAds
+    {
+        get => _enableAds;
+        set
+        {
+            _enableAds = value;
+            if (!_enableAds) HideBanner();
+            else ShowBanner();
+        }
+    }
     [SerializeField] private string _adUnitId;
     [SerializeField] private string _bannerAdUnitId;
     private InterstitialAd _interstitialAd;

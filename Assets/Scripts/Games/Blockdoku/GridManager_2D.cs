@@ -328,7 +328,7 @@ public class GridManager_2D : MonoBehaviour
         return completedPositions;
     }
 
-    private HashSet<Cell_2D> GetPotentialClearedCells(Vector2Int gridPosition, List<Vector2Int> blockShape)
+    public HashSet<Cell_2D> GetPotentialClearedCells(Vector2Int gridPosition, List<Vector2Int> blockShape)
     {
         bool[,] tempGridOccupied = new bool[GRID_SIZE, GRID_SIZE];
         for (int r = 0; r < GRID_SIZE; r++)

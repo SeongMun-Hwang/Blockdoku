@@ -5478,40 +5478,38 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blockContainerPrefab: {fileID: 9116959249156002238, guid: 199f4e02a1a333a45ae800895f0d69d0, type: 3}
   blockGroups:
-  - groupName: 
-    mainBlock: {fileID: 11400000, guid: 40a4eb0542ce9b94d9451e018b3629af, type: 2}
-    variants: []
-  - groupName: 
+  - groupName: Symmetry Pair1
     mainBlock: {fileID: 11400000, guid: bf541888ec2a6dd4b8a90fea10aa2ab0, type: 2}
     variants:
     - {fileID: 11400000, guid: a213f4a0a40fc7142ba152e52d34fa92, type: 2}
-  - groupName: 
-    mainBlock: {fileID: 11400000, guid: e3fdd4991cf48734f98f92c143d56a0a, type: 2}
-    variants:
-    - {fileID: 11400000, guid: 5dc8028f171065f4291f08335f2e3099, type: 2}
-  - groupName: 
+  - groupName: Symmetry Pair2
     mainBlock: {fileID: 11400000, guid: f1adb3ebdde84834797979b6f6b279fc, type: 2}
     variants:
     - {fileID: 11400000, guid: 80ab0d7a5114d7d45b5f499a9558d700, type: 2}
+  - groupName: Pure Symmetry
+    mainBlock: {fileID: 11400000, guid: e3fdd4991cf48734f98f92c143d56a0a, type: 2}
+    variants:
+    - {fileID: 11400000, guid: 373f828d54579b948ae4af59f1ac929f, type: 2}
+  - groupName: Line
+    mainBlock: {fileID: 11400000, guid: 40a4eb0542ce9b94d9451e018b3629af, type: 2}
+    variants:
+    - {fileID: 11400000, guid: 667490f822c839e4aa7ceb104324a3e2, type: 2}
   - groupName: 
     mainBlock: {fileID: 11400000, guid: b3841218e53d3064292955443d5eef4a, type: 2}
     variants:
     - {fileID: 11400000, guid: 30e6d466eaf4edf4283290a605a08258, type: 2}
-  - groupName: Small
-    mainBlock: {fileID: 11400000, guid: 667490f822c839e4aa7ceb104324a3e2, type: 2}
-    variants:
-    - {fileID: 11400000, guid: f28beca10b350ab4d9cb87ade345d49e, type: 2}
-  - groupName: 
+  - groupName: Large
     mainBlock: {fileID: 11400000, guid: ef71ae6b0e7652d4c8c2c4115246e098, type: 2}
     variants:
     - {fileID: 11400000, guid: 5dd5179b9e14d584fb52ff33a998a82a, type: 2}
-    - {fileID: 11400000, guid: 373f828d54579b948ae4af59f1ac929f, type: 2}
     - {fileID: 11400000, guid: 7a70e3150cb4ed64787322c285b0810d, type: 2}
     - {fileID: 11400000, guid: 60e09fc7210d9364b82f831fe2ed595e, type: 2}
+    - {fileID: 11400000, guid: 5dc8028f171065f4291f08335f2e3099, type: 2}
   - groupName: 
     mainBlock: {fileID: 11400000, guid: faa0be857baa3744c969fec0cce2e5c0, type: 2}
     variants:
     - {fileID: 11400000, guid: 50f2b3f26436f1348ae5e4362d3a610a, type: 2}
+    - {fileID: 11400000, guid: f28beca10b350ab4d9cb87ade345d49e, type: 2}
   spawnPositions:
   - {fileID: 1962458852}
   - {fileID: 642146203}
@@ -13203,6 +13201,58 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2019934585}
   m_CullTransparentMesh: 1
+--- !u!1 &2023464760
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2023464762}
+  - component: {fileID: 2023464761}
+  m_Layer: 0
+  m_Name: AutoTester
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2023464761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2023464760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23d0587b85bb2e94b8e051caf777ce46, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BlockdokuAutoTester
+  targetRuns: 10
+  moveDelay: 0.1
+  useBestMove: 1
+  isTesting: 0
+  currentRun: 0
+  lastScore: 0
+  scoreHistory: 
+  averageScore: 0
+--- !u!4 &2023464762
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2023464760}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 636.90656, y: 1402.5302, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2037564545
 GameObject:
   m_ObjectHideFlags: 0
@@ -14278,3 +14328,4 @@ SceneRoots:
   - {fileID: 634728898}
   - {fileID: 636334694}
   - {fileID: 1229751205}
+  - {fileID: 2023464762}

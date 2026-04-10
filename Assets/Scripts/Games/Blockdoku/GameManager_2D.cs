@@ -129,7 +129,10 @@ public class GameManager_2D : MonoBehaviour
     {
         return combo;
     }
-
+    public int GetScore()
+    {
+        return score;
+    }
     public void EndGame()
     {
         isGameOver = true;
