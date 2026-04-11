@@ -176,12 +176,15 @@ public class MineSweeper_GameManager : MonoBehaviour
 
     public void RestartGame()
     {
-        // Removed Ad trigger from restart to avoid double triggering and delays
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        AdEventBus.TriggerGamePlayEnded(MinigameType.MineSweeper, () => {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        });
     }
 
     public void GoToTitle()
     {
-        SceneManager.LoadScene("Title");
+        AdEventBus.TriggerGamePlayEnded(MinigameType.MineSweeper, () => {
+            SceneManager.LoadScene("Title");
+        });
     }
 }

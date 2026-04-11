@@ -163,6 +163,13 @@ public class AdManager : MonoBehaviour
         }
 
         _playCounts[gameType]++;
+        Debug.Log($"[AdManager] GamePlayEnded for {gameType}. Current count: {_playCounts[gameType]}");
+
+        // If ad is null and ads are enabled, try to load it now
+        if (_enableAds && _interstitialAd == null)
+        {
+            LoadInterstitialAd();
+        }
 
         bool shouldShowAd = false;
 
@@ -173,25 +180,43 @@ public class AdManager : MonoBehaviour
                 shouldShowAd = true;
                 break;
             case MinigameType.TenSum:
+                if (_playCounts[gameType] >= 3)
+                {
+                    shouldShowAd = true;
+                }
+                break;
             case MinigameType.MineSweeper:
                 if (_playCounts[gameType] >= 2)
                 {
                     shouldShowAd = true;
-                    _playCounts[gameType] = 0;
                 }
                 break;
         }
 
         if (_enableAds && shouldShowAd && _interstitialAd != null && _interstitialAd.CanShowAd())
         {
+            Debug.Log($"[AdManager] Condition met. Showing ad for {gameType}. Resetting count.");
+            _playCounts[gameType] = 0;
             _onAdClosedCallback = onComplete;
             ShowInterstitialAd();
         }
         else
         {
+            if (shouldShowAd)
+            {
+                if (!_enableAds) Debug.Log("[AdManager] Ads are disabled.");
+                else if (_interstitialAd == null) Debug.Log("[AdManager] Interstitial ad is null (still loading?).");
+                else if (!_interstitialAd.CanShowAd()) Debug.Log("[AdManager] Interstitial ad is not ready yet.");
+            }
+            else
+            {
+                Debug.Log($"[AdManager] shouldShowAd is false for {gameType} (count: {_playCounts[gameType]})");
+            }
             onComplete?.Invoke();
         }
     }
+
+    private int _retryAttempt = 0;
 
     public void LoadInterstitialAd()
     {
@@ -203,7 +228,7 @@ public class AdManager : MonoBehaviour
 
         if (!_enableAds) return;
 
-        Debug.Log("Loading the interstitial ad.");
+        Debug.Log("[AdManager] Loading Interstitial Ad...");
         var adRequest = new AdRequest();
 
         InterstitialAd.Load(_adUnitId, adRequest,
@@ -211,35 +236,54 @@ public class AdManager : MonoBehaviour
             {
                 if (error != null || ad == null)
                 {
-                    Debug.LogError("Interstitial ad failed to load: " + error);
+                    _retryAttempt++;
+                    double retryDelay = Math.Pow(2, Math.Min(6, _retryAttempt)); // 2, 4, 8, 16, 32, 64 seconds
+                    Debug.LogError($"[AdManager] Interstitial ad failed to load: {error}. Retrying in {retryDelay}s...");
+                    StartCoroutine(RetryLoadInterstitialAd(retryDelay));
                     return;
                 }
 
-                Debug.Log("Interstitial ad loaded.");
+                Debug.Log("[AdManager] Interstitial ad loaded successfully.");
                 _interstitialAd = ad;
+                _retryAttempt = 0; // Reset retry count on success
 
                 // 광고가 닫혔을 때
                 _interstitialAd.OnAdFullScreenContentClosed += () =>
                 {
-                    Debug.Log("Interstitial ad closed.");
+                    Debug.Log("[AdManager] Interstitial ad closed by user.");
                     ExecuteOnAdClosed();
                 };
 
                 // 광고 표시 실패 시
                 _interstitialAd.OnAdFullScreenContentFailed += (AdError err) =>
                 {
-                    Debug.LogError("Interstitial ad failed to show: " + err);
+                    Debug.LogError("[AdManager] Interstitial ad failed to show: " + err);
                     ExecuteOnAdClosed();
                 };
             });
     }
 
+    private IEnumerator RetryLoadInterstitialAd(double delay)
+    {
+        yield return new WaitForSeconds((float)delay);
+        if (_interstitialAd == null && _enableAds)
+        {
+            LoadInterstitialAd();
+        }
+    }
+
     private void ExecuteOnAdClosed()
     {
-        // 콜백 실행 (게임오버 패널 표시 등)
+        Debug.Log("[AdManager] ExecuteOnAdClosed called.");
+        // 콜백 실행 (씬 전환 등)
         Action callback = _onAdClosedCallback;
         _onAdClosedCallback = null;
-        callback?.Invoke();
+        
+        if (callback != null)
+        {
+            Debug.Log("[AdManager] Invoking callback (Scene Load).");
+            callback.Invoke();
+        }
 
         // 다음 광고 미리 로드
         LoadInterstitialAd();

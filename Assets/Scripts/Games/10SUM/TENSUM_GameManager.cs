@@ -116,13 +116,16 @@ public class TENSUM_GameManager : MonoBehaviour
 
     public void RestartGame()
     {
-        // Removed Ad trigger from restart to avoid double triggering and delays
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        AdEventBus.TriggerGamePlayEnded(MinigameType.TenSum, () => {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        });
     }
 
     public void GoToTitle()
     {
-        SceneManager.LoadScene("Title");
+        AdEventBus.TriggerGamePlayEnded(MinigameType.TenSum, () => {
+            SceneManager.LoadScene("Title");
+        });
     }
 
     public bool IsGameOver()
