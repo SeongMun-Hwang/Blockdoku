@@ -120,14 +120,16 @@ namespace Games._2048
 
         private void GameOver()
         {
+            if (IsGameOver) return; // 중복 호출 방지
+            
             IsGameOver = true;
             GridManager2048.Instance.ClearSave();
             
+            Debug.Log("2048 GameOver Triggered - Invoking Event");
             OnGameOver?.Invoke(true);
-            Debug.Log("Game Over Panel Activated");
-
+            
             AdEventBus.TriggerGamePlayEnded(MinigameType._2048, () => {
-                Debug.Log("Game Over Ad sequence finished");
+                Debug.Log("2048 Game Over Ad sequence finished");
             });
         }
 

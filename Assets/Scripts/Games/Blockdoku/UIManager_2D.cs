@@ -2,59 +2,45 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using System.Collections;
-using UnityEngine.SceneManagement;
 
 public class UIManager_2D : MonoBehaviour
 {
     [Header("Top UI")]
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI bestScoreText;
-    public FloatingScore floatingScore; // New field for floating score
+
+    [Header("Game Play UI")]
+    public FloatingScore floatingScore;
 
     [Header("Panels")]
     public GameObject gameOverPanel;
     public GameObject gameResetPanel;
     public GameObject settingPanel;
 
-    [Header("Buttons & Icons")]
+    [Header("GameOver Panel")]
+    public TextMeshProUGUI finalScoreText;
+    public GameObject newBestObj;
+    public Button GameOverPanelYesButton;
+
+    [Header("Reset Panel")]
+    public Button ResetPanelYesButton;
+
+    [Header("Buttons")]
     public Button restartButton;
     public Button titleButton;
     public Button settingsButton;
-    public Button GameOverPanelYesButton;
-    public Button ResetPanelYesButton;   
-
-    [Header("Game Over UI")]
-    public TextMeshProUGUI finalScoreText;
-    public GameObject newBestObj;
 
     void Awake()
     {
-        // Ensure panels are hidden at the start
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (gameResetPanel != null) gameResetPanel.SetActive(false);
         if (settingPanel != null) settingPanel.SetActive(false);
 
-        // Assign button listeners
-        if (restartButton != null)
-        {
-            restartButton.onClick.AddListener(ShowResetPanel);
-        }
-        if (titleButton != null)
-        {
-            titleButton.onClick.AddListener(() => GameManager_2D.Instance.GoToTitle());
-        }
-        if (settingsButton != null)
-        {
-            settingsButton.onClick.AddListener(ToggleSettingPanel);
-        }
-        if(ResetPanelYesButton != null)
-        {
-            ResetPanelYesButton.onClick.AddListener(()=>UI_Functions.Instance.TriggerGameRestart());
-        }
-        if(GameOverPanelYesButton != null)
-        {
-            GameOverPanelYesButton.onClick.AddListener(()=>UI_Functions.Instance.BacktoTitleOnClicked());
-        }
+        if (restartButton != null) restartButton.onClick.AddListener(ShowResetPanel);
+        if (titleButton != null) titleButton.onClick.AddListener(() => GameManager_2D.Instance.GoToTitle());
+        if (settingsButton != null) settingsButton.onClick.AddListener(ToggleSettingPanel);
+        if (ResetPanelYesButton != null) ResetPanelYesButton.onClick.AddListener(ResetPanelYes);
+        if (GameOverPanelYesButton != null) GameOverPanelYesButton.onClick.AddListener(() => UI_Functions.Instance.BacktoTitleOnClicked());
     }
 
     void OnEnable()
@@ -87,7 +73,6 @@ public class UIManager_2D : MonoBehaviour
             {
                 bestScore = SaveManager.LoadData<PersonalData>("personal.json").bestScore;
             }
-            
             ShowGameOverPanel(true, finalScore, bestScore);
         }
         else
@@ -121,34 +106,18 @@ public class UIManager_2D : MonoBehaviour
             gameOverPanel.SetActive(show);
             if (show)
             {
-                if (finalScoreText != null) finalScoreText.text = $"{finalScore}";
-                if (newBestObj != null)
-                {
-                    // If current score is greater than or equal to (the potentially updated) best score
-                    // and not zero, then it's a new or equal best score worth highlighting.
-                    newBestObj.SetActive(finalScore > 0 && finalScore >= bestScore);
-                }
-                
+                if (finalScoreText != null) finalScoreText.text = $"Score: {finalScore}";
+                if (newBestObj != null) newBestObj.SetActive(finalScore > 0 && finalScore >= bestScore);
                 Vibrate();
             }
         }
     }
 
-    // --- Settings Logic ---
     public void ToggleSettingPanel()
     {
         if (settingPanel != null) settingPanel.SetActive(!settingPanel.activeSelf);
     }
 
-    public void Vibrate()
-    {
-        if (SettingsManager.Instance != null)
-        {
-            SettingsManager.Instance.Vibrate();
-        }
-    }
-
-    // --- Reset Confirmation Logic ---
     public void ShowResetPanel()
     {
         if (gameResetPanel != null) gameResetPanel.SetActive(!gameResetPanel.activeSelf);
@@ -158,5 +127,10 @@ public class UIManager_2D : MonoBehaviour
     {
         GameManager_2D.Instance.RemoveGameData();
         UI_Functions.Instance.TriggerGameRestart();
+    }
+
+    public void Vibrate()
+    {
+        // Handheld.Vibrate() or custom vibration logic
     }
 }

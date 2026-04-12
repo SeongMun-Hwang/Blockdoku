@@ -374,6 +374,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6068719168114138320, guid: 858df453b94541443b21fcbd52896012, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1749749603}
+    - target: {fileID: 6068719168114138320, guid: 858df453b94541443b21fcbd52896012, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: GoToTitle
+      objectReference: {fileID: 0}
+    - target: {fileID: 6068719168114138320, guid: 858df453b94541443b21fcbd52896012, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: MineSweeper_GameManager, Assembly-CSharp
+      objectReference: {fileID: 0}
     - target: {fileID: 6152795704219283031, guid: 858df453b94541443b21fcbd52896012, type: 3}
       propertyPath: m_SizeDelta.x
       value: 653.4075
@@ -426,6 +438,18 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 204.03171
       objectReference: {fileID: 0}
+    - target: {fileID: 8708861436087237075, guid: 858df453b94541443b21fcbd52896012, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1749749603}
+    - target: {fileID: 8708861436087237075, guid: 858df453b94541443b21fcbd52896012, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: RestartGame
+      objectReference: {fileID: 0}
+    - target: {fileID: 8708861436087237075, guid: 858df453b94541443b21fcbd52896012, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: MineSweeper_GameManager, Assembly-CSharp
+      objectReference: {fileID: 0}
     - target: {fileID: 8732070267088422031, guid: 858df453b94541443b21fcbd52896012, type: 3}
       propertyPath: m_Name
       value: ResultTmp
@@ -464,28 +488,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 1191884125349452545, guid: 858df453b94541443b21fcbd52896012, type: 3}
   m_PrefabInstance: {fileID: 114389229}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &114389234 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8708861436087237075, guid: 858df453b94541443b21fcbd52896012, type: 3}
-  m_PrefabInstance: {fileID: 114389229}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &114389235 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6068719168114138320, guid: 858df453b94541443b21fcbd52896012, type: 3}
-  m_PrefabInstance: {fileID: 114389229}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &179296952 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 554424729302308908, guid: 858df453b94541443b21fcbd52896012, type: 3}
@@ -634,11 +636,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 281977641}
   m_CullTransparentMesh: 1
---- !u!1 &438654633 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7685102607581734335, guid: dca793808d0c2624aa28817232e2da82, type: 3}
-  m_PrefabInstance: {fileID: 1341206088}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &465154299
 GameObject:
   m_ObjectHideFlags: 0
@@ -1382,6 +1379,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   timerText: {fileID: 281977643}
   mineCountText: {fileID: 1384503319}
+  joystickInput: {x: 0, y: 0}
   difficultyPanel: {fileID: 1191884126730173985}
   beginnerButton: {fileID: 6068719169484896752}
   intermediateButton: {fileID: 8708861436956237043}
@@ -1393,17 +1391,10 @@ MonoBehaviour:
   resultText: {fileID: 179296952}
   finalTimeText: {fileID: 114389232}
   bestTimeText: {fileID: 1807536912}
-  restartButton: {fileID: 114389234}
-  titleButton: {fileID: 114389235}
-  backToTitle: {fileID: 1009526170}
-  settingsPanel: {fileID: 438654633}
-  settingsButton: {fileID: 2091462913}
-  closeSettingsButton: {fileID: 1341206091}
   cameraController: {fileID: 1025746248}
   zoomInButton: {fileID: 694457541}
   zoomOutButton: {fileID: 1189851734}
   resetCameraButton: {fileID: 0}
-  joystickInput: {x: 0, y: 0}
 --- !u!1 &678606498
 GameObject:
   m_ObjectHideFlags: 0
@@ -3028,7 +3019,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6071260945112228472, guid: dca793808d0c2624aa28817232e2da82, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -75
       objectReference: {fileID: 0}
     - target: {fileID: 6532573455794192676, guid: dca793808d0c2624aa28817232e2da82, type: 3}
       propertyPath: m_AnchorMax.x
@@ -3048,7 +3039,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7685102607581734335, guid: dca793808d0c2624aa28817232e2da82, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8240779560122247001, guid: dca793808d0c2624aa28817232e2da82, type: 3}
       propertyPath: m_AnchorMax.y
@@ -3102,17 +3093,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 929364621703987443, guid: dca793808d0c2624aa28817232e2da82, type: 3}
   m_PrefabInstance: {fileID: 1341206088}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1341206091 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8000515685973978567, guid: dca793808d0c2624aa28817232e2da82, type: 3}
-  m_PrefabInstance: {fileID: 1341206088}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 438654633}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1384503317
 GameObject:
   m_ObjectHideFlags: 0

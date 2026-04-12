@@ -13,7 +13,6 @@ namespace Games._2048
         [SerializeField] private TextMeshProUGUI highScoreText;
         [SerializeField] private GameObject gameOverPanel;
         [SerializeField] private Button backToTitleButton;
-
         [SerializeField] private Button backToTitlePanelbutton;
         [SerializeField] private Button restartGameButton;
         [SerializeField] private TextMeshProUGUI finalScoreTmp;
@@ -48,54 +47,43 @@ namespace Games._2048
 
         void Start()
         {
-            // Re-subscribe if OnEnable failed due to initialization order
-            GameManager2048.Instance.OnScoreChanged -= UpdateScoreUI;
-            GameManager2048.Instance.OnScoreChanged += UpdateScoreUI;
-            GameManager2048.Instance.OnBestScoreChanged -= UpdateBestScoreUI;
-            GameManager2048.Instance.OnBestScoreChanged += UpdateBestScoreUI;
-            GameManager2048.Instance.OnGameOver -= ShowGameOverUI;
-            GameManager2048.Instance.OnGameOver += ShowGameOverUI;
+            // OnEnable에서 인스턴스 부재로 구독 실패했을 경우를 대비해 다시 시도
+            if (GameManager2048.Instance != null)
+            {
+                GameManager2048.Instance.OnScoreChanged -= UpdateScoreUI;
+                GameManager2048.Instance.OnScoreChanged += UpdateScoreUI;
+                GameManager2048.Instance.OnBestScoreChanged -= UpdateBestScoreUI;
+                GameManager2048.Instance.OnBestScoreChanged += UpdateBestScoreUI;
+                GameManager2048.Instance.OnGameOver -= ShowGameOverUI;
+                GameManager2048.Instance.OnGameOver += ShowGameOverUI;
 
-            if (backToTitleButton != null)
-            {
-                backToTitleButton.onClick.AddListener(OnBackToTitleClicked);
+                UpdateScoreUI(GameManager2048.Instance.Score);
+                UpdateBestScoreUI(GameManager2048.Instance.HighScore);
             }
-            if (backToTitlePanelbutton != null)
-            {
-                backToTitlePanelbutton.onClick.AddListener(OnBackToTitleClicked);
-            }
-            if (restartGameButton != null)
-            {
-                restartGameButton.onClick.AddListener(RestartGame);
-            }
-            
-            // Initial UI Sync
-            UpdateScoreUI(GameManager2048.Instance.Score);
-            UpdateBestScoreUI(GameManager2048.Instance.HighScore);
+
+            if (backToTitleButton != null) backToTitleButton.onClick.AddListener(OnBackToTitleClicked);
+            if (backToTitlePanelbutton != null) backToTitlePanelbutton.onClick.AddListener(OnBackToTitleClicked);
+            if (restartGameButton != null) restartGameButton.onClick.AddListener(RestartGame);
         }
 
-        private void UpdateScoreUI(int score)
+        public void UpdateScoreUI(int score)
         {
             if (scoreText != null) scoreText.text = score.ToString();
         }
 
-        private void UpdateBestScoreUI(int bestScore)
+        public void UpdateBestScoreUI(int bestScore)
         {
             if (highScoreText != null) highScoreText.text = bestScore.ToString();
         }
 
-        private void ShowGameOverUI(bool isGameOver)
+        public void ShowGameOverUI(bool isGameOver)
         {
             if (gameOverPanel != null)
             {
                 gameOverPanel.SetActive(isGameOver);
-                if (isGameOver)
+                if (isGameOver && finalScoreTmp != null)
                 {
-                    if (finalScoreTmp != null)
-                    {
-                        finalScoreTmp.text = GameManager2048.Instance.Score.ToString();
-                    }
-                    UpdateBestScoreUI(GameManager2048.Instance.HighScore);
+                    finalScoreTmp.text = GameManager2048.Instance.Score.ToString();
                 }
             }
         }
@@ -107,10 +95,7 @@ namespace Games._2048
 
         private void OnBackToTitleClicked()
         {
-            if (UI_Functions.Instance != null)
-            {
-                UI_Functions.Instance.BacktoTitleOnClicked();
-            }
+            if (UI_Functions.Instance != null) UI_Functions.Instance.BacktoTitleOnClicked();
         }
     }
 }

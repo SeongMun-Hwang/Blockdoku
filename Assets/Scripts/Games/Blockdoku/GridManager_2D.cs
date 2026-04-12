@@ -1,9 +1,12 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.Collections;
-using System.Linq;
+using System.Collections; 
+using System.Linq; 
 using UnityEngine.UI;
+using System.IO;
 using DG.Tweening;
+
+using static SavePaths;
 
 public class GridManager_2D : MonoBehaviour
 {
@@ -12,9 +15,7 @@ public class GridManager_2D : MonoBehaviour
     [Header("Prefabs & Parents")]
     public GameObject cellPrefab;
     public Transform gridParent;
-    public RectTransform symmetryEffectContainer;
-    public GameObject symmetryEffectPrefab;
-
+    
     [Header("Visual Settings")]
     public Color previewColor = new Color(0f, 1f, 0f, 0.5f);
     public Color clearBlinkColor = Color.cyan;
@@ -22,18 +23,19 @@ public class GridManager_2D : MonoBehaviour
     public float clearAnimationSequentialDelay = 0.05f;
     public Sprite defaultEmptyCellSprite;
     public Sprite defaultOccupiedCellSprite;
-    public Color subgridBorderColor = Color.black;
-    public float subgridBorderWidth = 5f;
 
-    [Header("Effects Settings")]
+    [Header("Symmetry Effect")]
+    public GameObject symmetryEffectPrefab;
+    public RectTransform symmetryEffectContainer;
     public float symmetryEffectDuration = 0.8f;
     public float ghostStepDistance = 6f;
+
+    [Header("Shake Effect")]
     [Range(0f, 1f)] public float shakeDuration = 0.15f;
     [Range(0f, 100f)] public float shakeMagnitude = 10f;
 
     private const int GRID_SIZE = 9;
     private Cell_2D[,] grid = new Cell_2D[GRID_SIZE, GRID_SIZE];
-    private BlockdokuBoard board = new BlockdokuBoard();
     private GridLayoutGroup gridLayoutGroup;
     private Vector3 originalGridPos;
     private Coroutine shakeCoroutine;
@@ -41,6 +43,9 @@ public class GridManager_2D : MonoBehaviour
     private HashSet<Cell_2D> currentlyBlinkingClearCells = new HashSet<Cell_2D>();
     private Dictionary<Cell_2D, Color> storedOriginalClearPredictColors = new Dictionary<Cell_2D, Color>();
     private Coroutine clearPredictBlinkCoroutine;
+
+    public Color subgridBorderColor = Color.black;
+    public float subgridBorderWidth = 5f;
 
     [System.Serializable]
     public class SaveData_2D
@@ -62,7 +67,11 @@ public class GridManager_2D : MonoBehaviour
 
     public void InitializeGrid()
     {
-        foreach (Transform child in gridParent) Destroy(child.gameObject);
+        // Use standard Destroy instead of PoolManager
+        foreach (Transform child in gridParent)
+        {
+            Destroy(child.gameObject);
+        }
 
         for (int r = 0; r < GRID_SIZE; r++)
         {
@@ -70,9 +79,8 @@ public class GridManager_2D : MonoBehaviour
             {
                 GameObject cellGO = Instantiate(cellPrefab, gridParent);
                 cellGO.name = $"Cell_{r}_{c}";
-                grid[r, c] = cellGO.AddComponent<Cell_2D>();
+                grid[r, c] = cellGO.GetComponent<Cell_2D>() ?? cellGO.AddComponent<Cell_2D>();
                 grid[r, c].Initialize(r, c, true);
-                board.SetCell(r, c, false, Color.clear);
                 CreateSubgridBorders(cellGO, r, c);
             }
         }
@@ -97,8 +105,25 @@ public class GridManager_2D : MonoBehaviour
         rt.anchoredPosition = Vector2.zero; rt.sizeDelta = sizeDelta;
     }
 
-    public bool IsValidPlacementForAll(List<Vector2Int> blockShape) => board.IsValidPlacementForAll(blockShape);
-    public bool IsValidPlacement(Vector2Int gridPosition, List<Vector2Int> blockShape) => board.IsValidPlacement(gridPosition, blockShape);
+    public bool IsValidPlacementForAll(List<Vector2Int> blockShape)
+    {
+        for (int r = 0; r < GRID_SIZE; r++)
+            for (int c = 0; c < GRID_SIZE; c++)
+                if (IsValidPlacement(new Vector2Int(c, r), blockShape)) return true;
+        return false;
+    }
+
+    public bool IsValidPlacement(Vector2Int gridPosition, List<Vector2Int> blockShape)
+    {
+        foreach (var pos in blockShape)
+        {
+            int r = gridPosition.y - pos.y;
+            int c = gridPosition.x + pos.x;
+            if (r < 0 || r >= GRID_SIZE || c < 0 || c >= GRID_SIZE) return false;
+            if (!grid[r, c].IsEmpty) return false;
+        }
+        return true;
+    }
 
     public int PlaceBlock(Vector2Int gridPosition, List<Vector2Int> blockShape, Color blockColor)
     {
@@ -108,18 +133,17 @@ public class GridManager_2D : MonoBehaviour
             int r = gridPosition.y - pos.y;
             int c = gridPosition.x + pos.x;
             grid[r, c].SetOccupied(blockColor);
-            board.SetCell(r, c, true, blockColor);
         }
 
         int clearCount = CheckForCompletedLines();
-        GameManager_2D.Instance.SaveGameData();
+        if (GameManager_2D.Instance != null) GameManager_2D.Instance.SaveGameData();
         return clearCount;
     }
 
     public void ShowPreview(Vector2Int gridPosition, List<Vector2Int> blockShape)
     {
         ClearPreview();
-        if (board.IsValidPlacement(gridPosition, blockShape))
+        if (IsValidPlacement(gridPosition, blockShape))
         {
             foreach (var pos in blockShape)
             {
@@ -158,28 +182,88 @@ public class GridManager_2D : MonoBehaviour
         storedOriginalClearPredictColors.Clear();
     }
 
+    private HashSet<Vector2Int> GetCompletedCellPositions(bool[,] occupiedState)
+    {
+        HashSet<Vector2Int> completed = new HashSet<Vector2Int>();
+        List<int> completedRows = new List<int>();
+        List<int> completedCols = new List<int>();
+
+        for (int i = 0; i < GRID_SIZE; i++)
+        {
+            bool rowComplete = true, colComplete = true;
+            for (int j = 0; j < GRID_SIZE; j++)
+            {
+                if (!occupiedState[i, j]) rowComplete = false;
+                if (!occupiedState[j, i]) colComplete = false;
+            }
+            if (rowComplete) completedRows.Add(i);
+            if (colComplete) completedCols.Add(i);
+        }
+
+        for (int r = 0; r < GRID_SIZE; r += 3)
+            for (int c = 0; c < GRID_SIZE; c += 3)
+            {
+                bool squareComplete = true;
+                for (int i = r; i < r + 3; i++)
+                    for (int j = c; j < c + 3; j++)
+                        if (!occupiedState[i, j]) squareComplete = false;
+                if (squareComplete)
+                    for (int i = r; i < r + 3; i++)
+                        for (int j = c; j < c + 3; j++) completed.Add(new Vector2Int(j, i));
+            }
+
+        foreach (var row in completedRows) for (int c = 0; c < GRID_SIZE; c++) completed.Add(new Vector2Int(c, row));
+        foreach (var col in completedCols) for (int r = 0; r < GRID_SIZE; r++) completed.Add(new Vector2Int(col, r));
+
+        return completed;
+    }
+
     public HashSet<Cell_2D> GetPotentialClearedCells(Vector2Int gridPosition, List<Vector2Int> blockShape)
     {
-        bool[,] tempState = new bool[GRID_SIZE, GRID_SIZE];
+        bool[,] tempGrid = new bool[GRID_SIZE, GRID_SIZE];
         for (int r = 0; r < GRID_SIZE; r++)
-            for (int c = 0; c < GRID_SIZE; c++) tempState[r, c] = !grid[r, c].IsEmpty;
+            for (int c = 0; c < GRID_SIZE; c++) tempGrid[r, c] = !grid[r, c].IsEmpty;
 
         foreach (var pos in blockShape)
         {
             int r = gridPosition.y - pos.y;
             int c = gridPosition.x + pos.x;
-            if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE) tempState[r, c] = true;
+            if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE) tempGrid[r, c] = true;
         }
 
-        HashSet<Vector2Int> positions = board.GetCompletedPositions(tempState);
+        HashSet<Vector2Int> positions = GetCompletedCellPositions(tempGrid);
         HashSet<Cell_2D> cells = new HashSet<Cell_2D>();
         foreach (var pos in positions) cells.Add(grid[pos.y, pos.x]);
         return cells;
     }
 
+    private int CalculateLinesClearedCount(bool[,] occupiedState)
+    {
+        int count = 0;
+        for (int i = 0; i < GRID_SIZE; i++)
+        {
+            bool row = true, col = true;
+            for (int j = 0; j < GRID_SIZE; j++) { if (!occupiedState[i, j]) row = false; if (!occupiedState[j, i]) col = false; }
+            if (row) count++; if (col) count++;
+        }
+        for (int r = 0; r < GRID_SIZE; r += 3)
+            for (int c = 0; c < GRID_SIZE; c += 3)
+            {
+                bool sq = true;
+                for (int i = r; i < r + 3; i++)
+                    for (int j = c; j < c + 3; j++) if (!occupiedState[i, j]) sq = false;
+                if (sq) count++;
+            }
+        return count;
+    }
+
     public int CheckForCompletedLines()
     {
-        HashSet<Vector2Int> completedPositions = board.GetCompletedPositions();
+        bool[,] currentOccupied = new bool[GRID_SIZE, GRID_SIZE];
+        for (int r = 0; r < GRID_SIZE; r++)
+            for (int c = 0; c < GRID_SIZE; c++) currentOccupied[r, c] = !grid[r, c].IsEmpty;
+
+        HashSet<Vector2Int> completedPositions = GetCompletedCellPositions(currentOccupied);
         if (completedPositions.Count == 0)
         {
             if (!CheckSymmetry()) GameManager_2D.Instance.combo = 0;
@@ -187,16 +271,16 @@ public class GridManager_2D : MonoBehaviour
         }
 
         HashSet<Cell_2D> cellsToClear = new HashSet<Cell_2D>();
-        foreach (var pos in completedPositions)
-        {
-            cellsToClear.Add(grid[pos.y, pos.x]);
-            board.SetCell(pos.y, pos.x, false, Color.clear);
-        }
+        foreach (var pos in completedPositions) cellsToClear.Add(grid[pos.y, pos.x]);
 
         List<Color> clearColors = cellsToClear.Select(c => c.BlockColor).Distinct().ToList();
+        int linesClearedCount = CalculateLinesClearedCount(currentOccupied);
         
-        int linesClearedCount = CalculateLinesClearedCount();
-        bool isFullClear = board.IsBoardEmpty();
+        int totalOccupiedBefore = 0;
+        for (int r = 0; r < GRID_SIZE; r++)
+            for (int c = 0; c < GRID_SIZE; c++) if (!grid[r, c].IsEmpty) totalOccupiedBefore++;
+
+        bool isFullClear = totalOccupiedBefore == cellsToClear.Count;
 
         StartCoroutine(SequentialClear(cellsToClear));
         GameManager_2D.Instance.combo += linesClearedCount;
@@ -215,34 +299,40 @@ public class GridManager_2D : MonoBehaviour
         return cellsToClear.Count;
     }
 
-    private int CalculateLinesClearedCount()
+    private bool CheckSymmetry()
     {
-        int count = 0;
-        bool[,] state = new bool[GRID_SIZE, GRID_SIZE];
-        for (int r = 0; r < GRID_SIZE; r++)
-            for (int c = 0; c < GRID_SIZE; c++) state[r, c] = !grid[r, c].IsEmpty;
+        bool hSym = true, vSym = true, d1Sym = true, d2Sym = true;
+        int occupiedCount = 0;
 
-        for (int i = 0; i < GRID_SIZE; i++)
+        for (int r = 0; r < GRID_SIZE; r++)
         {
-            bool rC = true, cC = true;
-            for (int j = 0; j < GRID_SIZE; j++) { if (!state[i, j]) rC = false; if (!state[j, i]) cC = false; }
-            if (rC) count++; if (cC) count++;
-        }
-        for (int r = 0; r < GRID_SIZE; r += 3)
-            for (int c = 0; c < GRID_SIZE; c += 3)
+            for (int c = 0; c < GRID_SIZE; c++)
             {
-                bool sC = true;
-                for (int i = r; i < r + 3; i++)
-                    for (int j = c; j < c + 3; j++) if (!state[i, j]) sC = false;
-                if (sC) count++;
+                if (grid[r, c].IsEmpty) continue;
+                occupiedCount++;
+                if (grid[r, 8 - c].IsEmpty) hSym = false;
+                if (grid[8 - r, c].IsEmpty) vSym = false;
+                if (grid[c, r].IsEmpty) d1Sym = false;
+                if (grid[8 - c, 8 - r].IsEmpty) d2Sym = false;
             }
-        return count;
+        }
+
+        bool symmetryAchieved = hSym || vSym || d1Sym || d2Sym;
+        if (occupiedCount > 0 && symmetryAchieved)
+        {
+            GameManager_2D.Instance.combo++;
+            int bonus = 30 + (occupiedCount * 3);
+            if (hSym) { GameManager_2D.Instance.AddSpecialScore(bonus, "H-SYMMETRY"); PlaySymmetryAnimation("H"); }
+            else if (vSym) { GameManager_2D.Instance.AddSpecialScore(bonus, "V-SYMMETRY"); PlaySymmetryAnimation("V"); }
+            else if (d1Sym || d2Sym) { GameManager_2D.Instance.AddSpecialScore(bonus, "DIAG-SYMMETRY"); PlaySymmetryAnimation(d1Sym ? "D1" : "D2"); }
+        }
+        return symmetryAchieved;
     }
 
     public void PlayFullClearAnimation(List<Color> sourceColors = null)
     {
         if (symmetryEffectPrefab == null || symmetryEffectContainer == null) return;
-        if (GameManager_2D.Instance.uiManager != null) GameManager_2D.Instance.uiManager.Vibrate();
+        if (GameManager_2D.Instance != null && GameManager_2D.Instance.uiManager != null) GameManager_2D.Instance.uiManager.Vibrate();
         ShakeGrid(GameManager_2D.Instance.combo + 5);
 
         List<Color> colors = GetRandomActiveColors(2);
@@ -252,12 +342,10 @@ public class GridManager_2D : MonoBehaviour
             colors[1] = sourceColors[Random.Range(0, sourceColors.Count)];
         }
 
-        float w = symmetryEffectContainer.rect.width / 2f;
-        float h = symmetryEffectContainer.rect.height / 2f;
+        float w = symmetryEffectContainer.rect.width / 2f, h = symmetryEffectContainer.rect.height / 2f;
         Vector3[] points = { new Vector3(-w, h), new Vector3(0, h), new Vector3(w, h), new Vector3(w, 0), new Vector3(w, -h), new Vector3(0, -h), new Vector3(-w, -h), new Vector3(-w, 0) };
 
-        int start1 = Random.Range(0, 8);
-        int start2 = (start1 + 4) % 8;
+        int start1 = Random.Range(0, 8), start2 = (start1 + 4) % 8;
         bool isCW = Random.value > 0.5f;
 
         Vector3[] path1 = new Vector3[9], path2 = new Vector3[9];
@@ -266,14 +354,14 @@ public class GridManager_2D : MonoBehaviour
             path1[i] = points[isCW ? (start1 + i) % 8 : (start1 - i + 8) % 8];
             path2[i] = points[isCW ? (start2 + i) % 8 : (start2 - i + 8) % 8];
         }
-        LaunchSymmetryEffect(path1, colors[0], symmetryEffectDuration * 2.5f);
-        LaunchSymmetryEffect(path2, colors[1], symmetryEffectDuration * 2.5f);
+        LaunchSymmetryEffect(path1, colors[0], symmetryEffectDuration * 2.5f, true);
+        LaunchSymmetryEffect(path2, colors[1], symmetryEffectDuration * 2.5f, true);
     }
 
     public void PlaySymmetryAnimation(string type)
     {
         if (symmetryEffectPrefab == null || symmetryEffectContainer == null) return;
-        if (GameManager_2D.Instance.uiManager != null) GameManager_2D.Instance.uiManager.Vibrate();
+        if (GameManager_2D.Instance != null && GameManager_2D.Instance.uiManager != null) GameManager_2D.Instance.uiManager.Vibrate();
         var colors = GetRandomActiveColors(2);
         bool isReverse = Random.value > 0.5f;
         Vector3[] p1, p2;
@@ -282,7 +370,7 @@ public class GridManager_2D : MonoBehaviour
         LaunchSymmetryEffect(p2, colors[1]);
     }
 
-    private void LaunchSymmetryEffect(Vector3[] path, Color color, float? overrideDuration = null)
+    private void LaunchSymmetryEffect(Vector3[] path, Color color, float? overrideDuration = null, bool isBlinking = false)   
     {
         GameObject effectGO = Instantiate(symmetryEffectPrefab, symmetryEffectContainer);
         RectTransform rt = effectGO.GetComponent<RectTransform>();
@@ -290,7 +378,7 @@ public class GridManager_2D : MonoBehaviour
         if (img != null) img.color = color;
         rt.localPosition = path[0];
 
-        float totalDist = 0;
+        float totalDist = 0f;
         for (int i = 0; i < path.Length - 1; i++) totalDist += Vector3.Distance(path[i], path[i + 1]);
 
         float duration = overrideDuration ?? symmetryEffectDuration;
@@ -302,10 +390,13 @@ public class GridManager_2D : MonoBehaviour
             Vector3 end = path[i + 1];
             float segDist = Vector3.Distance(path[i], end);
             seq.Append(rt.DOLocalMove(end, (segDist / totalDist) * duration).SetEase(Ease.Linear).OnUpdate(() => {
-                if (Vector2.Distance(rt.localPosition, lastGhostPos) >= ghostStepDistance)
+                Vector2 currentPos = rt.localPosition;
+                float distanceMoved = Vector2.Distance(currentPos, lastGhostPos);
+                if (distanceMoved >= ghostStepDistance)
                 {
-                    CreateTrailGhost(rt.localPosition, color);
-                    lastGhostPos = rt.localPosition;
+                    int segments = Mathf.FloorToInt(distanceMoved / ghostStepDistance);
+                    for (int j = 1; j <= segments; j++) CreateTrailGhost(Vector2.Lerp(lastGhostPos, currentPos, (float)j / segments), color);
+                    lastGhostPos = currentPos;
                 }
             }));
         }
@@ -326,35 +417,32 @@ public class GridManager_2D : MonoBehaviour
     private List<Color> GetRandomActiveColors(int count)
     {
         var activeColors = grid.Cast<Cell_2D>().Where(c => !c.IsEmpty).Select(c => c.BlockColor).Distinct().ToList();
-        if (activeColors.Count == 0) return Enumerable.Repeat(Color.white, count).ToList();
-        return Enumerable.Range(0, count).Select(_ => activeColors[Random.Range(0, activeColors.Count)]).ToList();
+        List<Color> result = new List<Color>();
+        if (activeColors.Count == 0) { for (int i = 0; i < count; i++) result.Add(Color.white); return result; }
+        for (int i = 0; i < count; i++) result.Add(activeColors[Random.Range(0, activeColors.Count)]);
+        return result;
     }
 
-    private void GetSymmetryPaths(string type, bool isRev, out Vector3[] p1, out Vector3[] p2)
+    private void GetSymmetryPaths(string type, bool isReverse, out Vector3[] p1, out Vector3[] p2)
     {
         float w = symmetryEffectContainer.rect.width / 2f, h = symmetryEffectContainer.rect.height / 2f;
         Vector3 TL = new Vector3(-w, h), TR = new Vector3(w, h), BL = new Vector3(-w, -h), BR = new Vector3(w, -h);
         Vector3 TC = new Vector3(0, h), BC = new Vector3(0, -h), LC = new Vector3(-w, 0), RC = new Vector3(w, 0);
 
-        if (type == "H") { p1 = isRev ? new[] { BC, BR, TR, TC } : new[] { TC, TR, BR, BC }; p2 = isRev ? new[] { BC, BL, TL, TC } : new[] { TC, TL, BL, BC }; }
-        else if (type == "V") { p1 = isRev ? new[] { RC, TR, TL, LC } : new[] { LC, TL, TR, RC }; p2 = isRev ? new[] { RC, BR, BL, LC } : new[] { LC, BL, BR, RC }; }
-        else { p1 = isRev ? new[] { BR, TR, TL } : new[] { TL, TR, BR }; p2 = isRev ? new[] { BR, BL, TL } : new[] { TL, BL, BR }; }
-    }
-
-    private bool CheckSymmetry()
-    {
-        int occupiedCount;
-        SymmetryType type = board.CheckSymmetry(out occupiedCount);
-        if (type != SymmetryType.None)
+        if (!isReverse)
         {
-            GameManager_2D.Instance.combo++;
-            int bonus = 30 + (occupiedCount * 3);
-            string msg = type == SymmetryType.Horizontal ? "H-SYMMETRY" : type == SymmetryType.Vertical ? "V-SYMMETRY" : "DIAG-SYMMETRY";
-            GameManager_2D.Instance.AddSpecialScore(bonus, msg);
-            PlaySymmetryAnimation(type == SymmetryType.Horizontal ? "H" : type == SymmetryType.Vertical ? "V" : "D");
-            return true;
+            if (type == "H") { p1 = new[] { TC, TR, BR, BC }; p2 = new[] { TC, TL, BL, BC }; }
+            else if (type == "V") { p1 = new[] { LC, TL, TR, RC }; p2 = new[] { LC, BL, BR, RC }; }
+            else if (type == "D1") { p1 = new[] { TL, TR, BR }; p2 = new[] { TL, BL, BR }; }
+            else { p1 = new[] { TR, TL, BL }; p2 = new[] { TR, BR, BL }; }
         }
-        return false;
+        else
+        {
+            if (type == "H") { p1 = new[] { BC, BR, TR, TC }; p2 = new[] { BC, BL, TL, TC }; }
+            else if (type == "V") { p1 = new[] { RC, TR, TL, LC }; p2 = new[] { RC, BR, BL, LC }; }
+            else if (type == "D1") { p1 = new[] { BR, TR, TL }; p2 = new[] { BR, BL, TL }; }
+            else { p1 = new[] { BL, TL, TR }; p2 = new[] { BL, BR, TR }; }
+        }
     }
 
     public void ShakeGrid(int combo)
@@ -380,10 +468,10 @@ public class GridManager_2D : MonoBehaviour
     {
         List<Cell_2D> sorted = cells.ToList();
         int dir = Random.Range(0, 4);
-        if (dir == 0) sorted = sorted.OrderBy(c => c.gridPosition.y).ToList();
-        else if (dir == 1) sorted = sorted.OrderByDescending(c => c.gridPosition.y).ToList();
-        else if (dir == 2) sorted = sorted.OrderBy(c => c.gridPosition.x).ToList();
-        else sorted = sorted.OrderByDescending(c => c.gridPosition.x).ToList();
+        if (dir == 0) sorted = sorted.OrderBy(c => c.gridPosition.y).ThenBy(c => c.gridPosition.x).ToList();
+        else if (dir == 1) sorted = sorted.OrderByDescending(c => c.gridPosition.y).ThenBy(c => c.gridPosition.x).ToList();
+        else if (dir == 2) sorted = sorted.OrderBy(c => c.gridPosition.x).ThenBy(c => c.gridPosition.y).ToList();
+        else sorted = sorted.OrderByDescending(c => c.gridPosition.x).ThenBy(c => c.gridPosition.y).ToList();
 
         for (int i = 0; i < sorted.Count; i++)
         {
@@ -392,57 +480,49 @@ public class GridManager_2D : MonoBehaviour
         }
     }
 
-    public Vector2Int GetGridPosition(Vector2 worldPos)
+    public Vector2 GetCellPitch() => gridLayoutGroup != null ? gridLayoutGroup.cellSize + gridLayoutGroup.spacing : Vector2.one * 50f;
+    public Vector2 GetCellSize() => gridLayoutGroup != null ? gridLayoutGroup.cellSize : Vector2.one * 50f;
+
+    public Vector2Int GetGridPosition(Vector2 worldPosition)
     {
-        Vector3 localPos = gridParent.InverseTransformPoint(worldPos);
+        Vector3 localPos = gridParent.InverseTransformPoint(worldPosition);
         Vector3 originLocalPos = gridParent.InverseTransformPoint(grid[0, 0].transform.position);
         Vector2 offset = (Vector2)(localPos - originLocalPos);
         Vector2 pitch = GetCellPitch();
         return new Vector2Int(Mathf.RoundToInt(offset.x / pitch.x), Mathf.RoundToInt(-offset.y / pitch.y));
     }
 
-    public Vector2 GetCellPitch() => gridLayoutGroup.cellSize + gridLayoutGroup.spacing;
-    public Vector2 GetCellSize() => gridLayoutGroup.cellSize;
-
     public Vector2Int GetNearestValidPosition(Vector2 worldPosition, List<Vector2Int> blockShape)
     {
         Vector2Int basePos = GetGridPosition(worldPosition);
-        if (board.IsValidPlacement(basePos, blockShape)) return basePos;
-
-        Vector2Int nearestPos = new Vector2Int(-1, -1);
-        float minDistance = float.MaxValue;
-        Vector2 cellPitch = GetCellPitch();
-        float cellWidthWorld = cellPitch.x * gridParent.lossyScale.x;
-        float snapThreshold = cellWidthWorld * 1.5f;
-
+        if (IsValidPlacement(basePos, blockShape)) return basePos;
+        Vector2Int nearest = new Vector2Int(-1, -1);
+        float minDist = float.MaxValue;
+        float snapThreshold = GetCellPitch().x * gridParent.lossyScale.x * 1.5f;
         for (int dr = -1; dr <= 1; dr++)
             for (int dc = -1; dc <= 1; dc++)
             {
                 if (dr == 0 && dc == 0) continue;
-                Vector2Int candidate = new Vector2Int(basePos.x + dc, basePos.y + dr);
-                if (candidate.x >= 0 && candidate.x < GRID_SIZE && candidate.y >= 0 && candidate.y < GRID_SIZE)
-                    if (board.IsValidPlacement(candidate, blockShape))
-                    {
-                        Vector2 candidateWorldPos = grid[candidate.y, candidate.x].transform.position;
-                        float dist = Vector2.Distance(worldPosition, candidateWorldPos);
-                        if (dist < minDistance && dist < snapThreshold) { minDistance = dist; nearestPos = candidate; }
-                    }
+                Vector2Int cand = new Vector2Int(basePos.x + dc, basePos.y + dr);
+                if (cand.x >= 0 && cand.x < GRID_SIZE && cand.y >= 0 && cand.y < GRID_SIZE && IsValidPlacement(cand, blockShape))
+                {
+                    float dist = Vector2.Distance(worldPosition, grid[cand.y, cand.x].transform.position);
+                    if (dist < minDist && dist < snapThreshold) { minDist = dist; nearest = cand; }
+                }
             }
-        return nearestPos;
+        return nearest;
     }
 
     private IEnumerator ClearPredictBlink(HashSet<Cell_2D> cells, Color blinkColor, float interval)
     {
         storedOriginalClearPredictColors.Clear();
-        foreach (var cell in cells)
-            if (!previewCells.Contains(cell)) storedOriginalClearPredictColors[cell] = cell.cellImage.color;
-
+        foreach (var cell in cells) if (!previewCells.Contains(cell)) storedOriginalClearPredictColors[cell] = cell.cellImage.color;
         while (true)
         {
             float t = Mathf.PingPong(Time.time / interval, 1.0f);
             foreach (var cell in cells)
-                if (cell != null && !previewCells.Contains(cell) && storedOriginalClearPredictColors.TryGetValue(cell, out Color originalColor))
-                    cell.cellImage.color = Color.Lerp(originalColor, blinkColor, t);
+                if (cell != null && !previewCells.Contains(cell) && storedOriginalClearPredictColors.TryGetValue(cell, out Color orig))
+                    cell.cellImage.color = Color.Lerp(orig, blinkColor, t);
             yield return null;
         }
     }
@@ -450,9 +530,7 @@ public class GridManager_2D : MonoBehaviour
     public void SaveBoardData_2D(int score, int combo)
     {
         SaveData_2D data = new SaveData_2D { score = score, combo = combo };
-        data.cellColors = new List<SerializableColor>(GRID_SIZE * GRID_SIZE);
         for (int i = 0; i < GRID_SIZE * GRID_SIZE; i++) data.cellColors.Add(new SerializableColor());
-
         for (int r = 0; r < GRID_SIZE; r++)
             for (int c = 0; c < GRID_SIZE; c++)
             {
@@ -460,23 +538,21 @@ public class GridManager_2D : MonoBehaviour
                 data.cellOccupiedStates[idx] = !grid[r, c].IsEmpty;
                 data.cellColors[idx] = grid[r, c].BlockColor;
             }
-        SaveManager.SaveData("save.json", data);
+        File.WriteAllText(BoardDataPath, JsonUtility.ToJson(data));
     }
 
     public (int score, int combo) LoadBoardData_2D()
     {
-        if (!SaveManager.Exists("save.json")) return (0, 0);
-        SaveData_2D data = SaveManager.LoadData<SaveData_2D>("save.json");
+        if (!File.Exists(BoardDataPath)) return (0, 0);
+        SaveData_2D data = JsonUtility.FromJson<SaveData_2D>(File.ReadAllText(BoardDataPath));
         InitializeGrid();
+        while (data.cellColors.Count < GRID_SIZE * GRID_SIZE) data.cellColors.Add(new SerializableColor());
         for (int r = 0; r < GRID_SIZE; r++)
             for (int c = 0; c < GRID_SIZE; c++)
             {
                 int idx = r * GRID_SIZE + c;
-                if (data.cellOccupiedStates[idx])
-                {
-                    grid[r, c].SetOccupied(data.cellColors[idx]);
-                    board.SetCell(r, c, true, data.cellColors[idx]);
-                }
+                if (data.cellOccupiedStates[idx]) grid[r, c].SetOccupied(data.cellColors[idx]);
+                else grid[r, c].SetEmpty();
             }
         return (data.score, data.combo);
     }

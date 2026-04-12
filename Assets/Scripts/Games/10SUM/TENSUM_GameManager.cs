@@ -91,7 +91,7 @@ public class TENSUM_GameManager : MonoBehaviour, IGameManager
         }
 
         OnGameOver?.Invoke(true);
-        if (uiManager != null) uiManager.ShowGameOverPanel(true, score, bestScore);
+        if (uiManager != null) uiManager.ShowGameOverPanel(true, score);
 
         AdEventBus.TriggerGamePlayEnded(MinigameType.TenSum, null);
     }

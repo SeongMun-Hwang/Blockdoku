@@ -5553,14 +5553,14 @@ MonoBehaviour:
   clearBlinkColor: {r: 1, g: 1, b: 1, a: 0.5019608}
   clearBlinkInterval: 0.75
   clearAnimationSequentialDelay: 0.01
+  defaultEmptyCellSprite: {fileID: 21300000, guid: e7ab5b1953eb73c40bc6a41036365ca4, type: 3}
+  defaultOccupiedCellSprite: {fileID: 21300000, guid: 899bc8baf5b111e43a8ca73eda1a6554, type: 3}
   symmetryEffectPrefab: {fileID: 277924828980795663, guid: 81b5c3be9fdc2fe41973f8f2eeed8a57, type: 3}
   symmetryEffectContainer: {fileID: 1973816862}
   symmetryEffectDuration: 0.8
-  ghostStepDistance: 5
+  ghostStepDistance: 1
   shakeDuration: 0.15
   shakeMagnitude: 3
-  defaultEmptyCellSprite: {fileID: 21300000, guid: e7ab5b1953eb73c40bc6a41036365ca4, type: 3}
-  defaultOccupiedCellSprite: {fileID: 21300000, guid: 899bc8baf5b111e43a8ca73eda1a6554, type: 3}
   subgridBorderColor: {r: 0, g: 0, b: 0, a: 0.74509805}
   subgridBorderWidth: 5
 --- !u!114 &868880333
@@ -6932,13 +6932,13 @@ MonoBehaviour:
   gameOverPanel: {fileID: 1949958140}
   gameResetPanel: {fileID: 359016417}
   settingPanel: {fileID: 1793600866}
+  finalScoreText: {fileID: 154987932}
+  newBestObj: {fileID: 418368994}
+  GameOverPanelYesButton: {fileID: 2037564547}
+  ResetPanelYesButton: {fileID: 495860073}
   restartButton: {fileID: 1675690334}
   titleButton: {fileID: 1758648723}
   settingsButton: {fileID: 149677620}
-  GameOverPanelYesButton: {fileID: 2037564547}
-  ResetPanelYesButton: {fileID: 495860073}
-  finalScoreText: {fileID: 154987932}
-  newBestObj: {fileID: 418368994}
 --- !u!114 &1140484824
 MonoBehaviour:
   m_ObjectHideFlags: 0

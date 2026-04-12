@@ -1,4 +1,3 @@
-
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -7,11 +6,14 @@ public class UIManager : MonoBehaviour
 {
     public TextMeshProUGUI timerText;
     public TextMeshProUGUI scoreText;
-    public TextMeshProUGUI bestScoreMainGameText; // New field for best score on main game screen
+    public TextMeshProUGUI bestScoreMainGameText;
     public GameObject gameOverPanel;
     public TextMeshProUGUI finalScoreText;
-    public Button restartButton;
-    public Button titleButton;
+
+    void Awake()
+    {
+        if (gameOverPanel != null) gameOverPanel.SetActive(false);
+    }
 
     void OnEnable()
     {
@@ -21,7 +23,7 @@ public class UIManager : MonoBehaviour
             TENSUM_GameManager.Instance.OnBestScoreChanged += UpdateBestScoreMainGame;
             TENSUM_GameManager.Instance.OnGameOver += (isOver) => 
             {
-                if (isOver) ShowGameOverPanel(true, TENSUM_GameManager.Instance.GetScore(), 0); 
+                if (isOver) ShowGameOverPanel(true, TENSUM_GameManager.Instance.GetScore()); 
                 else ShowGameOverPanel(false);
             };
         }
@@ -36,18 +38,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    void Awake()
-    {
-        // Ensure the game over panel is hidden at the start
-        gameOverPanel.SetActive(false);
-
-        // Assign button listeners
-        restartButton.onClick.AddListener(() => TENSUM_GameManager.Instance.RestartGame());
-        titleButton.onClick.AddListener(() => TENSUM_GameManager.Instance.GoToTitle());
-    }
-
     public void UpdateTimer(float timeInSeconds)
     {
+        if (timerText == null) return;
         int minutes = Mathf.FloorToInt(timeInSeconds / 60);
         int seconds = Mathf.FloorToInt(timeInSeconds % 60);
         timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
@@ -55,20 +48,23 @@ public class UIManager : MonoBehaviour
 
     public void UpdateScore(int score)
     {
-        scoreText.text = $"{score}";
+        if (scoreText != null) scoreText.text = score.ToString();
     }
 
-    public void UpdateBestScoreMainGame(int bestScore) // New method to update best score on main game screen
+    public void UpdateBestScoreMainGame(int bestScore)
     {
-        bestScoreMainGameText.text = $"{bestScore}";
+        if (bestScoreMainGameText != null) bestScoreMainGameText.text = bestScore.ToString();
     }
 
-    public void ShowGameOverPanel(bool show, int finalScore = 0, int bestScore = 0)
+    public void ShowGameOverPanel(bool show, int finalScore = 0)
     {
-        gameOverPanel.SetActive(show);
-        if (show)
+        if (gameOverPanel != null)
         {
-            finalScoreText.text = $"Score: {finalScore}";
+            gameOverPanel.SetActive(show);
+            if (show && finalScoreText != null)
+            {
+                finalScoreText.text = $"Score: {finalScore}";
+            }
         }
     }
 }
