@@ -84,6 +84,15 @@ namespace Games._2048
                 GridManager2048.Instance.SpawnTile();
                 GridManager2048.Instance.SaveBoard();
                 
+                // 타일 생성 후 더 이상 움직일 수 없는지 즉시 체크
+                if (!GridManager2048.Instance.CanMove())
+                {
+                    GameOver();
+                }
+            }
+            else
+            {
+                // 움직임이 발생하지 않았더라도, 이미 보드가 꽉 차서 움직일 수 없는 상태인지 확인
                 if (!GridManager2048.Instance.CanMove())
                 {
                     GameOver();

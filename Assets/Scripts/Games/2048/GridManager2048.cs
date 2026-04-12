@@ -290,7 +290,9 @@ namespace Games._2048
                     if (nr >= 0 && nr < size && nc >= 0 && nc < size)
                     {
                         var neighbor = cells[nr, nc];
-                        if (!neighbor.IsOccupied ||
+                        if (!neighbor.IsOccupied) return true;
+                        
+                        if (neighbor.currentTile != null && cell.currentTile != null &&
                             neighbor.currentTile.Value == cell.currentTile.Value)
                             return true;
                     }
