@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.IO;
+using System;
 
 public enum MineSweeperDifficulty
 {
@@ -9,7 +10,7 @@ public enum MineSweeperDifficulty
     Advanced
 }
 
-public class MineSweeper_GameManager : MonoBehaviour
+public class MineSweeper_GameManager : MonoBehaviour, IGameManager
 {
     public static MineSweeper_GameManager Instance { get; private set; }
 
@@ -21,6 +22,10 @@ public class MineSweeper_GameManager : MonoBehaviour
     private float timer;
     private int remainingMines;
     private MineSweeperDifficulty currentDifficulty;
+
+    public event Action<int> OnScoreChanged;
+    public event Action<int> OnBestScoreChanged;
+    public event Action<bool> OnGameOver;
 
     void Awake()
     {
@@ -51,6 +56,12 @@ public class MineSweeper_GameManager : MonoBehaviour
         uiManager.ShowGameOverPanel(false);
     }
 
+    public void StartGame()
+    {
+        // Default call for IGameManager compatibility
+        StartGame(MineSweeperDifficulty.Beginner);
+    }
+
     public void StartGame(MineSweeperDifficulty difficulty)
     {
         currentDifficulty = difficulty;
@@ -58,6 +69,8 @@ public class MineSweeper_GameManager : MonoBehaviour
         IsGameStarted = false;
         timer = 0;
         
+        OnGameOver?.Invoke(false);
+
         int rows, cols, mines;
 
         switch (difficulty)
@@ -95,6 +108,18 @@ public class MineSweeper_GameManager : MonoBehaviour
         uiManager.UpdateMineCount(remainingMines);
     }
 
+    public void AddScore(int amount)
+    {
+        // MineSweeper doesn't have a score in the same way, but we implement the interface.
+        OnScoreChanged?.Invoke(amount);
+    }
+
+    public void EndGame()
+    {
+        // This would be called if the game ends from outside, but MS ends via GameOver(win)
+        GameOver(false);
+    }
+
     public void GameOver(bool win)
     {
         IsGameOver = true;
@@ -102,6 +127,8 @@ public class MineSweeper_GameManager : MonoBehaviour
         {
             SaveBestTime();
         }
+
+        OnGameOver?.Invoke(true);
 
         // Show game over panel immediately so user doesn't wait for ad
         uiManager.ShowGameOverPanel(true, win, timer, GetBestTimeForCurrentDifficulty());
@@ -113,17 +140,9 @@ public class MineSweeper_GameManager : MonoBehaviour
     private void LoadBestTimes()
     {
         MineSweeperData data = new MineSweeperData();
-        if (File.Exists(SavePaths.MineSweeperDataPath))
+        if (SaveManager.Exists("MineSweeper.json"))
         {
-            string json = File.ReadAllText(SavePaths.MineSweeperDataPath);
-            if (!string.IsNullOrEmpty(json))
-            {
-                MineSweeperData loadedData = JsonUtility.FromJson<MineSweeperData>(json);
-                if (loadedData != null)
-                {
-                    data = loadedData;
-                }
-            }
+            data = SaveManager.LoadData<MineSweeperData>("MineSweeper.json");
         }
         uiManager.UpdateBestTimes(data);
     }
@@ -131,10 +150,9 @@ public class MineSweeper_GameManager : MonoBehaviour
     private void SaveBestTime()
     {
         MineSweeperData data = new MineSweeperData();
-        if (File.Exists(SavePaths.MineSweeperDataPath))
+        if (SaveManager.Exists("MineSweeper.json"))
         {
-            string json = File.ReadAllText(SavePaths.MineSweeperDataPath);
-            data = JsonUtility.FromJson<MineSweeperData>(json);
+            data = SaveManager.LoadData<MineSweeperData>("MineSweeper.json");
         }
 
         bool newBest = false;
@@ -153,17 +171,16 @@ public class MineSweeper_GameManager : MonoBehaviour
 
         if (newBest)
         {
-            string json = JsonUtility.ToJson(data);
-            File.WriteAllText(SavePaths.MineSweeperDataPath, json);
+            SaveManager.SaveData("MineSweeper.json", data);
+            OnBestScoreChanged?.Invoke((int)timer); // Using time as "best score" for MS
         }
     }
 
     private float GetBestTimeForCurrentDifficulty()
     {
-        if (File.Exists(SavePaths.MineSweeperDataPath))
+        if (SaveManager.Exists("MineSweeper.json"))
         {
-            string json = File.ReadAllText(SavePaths.MineSweeperDataPath);
-            MineSweeperData data = JsonUtility.FromJson<MineSweeperData>(json);
+            MineSweeperData data = SaveManager.LoadData<MineSweeperData>("MineSweeper.json");
             switch (currentDifficulty)
             {
                 case MineSweeperDifficulty.Beginner: return data.bestTimeBeginner;
@@ -176,15 +193,29 @@ public class MineSweeper_GameManager : MonoBehaviour
 
     public void RestartGame()
     {
-        AdEventBus.TriggerGamePlayEnded(MinigameType.MineSweeper, () => {
+        if (IsGameOver)
+        {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        });
+        }
+        else
+        {
+            AdEventBus.TriggerGamePlayEnded(MinigameType.MineSweeper, () => {
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            });
+        }
     }
 
     public void GoToTitle()
     {
-        AdEventBus.TriggerGamePlayEnded(MinigameType.MineSweeper, () => {
+        if (IsGameOver)
+        {
             SceneManager.LoadScene("Title");
-        });
+        }
+        else
+        {
+            AdEventBus.TriggerGamePlayEnded(MinigameType.MineSweeper, () => {
+                SceneManager.LoadScene("Title");
+            });
+        }
     }
 }

@@ -3,11 +3,9 @@ using UnityEngine.UI;
 
 public class Cell_2D : BaseCell
 {
-    // public Vector2Int gridPosition; // Removed since it's in BaseCell
-    public bool IsEmpty { get; private set; }
     public bool IsPreviewing { get; private set; }
     public bool IsClearing { get; private set; }
-    public Color BlockColor { get; private set; } // New: Stores the color of the block occupying this cell
+    public Color BlockColor { get; private set; } 
 
     public Image cellImage;
     private Animator animator;
@@ -29,27 +27,29 @@ public class Cell_2D : BaseCell
             animator.SetTrigger("Clear");
         }
         
-        // Logic state update
-        IsEmpty = true;
+        // 데이터 상으로는 즉시 비어있는 것으로 간주할지, 
+        // 아니면 애니메이션 종료 후 비우게 할지에 따라 IsEmpty 설정 시점이 달라집니다.
+        // 기존 로직(IsEmpty = true)을 유지하여 그리드 판정 시 혼선이 없게 합니다.
+        base.SetEmpty(); // BaseCell의 IsEmpty = true만 설정 (스프라이트 미교체)
         BlockColor = Color.clear;
     }
 
-    public void Initialize(int row, int col, bool isEmpty)
+    public override void Initialize(int row, int col, bool isEmpty)
     {
-        base.Initialize(row, col);
-        IsEmpty = isEmpty;
+        base.Initialize(row, col, isEmpty);
         IsPreviewing = false;
         IsClearing = false;
-        BlockColor = Color.clear; // Initialize with a transparent color
+        BlockColor = Color.clear; 
 
-        if (IsEmpty) SetEmpty(); else SetOccupied(BlockColor); // Initialize visuals based on IsEmpty, pass stored color
+        // 초기화 시에는 즉시 시각적 상태 반영
+        if (IsEmpty) UpdateVisualsToEmpty(); else SetOccupied(BlockColor); 
     }
 
     public void SetOccupied(Color color)
     {
+        base.SetOccupied(); // Set IsEmpty = false via BaseCell
         IsClearing = false;
-        IsEmpty = false;
-        BlockColor = color; // Store the color
+        BlockColor = color; 
 
         if (animator != null)
         {
@@ -60,34 +60,29 @@ public class Cell_2D : BaseCell
         {
             cellImage.sprite = GridManager_2D.Instance.defaultOccupiedCellSprite;
             cellImage.color = BlockColor; // Apply the block's color
-            transform.localScale = Vector3.one; // Ensure scale is 1 when occupied
+            transform.localScale = Vector3.one; 
         }
     }
 
+    // 기존 SetEmpty 로직을 시각적 업데이트와 논리 업데이트로 명확히 분리
     public void SetEmpty()
     {
-        // If we are not clearing but SetEmpty is called (e.g. from an old animation event),
-        // and the cell is currently occupied, we should skip it.
-        if (!IsClearing && !IsEmpty)
-        {
-            return;
-        }
+        if (!IsClearing && !IsEmpty) return;
 
         IsClearing = false;
-        IsEmpty = true;
-        BlockColor = Color.clear; // Reset color when empty
+        base.SetEmpty(); 
+        BlockColor = Color.clear;
 
-        if (animator != null)
-        {
-            // Only play idle if we are not already in it or to ensure reset
-            // animator.Play("New State", 0, 0f); 
-        }
+        UpdateVisualsToEmpty();
+    }
 
+    private void UpdateVisualsToEmpty()
+    {
         if (cellImage != null && GridManager_2D.Instance != null)
         {
             cellImage.sprite = GridManager_2D.Instance.defaultEmptyCellSprite;
-            cellImage.color = Color.white; // Default color for empty cells
-            transform.localScale = Vector3.one; // Ensure scale is reset to 1
+            cellImage.color = Color.white;
+            transform.localScale = Vector3.one;
         }
     }
 

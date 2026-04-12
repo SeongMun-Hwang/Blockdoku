@@ -2,14 +2,18 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
+using System;
 using static SavePaths;
 
-public class GameManager_2D : MonoBehaviour
+public class GameManager_2D : MonoBehaviour, IGameManager
 {
     public static GameManager_2D Instance { get; private set; }
 
-    public UIManager_2D uiManager; // To be created
+    public event Action<int> OnScoreChanged;
+    public event Action<int> OnBestScoreChanged;
+    public event Action<bool> OnGameOver;
+
+    public UIManager_2D uiManager; 
     public GridManager_2D gridManager;
     [SerializeField] public BlockSpawner_2D blockSpawner;
     [SerializeField] public AudioManager_2D audioManager;
@@ -18,6 +22,8 @@ public class GameManager_2D : MonoBehaviour
     private int bestScore = 0;
     public int combo = 0;
     private bool isGameOver = false;
+
+    // ... (rest of methods)
 
     void OnEnable()
     {
@@ -79,22 +85,17 @@ public class GameManager_2D : MonoBehaviour
         score = 0;
         combo = 0;
         isGameOver = false;
-        uiManager.UpdateScore(score);
-        uiManager.UpdateBestScore(bestScore);
-        uiManager.ShowGameOverPanel(false);
-        Debug.Log($"GridManager is null in StartGame: {gridManager == null}");
-        Debug.Log("Calling gridManager.InitializeGrid().");
+
+        OnScoreChanged?.Invoke(score);
+        OnBestScoreChanged?.Invoke(bestScore);
+        OnGameOver?.Invoke(false);
+
         gridManager.InitializeGrid();
-        RemoveGameData(); // Start a new game, so remove old save data
-        Debug.Log($"BlockSpawner is null in StartGame: {blockSpawner == null}");
+        RemoveGameData(); 
+        
         if (blockSpawner != null)
         {
-            blockSpawner.SpawnBlocks(); // <--- Added this line to spawn blocks
-            Debug.Log("BlockSpawner.SpawnBlocks() called.");
-        }
-        else
-        {
-            Debug.LogError("BlockSpawner is null, cannot spawn blocks.");
+            blockSpawner.SpawnBlocks();
         }
     }
 
@@ -104,10 +105,9 @@ public class GameManager_2D : MonoBehaviour
         if (addedScore > 0)
         {
             score += addedScore;
-            uiManager.UpdateScore(score);
+            OnScoreChanged?.Invoke(score);
             uiManager.ShowFloatingScore(addedScore, combo);
 
-            // Trigger effects: Vibration and Grid Shake
             uiManager.Vibrate();
             gridManager.ShakeGrid(combo);
         }
@@ -119,7 +119,7 @@ public class GameManager_2D : MonoBehaviour
         if (addedScore > 0)
         {
             score += addedScore;
-            uiManager.UpdateScore(score);
+            OnScoreChanged?.Invoke(score);
             uiManager.ShowFloatingScore(addedScore, combo, message);
         }
     }
@@ -140,18 +140,16 @@ public class GameManager_2D : MonoBehaviour
         if (score > bestScore)
         {
             bestScore = score;
+            OnBestScoreChanged?.Invoke(bestScore);
         }
         SavePersonalData();
-        Debug.Log("Game Over! Final Score: " + score);
-        RemoveGameData(); // 게임 오버 시 세이브 데이터 삭제
+        RemoveGameData(); 
 
-        // 1. 먼저 게임오버 패널을 즉시 표시
-        uiManager.ShowGameOverPanel(true, score, bestScore);
+        OnGameOver?.Invoke(true);
 
-        // 2. 그 다음 광고 실행 (콜백에서는 추가 작업 없음)
         AdEventBus.TriggerGamePlayEnded(MinigameType.Blockdoku, () =>
         {
-            Debug.Log("Ad finished after GameOver panel was already shown.");
+            Debug.Log("Ad finished after GameOver.");
         });
     }
 
@@ -202,8 +200,8 @@ public class GameManager_2D : MonoBehaviour
         (int loadedScore, int loadedCombo) = gridManager.LoadBoardData_2D();
         score = loadedScore;
         combo = loadedCombo;
-        uiManager.UpdateScore(score); 
-        uiManager.UpdateBestScore(bestScore);
+        OnScoreChanged?.Invoke(score);
+        OnBestScoreChanged?.Invoke(bestScore);
         blockSpawner.LoadBlockData_2D();
         Debug.Log("2D Game data loaded!");
     }
@@ -211,16 +209,14 @@ public class GameManager_2D : MonoBehaviour
     public void SavePersonalData()
     {
         PersonalData data = new PersonalData { bestScore = this.bestScore };
-        string json = JsonUtility.ToJson(data);
-        File.WriteAllText(PersonalDataPath, json);
+        SaveManager.SaveData("personal.json", data);
     }
 
     public void LoadPersonalData()
     {
-        if (File.Exists(PersonalDataPath))
+        if (SaveManager.Exists("personal.json"))
         {
-            string json = File.ReadAllText(PersonalDataPath);
-            PersonalData data = JsonUtility.FromJson<PersonalData>(json);
+            PersonalData data = SaveManager.LoadData<PersonalData>("personal.json");
             bestScore = data.bestScore;
         }
     }

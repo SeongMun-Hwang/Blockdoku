@@ -17,15 +17,43 @@ namespace Games._2048
         [SerializeField] private Button backToTitlePanelbutton;
         [SerializeField] private Button restartGameButton;
         [SerializeField] private TextMeshProUGUI finalScoreTmp;
+
         void Awake()
         {
             if (Instance == null) Instance = this;
             else Destroy(gameObject);
+
+            if (gameOverPanel != null) gameOverPanel.SetActive(false);
+        }
+
+        void OnEnable()
+        {
+            if (GameManager2048.Instance != null)
+            {
+                GameManager2048.Instance.OnScoreChanged += UpdateScoreUI;
+                GameManager2048.Instance.OnBestScoreChanged += UpdateBestScoreUI;
+                GameManager2048.Instance.OnGameOver += ShowGameOverUI;
+            }
+        }
+
+        void OnDisable()
+        {
+            if (GameManager2048.Instance != null)
+            {
+                GameManager2048.Instance.OnScoreChanged -= UpdateScoreUI;
+                GameManager2048.Instance.OnBestScoreChanged -= UpdateBestScoreUI;
+                GameManager2048.Instance.OnGameOver -= ShowGameOverUI;
+            }
         }
 
         void Start()
         {
+            // Re-subscribe if OnEnable failed due to initialization order
+            GameManager2048.Instance.OnScoreChanged -= UpdateScoreUI;
             GameManager2048.Instance.OnScoreChanged += UpdateScoreUI;
+            GameManager2048.Instance.OnBestScoreChanged -= UpdateBestScoreUI;
+            GameManager2048.Instance.OnBestScoreChanged += UpdateBestScoreUI;
+            GameManager2048.Instance.OnGameOver -= ShowGameOverUI;
             GameManager2048.Instance.OnGameOver += ShowGameOverUI;
 
             if (backToTitleButton != null)
@@ -40,42 +68,43 @@ namespace Games._2048
             {
                 restartGameButton.onClick.AddListener(RestartGame);
             }
-            UpdateHighScoreUI();
-            gameOverPanel.SetActive(false);
-        }
-
-        void OnDestroy()
-        {
-            if (GameManager2048.Instance != null)
-            {
-                GameManager2048.Instance.OnScoreChanged -= UpdateScoreUI;
-                GameManager2048.Instance.OnGameOver -= ShowGameOverUI;
-            }
+            
+            // Initial UI Sync
+            UpdateScoreUI(GameManager2048.Instance.Score);
+            UpdateBestScoreUI(GameManager2048.Instance.HighScore);
         }
 
         private void UpdateScoreUI(int score)
         {
-            scoreText.text = score.ToString();
+            if (scoreText != null) scoreText.text = score.ToString();
         }
 
-        private void UpdateHighScoreUI()
+        private void UpdateBestScoreUI(int bestScore)
         {
-            highScoreText.text = GameManager2048.Instance.HighScore.ToString();
+            if (highScoreText != null) highScoreText.text = bestScore.ToString();
         }
 
-        private void ShowGameOverUI()
+        private void ShowGameOverUI(bool isGameOver)
         {
-            gameOverPanel.SetActive(true);
-            UpdateHighScoreUI();
-            if (finalScoreTmp != null)
+            if (gameOverPanel != null)
             {
-                finalScoreTmp.text = GameManager2048.Instance.Score.ToString();
+                gameOverPanel.SetActive(isGameOver);
+                if (isGameOver)
+                {
+                    if (finalScoreTmp != null)
+                    {
+                        finalScoreTmp.text = GameManager2048.Instance.Score.ToString();
+                    }
+                    UpdateBestScoreUI(GameManager2048.Instance.HighScore);
+                }
             }
         }
+
         private void RestartGame()
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
+
         private void OnBackToTitleClicked()
         {
             if (UI_Functions.Instance != null)

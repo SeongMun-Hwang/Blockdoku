@@ -2,15 +2,21 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.IO;
+using System;
 
-public class TENSUM_GameManager : MonoBehaviour
+public class TENSUM_GameManager : MonoBehaviour, IGameManager
 {
     public static TENSUM_GameManager Instance { get; private set; }
+
+    public event Action<int> OnScoreChanged;
+    public event Action<int> OnBestScoreChanged;
+    public event Action<bool> OnGameOver;
 
     public UIManager uiManager;
     public GridManager gridManager;
 
     private int score = 0;
+    private int bestScore = 0;
     private float timer;
     private bool isGameOver = false;
 
@@ -21,6 +27,7 @@ public class TENSUM_GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            LoadBestScore();
         }
         else
         {
@@ -52,80 +59,84 @@ public class TENSUM_GameManager : MonoBehaviour
         score = 0;
         timer = GAME_DURATION;
         isGameOver = false;
-        uiManager.UpdateScore(score);
-        uiManager.ShowGameOverPanel(false);
-        gridManager.InitializeGrid();
+        
+        OnScoreChanged?.Invoke(score);
+        OnBestScoreChanged?.Invoke(bestScore);
+        OnGameOver?.Invoke(false);
 
-        // Load and display best score on main game screen
-        int bestScore = 0;
-        if (File.Exists(SavePaths.TenSumDataPath))
-        {
-            string json = File.ReadAllText(SavePaths.TenSumDataPath);
-            TenSumData data = JsonUtility.FromJson<TenSumData>(json);
-            bestScore = data.bestScore;
-        }
+        gridManager.InitializeGrid();
         uiManager.UpdateBestScoreMainGame(bestScore);
     }
 
     public void AddScore(int amount)
     {
         score += amount;
-        uiManager.UpdateScore(score);
+        OnScoreChanged?.Invoke(score);
+        if (uiManager != null) uiManager.UpdateScore(score);
     }
 
-    private void EndGame()
+    public int GetScore() => score;
+    public int GetBestScore() => bestScore;
+
+    public void EndGame()
     {
+        if (isGameOver) return;
         isGameOver = true;
-        int currentBestScore = 0;
-        if (File.Exists(SavePaths.TenSumDataPath))
+        
+        if (score > bestScore)
         {
-            string json = File.ReadAllText(SavePaths.TenSumDataPath);
-            TenSumData data = JsonUtility.FromJson<TenSumData>(json);
-            currentBestScore = data.bestScore;
+            bestScore = score;
+            OnBestScoreChanged?.Invoke(bestScore);
+            SaveBestScore();
         }
 
-        SaveScore();
+        OnGameOver?.Invoke(true);
+        if (uiManager != null) uiManager.ShowGameOverPanel(true, score, bestScore);
 
-        // Show game over panel immediately
-        uiManager.ShowGameOverPanel(true, score, currentBestScore);
-
-        // Trigger ad in the background
         AdEventBus.TriggerGamePlayEnded(MinigameType.TenSum, null);
     }
 
-    private void SaveScore()
+    private void SaveBestScore()
     {
-        int bestScore = 0;
-        if (File.Exists(SavePaths.TenSumDataPath))
-        {
-            string json = File.ReadAllText(SavePaths.TenSumDataPath);
-            TenSumData data = JsonUtility.FromJson<TenSumData>(json);
-            bestScore = data.bestScore;
-        }
+        TenSumData data = new TenSumData { bestScore = bestScore };
+        SaveManager.SaveData("TenSum.json", data);
+    }
 
-        if (score > bestScore)
+    private void LoadBestScore()
+    {
+        if (SaveManager.Exists("TenSum.json"))
         {
-            TenSumData data = new TenSumData
-            {
-                bestScore = score
-            };
-            string json = JsonUtility.ToJson(data);
-            File.WriteAllText(SavePaths.TenSumDataPath, json);
+            TenSumData data = SaveManager.LoadData<TenSumData>("TenSum.json");
+            bestScore = data.bestScore;
         }
     }
 
     public void RestartGame()
     {
-        AdEventBus.TriggerGamePlayEnded(MinigameType.TenSum, () => {
+        if (isGameOver)
+        {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        });
+        }
+        else
+        {
+            AdEventBus.TriggerGamePlayEnded(MinigameType.TenSum, () => {
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            });
+        }
     }
 
     public void GoToTitle()
     {
-        AdEventBus.TriggerGamePlayEnded(MinigameType.TenSum, () => {
+        if (isGameOver)
+        {
             SceneManager.LoadScene("Title");
-        });
+        }
+        else
+        {
+            AdEventBus.TriggerGamePlayEnded(MinigameType.TenSum, () => {
+                SceneManager.LoadScene("Title");
+            });
+        }
     }
 
     public bool IsGameOver()

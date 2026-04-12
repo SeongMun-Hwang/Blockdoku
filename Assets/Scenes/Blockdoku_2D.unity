@@ -2444,10 +2444,10 @@ RectTransform:
   - {fileID: 1848987601}
   m_Father: {fileID: 1624014556}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -12.833}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 124.928696, y: 16.350597}
-  m_SizeDelta: {x: -700, y: -900}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 124.928696, y: 16.350601}
+  m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &418368996
 Animator:
@@ -5482,9 +5482,7 @@ MonoBehaviour:
     mainBlock: {fileID: 11400000, guid: bf541888ec2a6dd4b8a90fea10aa2ab0, type: 2}
     variants:
     - {fileID: 11400000, guid: a213f4a0a40fc7142ba152e52d34fa92, type: 2}
-  - groupName: Symmetry Pair2
-    mainBlock: {fileID: 11400000, guid: f1adb3ebdde84834797979b6f6b279fc, type: 2}
-    variants:
+    - {fileID: 11400000, guid: f1adb3ebdde84834797979b6f6b279fc, type: 2}
     - {fileID: 11400000, guid: 80ab0d7a5114d7d45b5f499a9558d700, type: 2}
   - groupName: Pure Symmetry
     mainBlock: {fileID: 11400000, guid: e3fdd4991cf48734f98f92c143d56a0a, type: 2}
@@ -5503,8 +5501,6 @@ MonoBehaviour:
     variants:
     - {fileID: 11400000, guid: 5dd5179b9e14d584fb52ff33a998a82a, type: 2}
     - {fileID: 11400000, guid: 7a70e3150cb4ed64787322c285b0810d, type: 2}
-    - {fileID: 11400000, guid: 60e09fc7210d9364b82f831fe2ed595e, type: 2}
-    - {fileID: 11400000, guid: 5dc8028f171065f4291f08335f2e3099, type: 2}
   - groupName: 
     mainBlock: {fileID: 11400000, guid: faa0be857baa3744c969fec0cce2e5c0, type: 2}
     variants:
@@ -13232,7 +13228,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BlockdokuAutoTester
   targetRuns: 10
   moveDelay: 0.1
-  useBestMove: 1
+  useSmartAI: 1
   isTesting: 0
   currentRun: 0
   lastScore: 0

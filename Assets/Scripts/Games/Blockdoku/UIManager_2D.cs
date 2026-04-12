@@ -57,6 +57,45 @@ public class UIManager_2D : MonoBehaviour
         }
     }
 
+    void OnEnable()
+    {
+        if (GameManager_2D.Instance != null)
+        {
+            GameManager_2D.Instance.OnScoreChanged += UpdateScore;
+            GameManager_2D.Instance.OnBestScoreChanged += UpdateBestScore;
+            GameManager_2D.Instance.OnGameOver += HandleGameOver;
+        }
+    }
+
+    void OnDisable()
+    {
+        if (GameManager_2D.Instance != null)
+        {
+            GameManager_2D.Instance.OnScoreChanged -= UpdateScore;
+            GameManager_2D.Instance.OnBestScoreChanged -= UpdateBestScore;
+            GameManager_2D.Instance.OnGameOver -= HandleGameOver;
+        }
+    }
+
+    private void HandleGameOver(bool isOver)
+    {
+        if (isOver)
+        {
+            int finalScore = GameManager_2D.Instance.GetScore();
+            int bestScore = 0;
+            if (SaveManager.Exists("personal.json"))
+            {
+                bestScore = SaveManager.LoadData<PersonalData>("personal.json").bestScore;
+            }
+            
+            ShowGameOverPanel(true, finalScore, bestScore);
+        }
+        else
+        {
+            ShowGameOverPanel(false);
+        }
+    }
+
     public void UpdateScore(int score)
     {
         if (scoreText != null) scoreText.text = $"{score}";
@@ -82,10 +121,12 @@ public class UIManager_2D : MonoBehaviour
             gameOverPanel.SetActive(show);
             if (show)
             {
-                if (finalScoreText != null) finalScoreText.text = $"Score: {finalScore}";
+                if (finalScoreText != null) finalScoreText.text = $"{finalScore}";
                 if (newBestObj != null)
                 {
-                    if (finalScore > bestScore) newBestObj.SetActive(true);
+                    // If current score is greater than or equal to (the potentially updated) best score
+                    // and not zero, then it's a new or equal best score worth highlighting.
+                    newBestObj.SetActive(finalScore > 0 && finalScore >= bestScore);
                 }
                 
                 Vibrate();

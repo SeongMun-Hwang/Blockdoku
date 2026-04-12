@@ -13,6 +13,29 @@ public class UIManager : MonoBehaviour
     public Button restartButton;
     public Button titleButton;
 
+    void OnEnable()
+    {
+        if (TENSUM_GameManager.Instance != null)
+        {
+            TENSUM_GameManager.Instance.OnScoreChanged += UpdateScore;
+            TENSUM_GameManager.Instance.OnBestScoreChanged += UpdateBestScoreMainGame;
+            TENSUM_GameManager.Instance.OnGameOver += (isOver) => 
+            {
+                if (isOver) ShowGameOverPanel(true, TENSUM_GameManager.Instance.GetScore(), 0); 
+                else ShowGameOverPanel(false);
+            };
+        }
+    }
+
+    void OnDisable()
+    {
+        if (TENSUM_GameManager.Instance != null)
+        {
+            TENSUM_GameManager.Instance.OnScoreChanged -= UpdateScore;
+            TENSUM_GameManager.Instance.OnBestScoreChanged -= UpdateBestScoreMainGame;
+        }
+    }
+
     void Awake()
     {
         // Ensure the game over panel is hidden at the start

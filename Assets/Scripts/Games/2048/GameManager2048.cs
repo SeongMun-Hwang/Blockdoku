@@ -3,7 +3,7 @@ using System;
 
 namespace Games._2048
 {
-    public class GameManager2048 : MonoBehaviour
+    public class GameManager2048 : MonoBehaviour, IGameManager
     {
         public static GameManager2048 Instance { get; private set; }
 
@@ -12,7 +12,8 @@ namespace Games._2048
         public bool IsGameOver { get; private set; }
 
         public event Action<int> OnScoreChanged;
-        public event Action OnGameOver;
+        public event Action<int> OnBestScoreChanged;
+        public event Action<bool> OnGameOver;
 
         void Awake()
         {
@@ -33,7 +34,11 @@ namespace Games._2048
         void Start()
         {
             LoadHighScore();
-            
+            StartGame();
+        }
+
+        public void StartGame()
+        {
             bool hasSave = System.IO.File.Exists(SavePaths._2048DataPath);
             if (hasSave)
             {
@@ -50,12 +55,16 @@ namespace Games._2048
             Score = 0;
             IsGameOver = false;
             OnScoreChanged?.Invoke(Score);
+            OnBestScoreChanged?.Invoke(HighScore);
+            OnGameOver?.Invoke(false);
             GridManager2048.Instance.InitializeGrid(false);
         }
 
         public void StartLoadedGame()
         {
             IsGameOver = false;
+            OnGameOver?.Invoke(false);
+            OnBestScoreChanged?.Invoke(HighScore);
             // GridManager2048.InitializeGrid(true) will call SetScore via LoadBoard
             GridManager2048.Instance.InitializeGrid(true);
         }
@@ -90,8 +99,14 @@ namespace Games._2048
             if (Score > HighScore)
             {
                 HighScore = Score;
+                OnBestScoreChanged?.Invoke(HighScore);
                 SaveHighScore();
             }
+        }
+
+        public void EndGame()
+        {
+            GameOver();
         }
 
         private void GameOver()
@@ -99,7 +114,7 @@ namespace Games._2048
             IsGameOver = true;
             GridManager2048.Instance.ClearSave();
             
-            OnGameOver?.Invoke();
+            OnGameOver?.Invoke(true);
             Debug.Log("Game Over Panel Activated");
 
             AdEventBus.TriggerGamePlayEnded(MinigameType._2048, () => {
