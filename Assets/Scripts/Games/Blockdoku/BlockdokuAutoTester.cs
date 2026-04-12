@@ -64,34 +64,47 @@ public class BlockdokuAutoTester : MonoBehaviour
 
     public void ExportToCSV()
     {
+        // Get the parent directory of Assets (the Project Root)
+        string projectRoot = Directory.GetParent(Application.dataPath).FullName;
         string fileName = "TestingResults.csv";
-        string path = Path.Combine(Application.dataPath, "../" + fileName);
+        string path = Path.Combine(projectRoot, fileName);
 
-        bool fileExists = File.Exists(path);
-
-        // Open in 'append' mode (true)
-        using (StreamWriter sw = new StreamWriter(path, true))
+        try
         {
-            // Add a header and timestamp for each new export session
-            sw.WriteLine("");
-            sw.WriteLine($"--- Test Session Started at: {System.DateTime.Now:yyyy-MM-dd HH:mm:ss} ---");
-            
-            if (!fileExists)
+            bool fileExists = File.Exists(path);
+
+            // Open in 'append' mode (true)
+            using (StreamWriter sw = new StreamWriter(path, true))
             {
-                sw.WriteLine("Run,Score");
+                sw.WriteLine("");
+                sw.WriteLine($"--- Test Session Exported at: {System.DateTime.Now:yyyy-MM-dd HH:mm:ss} ---");
+                
+                if (!fileExists)
+                {
+                    sw.WriteLine("Run,Score");
+                }
+
+                for (int i = 0; i < scoreHistory.Count; i++)
+                {
+                    sw.WriteLine($"{i + 1},{scoreHistory[i]}");
+                }
+                
+                sw.WriteLine($"SESSION AVERAGE,{averageScore:F1}");
+                sw.WriteLine($"SESSION RUNS,{scoreHistory.Count}");
+                sw.WriteLine("------------------------------------------");
             }
 
-            for (int i = 0; i < scoreHistory.Count; i++)
-            {
-                sw.WriteLine($"{i + 1},{scoreHistory[i]}");
-            }
-            
-            sw.WriteLine($"SESSION AVERAGE,{averageScore:F1}");
-            sw.WriteLine($"SESSION RUNS,{scoreHistory.Count}");
-            sw.WriteLine("------------------------------------------");
+            Debug.Log($"<color=green><b>Test results appended successfully to:</b></color> {path}");
         }
-
-        Debug.Log($"<color=green><b>Test results appended successfully to:</b></color> {path}");
+        catch (IOException e)
+        {
+            // Specifically handle cases where the file is locked by another process (like Excel)
+            Debug.LogError($"<color=red><b>Failed to write CSV:</b></color> The file might be open in Excel. Close it and try again.\nDetails: {e.Message}");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"<color=red><b>An unexpected error occurred:</b></color> {e.Message}");
+        }
     }
 
     private IEnumerator AutoPlayRoutine()

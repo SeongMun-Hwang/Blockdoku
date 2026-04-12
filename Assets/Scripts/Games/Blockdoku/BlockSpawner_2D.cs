@@ -31,6 +31,13 @@ public class BlockSpawner_2D : MonoBehaviour
         }
     }
 
+    [System.Serializable]
+    public class BlockSpawnItem
+    {
+        public bool isActive = true;
+        public BlockArray block;
+    }
+
     /// <summary>
     /// A group consisting of a main BlockArray and several variant BlockArrays.
     /// Used to group similar shapes together to prevent them from overwhelming the spawn pool.
@@ -39,32 +46,50 @@ public class BlockSpawner_2D : MonoBehaviour
     public class BlockSpawnGroup
     {
         public string groupName; // Helpful for organizing in the Inspector
+        public bool isActive = true;
         [Tooltip("The primary BlockArray for this group.")]
-        public BlockArray mainBlock;
+        public BlockSpawnItem mainBlock;
         [Tooltip("List of alternative BlockArrays that can be spawned for this group.")]
-        public List<BlockArray> variants;
+        public List<BlockSpawnItem> variants;
 
         /// <summary>
-        /// Picks either the main block or one of its variants at random.
+        /// Checks if this group has at least one active block item.
+        /// </summary>
+        public bool HasActiveItems()
+        {
+            if (!isActive) return false;
+            if (mainBlock != null && mainBlock.isActive && mainBlock.block != null) return true;
+            if (variants != null)
+            {
+                foreach (var v in variants)
+                    if (v != null && v.isActive && v.block != null) return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Picks either the main block or one of its variants at random from the active ones.
         /// </summary>
         public BlockArray GetRandomBlock()
         {
-            int totalOptions = (mainBlock != null ? 1 : 0) + (variants != null ? variants.Count : 0);
-            if (totalOptions == 0) return null;
+            if (!isActive) return null;
 
-            int choice = Random.Range(0, totalOptions);
+            List<BlockArray> activeOptions = new List<BlockArray>();
+            if (mainBlock != null && mainBlock.isActive && mainBlock.block != null)
+                activeOptions.Add(mainBlock.block);
 
-            if (mainBlock != null && choice == 0)
+            if (variants != null)
             {
-                return mainBlock;
+                foreach (var variant in variants)
+                {
+                    if (variant != null && variant.isActive && variant.block != null)
+                        activeOptions.Add(variant.block);
+                }
             }
-            else
-            {
-                // If mainBlock is null, choice starts from 0 for variants.
-                // If mainBlock is not null, choice 0 is mainBlock, so choice 1 is variants[0].
-                int variantIndex = (mainBlock != null) ? choice - 1 : choice;
-                return variants[variantIndex];
-            }
+
+            if (activeOptions.Count == 0) return null;
+
+            return activeOptions[Random.Range(0, activeOptions.Count)];
         }
     }
 
@@ -92,8 +117,14 @@ public class BlockSpawner_2D : MonoBehaviour
             if (_cachedAllPossibleBlocks == null)
             {
                 _cachedAllPossibleBlocks = blockGroups
-                    .SelectMany(g => (g.variants ?? new List<BlockArray>()).Concat(new[] { g.mainBlock }))
-                    .Where(b => b != null)
+                    .SelectMany(g => 
+                    {
+                        var list = new List<BlockArray>();
+                        if (g.mainBlock != null && g.mainBlock.block != null) list.Add(g.mainBlock.block);
+                        if (g.variants != null) 
+                            list.AddRange(g.variants.Where(v => v != null && v.block != null).Select(v => v.block));
+                        return list;
+                    })
                     .Distinct()
                     .ToList();
             }
@@ -151,12 +182,25 @@ public class BlockSpawner_2D : MonoBehaviour
         bool isPlaceableSetFound = false;
         int maxAttempts = 100; // Safety break
 
+        // Filter active groups once outside the loop
+        var activeGroupIndexes = new List<int>();
+        for (int i = 0; i < blockGroups.Count; i++)
+        {
+            if (blockGroups[i].isActive) activeGroupIndexes.Add(i);
+        }
+
+        if (activeGroupIndexes.Count == 0)
+        {
+            Debug.LogWarning("BlockSpawner_2D: No active block groups found!");
+            return pendingSet;
+        }
+
         while (!isPlaceableSetFound && maxAttempts-- > 0)
         {
             pendingSet.Clear();
             
-            // Pick unique groups
-            var selectedGroupIndexes = Enumerable.Range(0, blockGroups.Count)
+            // Pick unique groups from active ones
+            var selectedGroupIndexes = activeGroupIndexes
                 .OrderBy(x => Random.value)
                 .Take(spawnPositions.Count)
                 .ToList();
