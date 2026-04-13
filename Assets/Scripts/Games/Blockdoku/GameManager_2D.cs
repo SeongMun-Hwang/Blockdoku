@@ -123,14 +123,17 @@ public class GameManager_2D : MonoBehaviour, IGameManager
             OnScoreChanged?.Invoke(score);
             
             string combinedMsg = string.Join(" ", batchMessages);
-            uiManager.ShowFloatingScore(batchScore, batchMaxCombo, combinedMsg);
+            
+            // Only show combo if something was cleared or a special message (which increments combo) was triggered this turn
+            int displayCombo = (batchHasClearedAny || batchMessages.Count > 0) ? combo : 0;
+            uiManager.ShowFloatingScore(batchScore, displayCombo, combinedMsg);
 
             uiManager.Vibrate();
             
             // Only shake the grid if lines were actually cleared
             if (batchHasClearedAny)
             {
-                gridManager.ShakeGrid(batchMaxCombo);
+                gridManager.ShakeGrid(combo);
             }
         }
     }

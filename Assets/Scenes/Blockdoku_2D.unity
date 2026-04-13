@@ -5663,7 +5663,7 @@ MonoBehaviour:
   symmetryEffectPrefab: {fileID: 277924828980795663, guid: 81b5c3be9fdc2fe41973f8f2eeed8a57, type: 3}
   symmetryEffectContainer: {fileID: 1973816862}
   symmetryEffectDuration: 0.8
-  ghostStepDistance: 1
+  ghostStepDistance: 2
   shakeDuration: 0.15
   shakeMagnitude: 3
   subgridBorderColor: {r: 0, g: 0, b: 0, a: 0.74509805}
