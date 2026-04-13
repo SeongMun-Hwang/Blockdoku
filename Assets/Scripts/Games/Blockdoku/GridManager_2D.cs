@@ -128,6 +128,9 @@ public class GridManager_2D : MonoBehaviour
     public int PlaceBlock(Vector2Int gridPosition, List<Vector2Int> blockShape, Color blockColor)
     {
         StopClearPredictBlink();
+
+        if (GameManager_2D.Instance != null) GameManager_2D.Instance.StartBatchScoring();
+
         foreach (var pos in blockShape)
         {
             int r = gridPosition.y - pos.y;
@@ -135,8 +138,14 @@ public class GridManager_2D : MonoBehaviour
             grid[r, c].SetOccupied(blockColor);
         }
 
-        int clearCount = CheckForCompletedLines();
-        if (GameManager_2D.Instance != null) GameManager_2D.Instance.SaveGameData();
+        // Pass block size as placementScore to combine it with clear score if lines are cleared
+        int clearCount = CheckForCompletedLines(blockShape.Count);
+        
+        if (GameManager_2D.Instance != null)
+        {
+            GameManager_2D.Instance.EndBatchScoring();
+            GameManager_2D.Instance.SaveGameData();
+        }
         return clearCount;
     }
 
@@ -257,7 +266,7 @@ public class GridManager_2D : MonoBehaviour
         return count;
     }
 
-    public int CheckForCompletedLines()
+    public int CheckForCompletedLines(int placementScore = 0)
     {
         bool[,] currentOccupied = new bool[GRID_SIZE, GRID_SIZE];
         for (int r = 0; r < GRID_SIZE; r++)
@@ -267,6 +276,12 @@ public class GridManager_2D : MonoBehaviour
         if (completedPositions.Count == 0)
         {
             if (!CheckSymmetry()) GameManager_2D.Instance.combo = 0;
+            
+            // If nothing cleared, still add the placement score
+            if (placementScore > 0)
+            {
+                GameManager_2D.Instance.AddPlacementScore(placementScore);
+            }
             return 0;
         }
 
@@ -292,7 +307,9 @@ public class GridManager_2D : MonoBehaviour
             PlayFullClearAnimation(clearColors);
         }
 
-        GameManager_2D.Instance.AddScore(linesClearedCount * 9);
+        // Pass both cleared cell count and placement score to be combined
+        GameManager_2D.Instance.AddScoreWithPlacement(cellsToClear.Count, placementScore);
+        
         if (AudioManager_2D.Instance != null) AudioManager_2D.Instance.PlayBlockDestroyAudio(GameManager_2D.Instance.combo);
 
         if (!isFullClear) CheckSymmetry();

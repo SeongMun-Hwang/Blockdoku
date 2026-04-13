@@ -99,28 +99,113 @@ public class GameManager_2D : MonoBehaviour, IGameManager
         }
     }
 
-    public void AddScore(int amount)
+    private int batchScore = 0;
+    private int batchMaxCombo = 0;
+    private List<string> batchMessages = new List<string>();
+    private bool isBatchScoring = false;
+    private bool batchHasClearedAny = false;
+
+    public void StartBatchScoring()
     {
-        int addedScore = amount * Mathf.Max(1, combo);
-        if (addedScore > 0)
+        batchScore = 0;
+        batchMaxCombo = combo;
+        batchMessages.Clear();
+        isBatchScoring = true;
+        batchHasClearedAny = false;
+    }
+
+    public void EndBatchScoring()
+    {
+        isBatchScoring = false;
+        if (batchScore > 0)
         {
-            score += addedScore;
+            score += batchScore;
             OnScoreChanged?.Invoke(score);
-            uiManager.ShowFloatingScore(addedScore, combo);
+            
+            string combinedMsg = string.Join(" ", batchMessages);
+            uiManager.ShowFloatingScore(batchScore, batchMaxCombo, combinedMsg);
 
             uiManager.Vibrate();
-            gridManager.ShakeGrid(combo);
+            
+            // Only shake the grid if lines were actually cleared
+            if (batchHasClearedAny)
+            {
+                gridManager.ShakeGrid(batchMaxCombo);
+            }
+        }
+    }
+
+    public void AddScore(int amount)
+    {
+        AddScoreWithPlacement(amount, 0);
+    }
+
+    public void AddScoreWithPlacement(int amount, int placementScore)
+    {
+        int multiplier = Mathf.Max(1, combo);
+        int clearScore = amount * 2 * multiplier;
+        int total = clearScore + placementScore;
+
+        if (isBatchScoring)
+        {
+            batchScore += total;
+            batchMaxCombo = Mathf.Max(batchMaxCombo, combo);
+            if (amount > 0) batchHasClearedAny = true;
+        }
+        else
+        {
+            if (total > 0)
+            {
+                score += total;
+                OnScoreChanged?.Invoke(score);
+                uiManager.ShowFloatingScore(total, (amount > 0) ? combo : 0);
+                uiManager.Vibrate();
+                
+                // Only shake if lines were cleared (amount > 0)
+                if (amount > 0)
+                {
+                    gridManager.ShakeGrid(combo);
+                }
+            }
+        }
+    }
+
+    public void AddPlacementScore(int amount)
+    {
+        if (isBatchScoring)
+        {
+            batchScore += amount;
+        }
+        else
+        {
+            if (amount > 0)
+            {
+                score += amount;
+                OnScoreChanged?.Invoke(score);
+                uiManager.ShowFloatingScore(amount, 0); 
+            }
         }
     }
 
     public void AddSpecialScore(int amount, string message)
     {
-        int addedScore = amount * Mathf.Max(1, combo);
-        if (addedScore > 0)
+        int multiplier = Mathf.Max(1, combo);
+        int addedScore = amount * multiplier;
+        
+        if (isBatchScoring)
         {
-            score += addedScore;
-            OnScoreChanged?.Invoke(score);
-            uiManager.ShowFloatingScore(addedScore, combo, message);
+            batchScore += addedScore;
+            batchMaxCombo = Mathf.Max(batchMaxCombo, combo);
+            if (!string.IsNullOrEmpty(message)) batchMessages.Add(message);
+        }
+        else
+        {
+            if (addedScore > 0)
+            {
+                score += addedScore;
+                OnScoreChanged?.Invoke(score);
+                uiManager.ShowFloatingScore(addedScore, combo, message);
+            }
         }
     }
 
