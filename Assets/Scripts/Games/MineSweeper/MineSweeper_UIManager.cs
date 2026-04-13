@@ -47,6 +47,12 @@ public class MineSweeper_UIManager : MonoBehaviour
     {
         if (cameraController == null) return;
         if (zoomDir != 0) cameraController.ContinuousZoom(zoomDir);
+
+        // Add Joystick movement handling
+        if (joystickInput != Vector2.zero)
+        {
+            cameraController.Move(joystickInput);
+        }
     }
 
     public void OnZoomInDown() { zoomDir = 1; }
