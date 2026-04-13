@@ -12,4 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aee03aed33617c642a3fa8ef352c8c11, type: 3}
   m_Name: I3
   m_EditorClassIdentifier: Assembly-CSharp::BlockArray
-  shapeRows: []
+  shapeRows:
+  - 111

@@ -14,8 +14,8 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
 
     [Header("Interaction")]
     [SerializeField] private float dragMovementMultiplier = 1.2f; 
-    [SerializeField] private float spawnScale = 0.5f;
-    [SerializeField] private float dragScale = 1.0f;
+    [SerializeField] private float spawnScale = 1f;
+    [SerializeField] private float dragScale = 1.2f;
     [SerializeField] private float dragYOffset = 150.0f; // Offset in pixels/units to move block above finger
 
     private Vector2 originalScale;
