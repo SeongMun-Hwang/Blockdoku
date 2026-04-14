@@ -12,7 +12,8 @@ public class BlockdokuAutoTester : MonoBehaviour
     [Header("Test Settings")]
     public int targetRuns = 100;
     public float moveDelay = 0.05f; 
-    public bool useSmartAI = true; 
+    public bool useSmartAI = true;
+    public float comboWeight = 500f; 
 
     [Header("Current Status")]
     public bool isTesting = false;
@@ -207,10 +208,24 @@ public class BlockdokuAutoTester : MonoBehaviour
     private float CalculateHeuristicScore(Vector2Int pos, List<Vector2Int> shape)
     {
         float score = 0;
+        int currentCombo = GameManager_2D.Instance != null ? GameManager_2D.Instance.combo : 0;
 
         // 1. Clears (High Priority)
         int clearCells = GridManager_2D.Instance.GetPotentialClearedCells(pos, shape).Count;
         score += clearCells * 200f;
+
+        // 1.1 Combo Weight
+        if (clearCells > 0)
+        {
+            // Bonus for maintaining or starting a combo
+            // The higher the current combo, the more we want to keep it going
+            score += (currentCombo + 1) * comboWeight;
+        }
+        else if (currentCombo > 0)
+        {
+            // Penalty for losing the current combo
+            score -= currentCombo * comboWeight * 0.5f;
+        }
 
         // 2. Edge/Corner Bonus (Keep center open)
         float distFromCenter = Vector2.Distance(new Vector2(pos.x, pos.y), new Vector2(4, 4));
