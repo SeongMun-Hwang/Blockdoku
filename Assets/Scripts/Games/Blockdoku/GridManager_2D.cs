@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine.UI;
 using System.IO;
 using DG.Tweening;
-
+using UnityEngine.Pool;
 using static SavePaths;
 
 public class GridManager_2D : MonoBehaviour
@@ -47,6 +47,8 @@ public class GridManager_2D : MonoBehaviour
     public Color subgridBorderColor = Color.black;
     public float subgridBorderWidth = 5f;
 
+    private ObjectPool<GameObject> symmetryEffectPool;
+
     [System.Serializable]
     public class SaveData_2D
     {
@@ -63,6 +65,52 @@ public class GridManager_2D : MonoBehaviour
 
         gridLayoutGroup = gridParent.GetComponent<GridLayoutGroup>();
         originalGridPos = gridParent.localPosition;
+
+        symmetryEffectPool = new ObjectPool<GameObject>(
+            createFunc: () =>
+            {
+                var obj = Instantiate(symmetryEffectPrefab, symmetryEffectContainer);
+                obj.SetActive(false);
+                return obj;
+            },
+
+            actionOnGet: (obj) =>
+            {
+                obj.SetActive(true);
+
+                // 🔥 모든 상태 초기화 (핵심)
+                DOTween.Kill(obj, false);
+
+                var rt = obj.GetComponent<RectTransform>();
+                rt.localScale = new Vector3(0.2f,0.2f,0.2f);
+                
+                rt.localRotation = Quaternion.identity;
+
+                var img = obj.GetComponent<Image>();
+                if (img != null)
+                {
+                    img.DOKill();
+                    var c = img.color;
+                    c.a = 1f;
+                    img.color = c;
+                }
+            },
+
+            actionOnRelease: (obj) =>
+            {
+                DOTween.Kill(obj, false);
+
+                var img = obj.GetComponent<Image>();
+                if (img != null) img.DOKill();
+
+                obj.SetActive(false);
+            },
+
+            actionOnDestroy: (obj) => Destroy(obj),
+            collectionCheck: false,
+            defaultCapacity: 20,
+            maxSize: 100
+        );
     }
 
     public void InitializeGrid()
@@ -387,18 +435,30 @@ public class GridManager_2D : MonoBehaviour
         LaunchSymmetryEffect(p2, colors[1]);
     }
 
-    private void LaunchSymmetryEffect(Vector3[] path, Color color, float? overrideDuration = null, bool isBlinking = false)   
+    private void LaunchSymmetryEffect(Vector3[] path, Color color, float? overrideDuration = null, bool isBlinking = false)
     {
-        GameObject effectGO = Instantiate(symmetryEffectPrefab, symmetryEffectContainer);
+        GameObject effectGO = symmetryEffectPool.Get();
+
         RectTransform rt = effectGO.GetComponent<RectTransform>();
         Image img = effectGO.GetComponent<Image>();
-        if (img != null) img.color = color;
-        rt.localPosition = path[0];
+
+        // 🔥 상태 완전 초기화
+        rt.localScale = new Vector3(0.2f,0.2f,0.2f);
+        rt.anchoredPosition = path[0];
+
+        if (img != null)
+        {
+            Color c = color;
+            c.a = 1f;
+            img.color = c;
+        }
 
         float totalDist = 0f;
-        for (int i = 0; i < path.Length - 1; i++) totalDist += Vector3.Distance(path[i], path[i + 1]);
+        for (int i = 0; i < path.Length - 1; i++)
+            totalDist += Vector3.Distance(path[i], path[i + 1]);
 
         float duration = overrideDuration ?? symmetryEffectDuration;
+
         Sequence seq = DOTween.Sequence();
         Vector2 lastGhostPos = path[0];
 
@@ -406,29 +466,70 @@ public class GridManager_2D : MonoBehaviour
         {
             Vector3 end = path[i + 1];
             float segDist = Vector3.Distance(path[i], end);
-            seq.Append(rt.DOLocalMove(end, (segDist / totalDist) * duration).SetEase(Ease.Linear).OnUpdate(() => {
-                Vector2 currentPos = rt.localPosition;
-                float distanceMoved = Vector2.Distance(currentPos, lastGhostPos);
-                if (distanceMoved >= ghostStepDistance)
-                {
-                    int segments = Mathf.FloorToInt(distanceMoved / ghostStepDistance);
-                    for (int j = 1; j <= segments; j++) CreateTrailGhost(Vector2.Lerp(lastGhostPos, currentPos, (float)j / segments), color);
-                    lastGhostPos = currentPos;
-                }
-            }));
+
+            seq.Append(
+                rt.DOAnchorPos(end, (segDist / totalDist) * duration)
+                  .SetEase(Ease.Linear)
+                  .OnUpdate(() =>
+                  {
+                      Vector2 currentPos = rt.anchoredPosition;
+                      float distanceMoved = Vector2.Distance(currentPos, lastGhostPos);
+
+                      if (distanceMoved >= ghostStepDistance)
+                      {
+                          int segments = Mathf.FloorToInt(distanceMoved / ghostStepDistance);
+
+                          for (int j = 1; j <= segments; j++)
+                          {
+                              CreateTrailGhost(
+                                  Vector2.Lerp(lastGhostPos, currentPos, (float)j / segments),
+                                  color
+                              );
+                          }
+
+                          lastGhostPos = currentPos;
+                      }
+                  })
+            );
         }
-        seq.SetEase(Ease.OutQuad).OnComplete(() => rt.DOScale(0f, 0.2f).OnComplete(() => Destroy(effectGO)));
+
+        seq.SetEase(Ease.OutQuad)
+           .OnComplete(() =>
+           {
+               rt.DOScale(0f, 0.2f)
+                 .OnComplete(() =>
+                 {
+                     symmetryEffectPool.Release(effectGO);
+                 });
+           });
     }
 
     private void CreateTrailGhost(Vector2 pos, Color color)
     {
-        GameObject ghostGO = Instantiate(symmetryEffectPrefab, symmetryEffectContainer);
+        GameObject ghostGO = symmetryEffectPool.Get();
+
         RectTransform rt = ghostGO.GetComponent<RectTransform>();
         Image img = ghostGO.GetComponent<Image>();
-        rt.localPosition = pos;
-        if (img != null) img.color = color;
+
+        // 🔥 초기화
+        rt.localScale = new Vector3(0.2f,0.2f,0.2f);
+        rt.anchoredPosition = pos;
+
+        if (img != null)
+        {
+            Color c = color;
+            c.a = 1f;
+            img.color = c;
+        }
+
         img.DOFade(0f, 0.4f);
-        rt.DOScale(0f, 0.4f).SetEase(Ease.InQuad).OnComplete(() => Destroy(ghostGO));
+
+        rt.DOScale(0f, 0.4f)
+          .SetEase(Ease.InQuad)
+          .OnComplete(() =>
+          {
+              symmetryEffectPool.Release(ghostGO);
+          });
     }
 
     private List<Color> GetRandomActiveColors(int count)
