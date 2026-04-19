@@ -143,7 +143,7 @@ public class Block_2D : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
     {
         originalPosition = rectTransform.anchoredPosition;
         originalParent = transform.parent;
-        canvas = GetComponentInParent<Canvas>();
+        if (canvas == null) canvas = GetComponentInParent<Canvas>();
         
         lastGridPosition = new Vector2Int(-1, -1); // Initialize lastGridPosition
 

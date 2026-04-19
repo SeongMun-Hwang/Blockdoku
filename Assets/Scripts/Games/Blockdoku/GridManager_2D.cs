@@ -29,6 +29,7 @@ public class GridManager_2D : MonoBehaviour
     public RectTransform symmetryEffectContainer;
     public float symmetryEffectDuration = 0.8f;
     public float ghostStepDistance = 6f;
+    public float trailExist = 0.4f;
 
     [Header("Shake Effect")]
     [Range(0f, 1f)] public float shakeDuration = 0.15f;
@@ -43,6 +44,19 @@ public class GridManager_2D : MonoBehaviour
     private HashSet<Cell_2D> currentlyBlinkingClearCells = new HashSet<Cell_2D>();
     private Dictionary<Cell_2D, Color> storedOriginalClearPredictColors = new Dictionary<Cell_2D, Color>();
     private Coroutine clearPredictBlinkCoroutine;
+
+    // Optimization: High-Performance Pooling
+    private struct PoolItem
+    {
+        public GameObject go;
+        public RectTransform rt;
+        public Image img;
+        public Vector3 initialScale;
+    }
+    private Stack<PoolItem> symmetryPool = new Stack<PoolItem>();
+    private List<Color> _tempColorList = new List<Color>();
+    private List<Cell_2D> _tempCellList = new List<Cell_2D>();
+    private WaitForSeconds cachedSequentialClearWait;
 
     public Color subgridBorderColor = Color.black;
     public float subgridBorderWidth = 5f;
@@ -63,6 +77,41 @@ public class GridManager_2D : MonoBehaviour
 
         gridLayoutGroup = gridParent.GetComponent<GridLayoutGroup>();
         originalGridPos = gridParent.localPosition;
+        cachedSequentialClearWait = new WaitForSeconds(clearAnimationSequentialDelay);
+    }
+
+    private PoolItem GetSymmetryObject()
+    {
+        if (symmetryPool.Count > 0)
+        {
+            PoolItem item = symmetryPool.Pop();
+            if (item.img != null) item.img.enabled = true;
+            item.rt.localScale = item.initialScale;
+            return item;
+        }
+        else
+        {
+            GameObject go = Instantiate(symmetryEffectPrefab, symmetryEffectContainer);
+            RectTransform rt = go.GetComponent<RectTransform>();
+            Image img = go.GetComponent<Image>();
+            return new PoolItem { go = go, rt = rt, img = img, initialScale = rt.localScale };
+        }
+    }
+
+    private void ReturnSymmetryObject(PoolItem item)
+    {
+        if (item.go == null) return;
+        
+        // 정적 Kill 메서드를 사용하여 안전하게 트윈 중지
+        DOTween.Kill(item.rt);
+        DOTween.Kill(item.img);
+        DOTween.Kill(item.go);
+
+        if (item.img != null) item.img.enabled = false;
+        
+        // 화면 밖으로 이동하여 UI Rebuild 방지
+        item.rt.localPosition = new Vector3(10000, 10000, 0); 
+        symmetryPool.Push(item);
     }
 
     public void InitializeGrid()
@@ -389,9 +438,10 @@ public class GridManager_2D : MonoBehaviour
 
     private void LaunchSymmetryEffect(Vector3[] path, Color color, float? overrideDuration = null, bool isBlinking = false)   
     {
-        GameObject effectGO = Instantiate(symmetryEffectPrefab, symmetryEffectContainer);
-        RectTransform rt = effectGO.GetComponent<RectTransform>();
-        Image img = effectGO.GetComponent<Image>();
+        PoolItem item = GetSymmetryObject();
+        RectTransform rt = item.rt;
+        Image img = item.img;
+
         if (img != null) img.color = color;
         rt.localPosition = path[0];
 
@@ -400,6 +450,7 @@ public class GridManager_2D : MonoBehaviour
 
         float duration = overrideDuration ?? symmetryEffectDuration;
         Sequence seq = DOTween.Sequence();
+        seq.SetTarget(item.go); 
         Vector2 lastGhostPos = path[0];
 
         for (int i = 0; i < path.Length - 1; i++)
@@ -417,26 +468,46 @@ public class GridManager_2D : MonoBehaviour
                 }
             }));
         }
-        seq.SetEase(Ease.OutQuad).OnComplete(() => rt.DOScale(0f, 0.2f).OnComplete(() => Destroy(effectGO)));
+        seq.SetEase(Ease.OutQuad).OnComplete(() => {
+            rt.DOScale(0f, 0.2f).OnComplete(() => ReturnSymmetryObject(item));
+        });
     }
 
     private void CreateTrailGhost(Vector2 pos, Color color)
     {
-        GameObject ghostGO = Instantiate(symmetryEffectPrefab, symmetryEffectContainer);
-        RectTransform rt = ghostGO.GetComponent<RectTransform>();
-        Image img = ghostGO.GetComponent<Image>();
+        PoolItem item = GetSymmetryObject();
+        RectTransform rt = item.rt;
+        Image img = item.img;
+
         rt.localPosition = pos;
-        if (img != null) img.color = color;
-        img.DOFade(0f, 0.4f);
-        rt.DOScale(0f, 0.4f).SetEase(Ease.InQuad).OnComplete(() => Destroy(ghostGO));
+        if (img != null) 
+        {
+            Color c = color;
+            c.a = 1f;
+            img.color = c;
+            img.DOFade(0f, trailExist);
+        }
+        rt.DOScale(0f, trailExist).SetEase(Ease.InQuad).OnComplete(() => ReturnSymmetryObject(item));
     }
 
     private List<Color> GetRandomActiveColors(int count)
     {
-        var activeColors = grid.Cast<Cell_2D>().Where(c => !c.IsEmpty).Select(c => c.BlockColor).Distinct().ToList();
+        _tempColorList.Clear();
+        for (int r = 0; r < GRID_SIZE; r++)
+        {
+            for (int c = 0; c < GRID_SIZE; c++)
+            {
+                if (!grid[r, c].IsEmpty)
+                {
+                    Color col = grid[r, c].BlockColor;
+                    if (!_tempColorList.Contains(col)) _tempColorList.Add(col);
+                }
+            }
+        }
+
         List<Color> result = new List<Color>();
-        if (activeColors.Count == 0) { for (int i = 0; i < count; i++) result.Add(Color.white); return result; }
-        for (int i = 0; i < count; i++) result.Add(activeColors[Random.Range(0, activeColors.Count)]);
+        if (_tempColorList.Count == 0) { for (int i = 0; i < count; i++) result.Add(Color.white); return result; }
+        for (int i = 0; i < count; i++) result.Add(_tempColorList[Random.Range(0, _tempColorList.Count)]);
         return result;
     }
 
@@ -483,17 +554,19 @@ public class GridManager_2D : MonoBehaviour
 
     private IEnumerator SequentialClear(HashSet<Cell_2D> cells)
     {
-        List<Cell_2D> sorted = cells.ToList();
-        int dir = Random.Range(0, 4);
-        if (dir == 0) sorted = sorted.OrderBy(c => c.gridPosition.y).ThenBy(c => c.gridPosition.x).ToList();
-        else if (dir == 1) sorted = sorted.OrderByDescending(c => c.gridPosition.y).ThenBy(c => c.gridPosition.x).ToList();
-        else if (dir == 2) sorted = sorted.OrderBy(c => c.gridPosition.x).ThenBy(c => c.gridPosition.y).ToList();
-        else sorted = sorted.OrderByDescending(c => c.gridPosition.x).ThenBy(c => c.gridPosition.y).ToList();
+        _tempCellList.Clear();
+        foreach (var cell in cells) _tempCellList.Add(cell);
 
-        for (int i = 0; i < sorted.Count; i++)
+        int dir = Random.Range(0, 4);
+        if (dir == 0) _tempCellList.Sort((a, b) => a.gridPosition.y == b.gridPosition.y ? a.gridPosition.x.CompareTo(b.gridPosition.x) : a.gridPosition.y.CompareTo(b.gridPosition.y));
+        else if (dir == 1) _tempCellList.Sort((a, b) => a.gridPosition.y == b.gridPosition.y ? a.gridPosition.x.CompareTo(b.gridPosition.x) : b.gridPosition.y.CompareTo(a.gridPosition.y));
+        else if (dir == 2) _tempCellList.Sort((a, b) => a.gridPosition.x == b.gridPosition.x ? a.gridPosition.y.CompareTo(b.gridPosition.y) : a.gridPosition.x.CompareTo(b.gridPosition.x));
+        else _tempCellList.Sort((a, b) => a.gridPosition.x == b.gridPosition.x ? a.gridPosition.y.CompareTo(b.gridPosition.y) : b.gridPosition.x.CompareTo(a.gridPosition.x));
+
+        for (int i = 0; i < _tempCellList.Count; i++)
         {
-            sorted[i].TriggerClearAnimation();
-            yield return new WaitForSeconds(clearAnimationSequentialDelay);
+            _tempCellList[i].TriggerClearAnimation();
+            yield return cachedSequentialClearWait;
         }
     }
 
@@ -533,10 +606,15 @@ public class GridManager_2D : MonoBehaviour
     private IEnumerator ClearPredictBlink(HashSet<Cell_2D> cells, Color blinkColor, float interval)
     {
         storedOriginalClearPredictColors.Clear();
-        foreach (var cell in cells) if (!previewCells.Contains(cell)) storedOriginalClearPredictColors[cell] = cell.cellImage.color;
+        foreach (var cell in cells) 
+            if (cell != null && !previewCells.Contains(cell) && cell.cellImage != null) 
+                storedOriginalClearPredictColors[cell] = cell.cellImage.color;
+
+        float elapsed = 0f;
         while (true)
         {
-            float t = Mathf.PingPong(Time.time / interval, 1.0f);
+            elapsed += Time.deltaTime;
+            float t = (Mathf.Sin(elapsed * Mathf.PI / interval) + 1f) * 0.5f;
             foreach (var cell in cells)
                 if (cell != null && !previewCells.Contains(cell) && storedOriginalClearPredictColors.TryGetValue(cell, out Color orig))
                     cell.cellImage.color = Color.Lerp(orig, blinkColor, t);

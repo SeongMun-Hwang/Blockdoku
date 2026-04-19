@@ -5662,8 +5662,9 @@ MonoBehaviour:
   defaultOccupiedCellSprite: {fileID: 21300000, guid: 899bc8baf5b111e43a8ca73eda1a6554, type: 3}
   symmetryEffectPrefab: {fileID: 277924828980795663, guid: 81b5c3be9fdc2fe41973f8f2eeed8a57, type: 3}
   symmetryEffectContainer: {fileID: 1973816862}
-  symmetryEffectDuration: 0.8
-  ghostStepDistance: 2
+  symmetryEffectDuration: 1
+  ghostStepDistance: 4
+  trailExist: 0.8
   shakeDuration: 0.15
   shakeMagnitude: 3
   subgridBorderColor: {r: 0, g: 0, b: 0, a: 0.74509805}
@@ -13193,6 +13194,7 @@ MonoBehaviour:
   targetRuns: 10
   moveDelay: 0.1
   useSmartAI: 1
+  comboWeight: 500
   isTesting: 0
   currentRun: 0
   lastScore: 0
